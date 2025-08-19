@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { APP_CONFIG } from '../config/constants';
 
 // 扩展Request接口以包含用户信息
 declare module 'express-serve-static-core' {
@@ -7,6 +8,7 @@ declare module 'express-serve-static-core' {
     user?: {
       id: string;
       email: string;
+      type?: string;
     };
   }
 }
@@ -17,19 +19,54 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ message: '访问令牌缺失' });
+    return res.status(401).json({
+      success: false,
+      message: '访问令牌缺失',
+      code: 'TOKEN_MISSING'
+    });
   }
 
-  const jwtSecret = process.env.JWT_SECRET || 'default-secret';
-
-  jwt.verify(token, jwtSecret, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: '令牌无效' });
+  try {
+    const decoded = jwt.verify(token, APP_CONFIG.JWT_SECRET) as any;
+    
+    // 确保这不是刷新令牌
+    if (decoded.type === 'refresh') {
+      return res.status(401).json({
+        success: false,
+        message: '请使用访问令牌而非刷新令牌',
+        code: 'INVALID_TOKEN_TYPE'
+      });
     }
 
-    req.user = decoded as { id: string; email: string };
+    req.user = {
+      id: decoded.id,
+      email: decoded.email
+    };
+    
     next();
-  });
+  } catch (error: any) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: '访问令牌已过期',
+        code: 'TOKEN_EXPIRED'
+      });
+    }
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: '无效的访问令牌',
+        code: 'TOKEN_INVALID'
+      });
+    }
+
+    return res.status(401).json({
+      success: false,
+      message: '令牌验证失败',
+      code: 'TOKEN_VERIFICATION_FAILED'
+    });
+  }
 };
 
 // 可选认证中间件（不强制要求登录）
@@ -41,12 +78,75 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
     return next();
   }
 
-  const jwtSecret = process.env.JWT_SECRET || 'default-secret';
-
-  jwt.verify(token, jwtSecret, (err, decoded) => {
-    if (!err) {
-      req.user = decoded as { id: string; email: string };
+  try {
+    const decoded = jwt.verify(token, APP_CONFIG.JWT_SECRET) as any;
+    
+    // 只接受访问令牌
+    if (decoded.type !== 'refresh') {
+      req.user = {
+        id: decoded.id,
+        email: decoded.email
+      };
     }
+  } catch (error) {
+    // 可选认证失败时不返回错误，继续执行
+  }
+  
+  next();
+};
+
+// 验证刷新令牌中间件
+export const validateRefreshToken = (req: Request, res: Response, next: NextFunction) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({
+      success: false,
+      message: '刷新令牌缺失',
+      code: 'REFRESH_TOKEN_MISSING'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, APP_CONFIG.JWT_SECRET) as any;
+    
+    // 确保这是刷新令牌
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({
+        success: false,
+        message: '无效的刷新令牌类型',
+        code: 'INVALID_REFRESH_TOKEN_TYPE'
+      });
+    }
+
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      type: decoded.type
+    };
+    
     next();
-  });
+  } catch (error: any) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: '刷新令牌已过期，请重新登录',
+        code: 'REFRESH_TOKEN_EXPIRED'
+      });
+    }
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: '无效的刷新令牌',
+        code: 'REFRESH_TOKEN_INVALID'
+      });
+    }
+
+    return res.status(401).json({
+      success: false,
+      message: '刷新令牌验证失败',
+      code: 'REFRESH_TOKEN_VERIFICATION_FAILED'
+    });
+  }
 };

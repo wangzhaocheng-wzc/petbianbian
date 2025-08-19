@@ -62,11 +62,57 @@ export interface Pet {
   name: string;
   type: 'dog' | 'cat' | 'other';
   breed?: string;
+  gender?: 'male' | 'female';
+  age?: number; // 年龄（月）
+  weight?: number; // 体重（kg）
+  avatar?: string;
+  description?: string;
+  medicalHistory?: {
+    allergies: string[];
+    medications: string[];
+    conditions: string[];
+  };
+  ownerId: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// 宠物相关的请求和响应类型
+export interface CreatePetRequest {
+  name: string;
+  type: 'dog' | 'cat' | 'other';
+  breed?: string;
+  gender?: 'male' | 'female';
   age?: number;
   weight?: number;
-  avatar?: string;
-  ownerId: string;
-  createdAt: Date;
+  description?: string;
+  medicalHistory?: {
+    allergies: string[];
+    medications: string[];
+    conditions: string[];
+  };
+}
+
+export interface UpdatePetRequest extends Partial<CreatePetRequest> {}
+
+export interface PetResponse {
+  success: boolean;
+  message?: string;
+  data?: Pet;
+  errors?: Array<{
+    field: string;
+    message: string;
+  }>;
+}
+
+export interface PetsListResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    pets: Pet[];
+    total: number;
+  };
 }
 
 export interface PoopRecord {
