@@ -314,7 +314,7 @@ router.post('/logout', authenticateToken, async (req: Request, res: Response) =>
 // 获取当前用户信息
 router.get('/me', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const user = await User.findById(req.user?.id);
+    const user = await User.findById(req.user?.userId);
     
     if (!user) {
       return res.status(404).json({

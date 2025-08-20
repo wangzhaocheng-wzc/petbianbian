@@ -3,10 +3,18 @@ export interface IPet extends Document {
     name: string;
     type: 'dog' | 'cat' | 'other';
     breed?: string;
+    gender?: 'male' | 'female';
     age?: number;
     weight?: number;
     avatar?: string;
+    description?: string;
+    medicalHistory?: {
+        allergies: string[];
+        medications: string[];
+        conditions: string[];
+    };
     ownerId: mongoose.Types.ObjectId;
+    isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
 }

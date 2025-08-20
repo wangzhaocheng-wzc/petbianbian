@@ -6,11 +6,20 @@ import { APP_CONFIG } from '../config/constants';
 declare module 'express-serve-static-core' {
   interface Request {
     user?: {
-      id: string;
+      userId: string;
       email: string;
       type?: string;
     };
   }
+}
+
+// 认证请求接口
+export interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    email: string;
+    type?: string;
+  };
 }
 
 // JWT认证中间件
@@ -39,7 +48,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     }
 
     req.user = {
-      id: decoded.id,
+      userId: decoded.id,
       email: decoded.email
     };
     
@@ -84,7 +93,7 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
     // 只接受访问令牌
     if (decoded.type !== 'refresh') {
       req.user = {
-        id: decoded.id,
+        userId: decoded.id,
         email: decoded.email
       };
     }
@@ -120,7 +129,7 @@ export const validateRefreshToken = (req: Request, res: Response, next: NextFunc
     }
 
     req.user = {
-      id: decoded.id,
+      userId: decoded.id,
       email: decoded.email,
       type: decoded.type
     };

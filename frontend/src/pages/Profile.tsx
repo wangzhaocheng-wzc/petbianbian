@@ -1,50 +1,42 @@
 import { useState } from 'react'
 import { PlusCircle, Edit3 } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+import { usePets } from '../hooks/usePets'
 
-interface Pet {
-  id: string
-  name: string
-  type: string
-  breed: string
-  age: number
-  weight: number
-  avatar: string
-}
+
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('pets')
-  
-  // 模拟用户数据
-  const user = {
-    name: '张三',
-    email: 'zhangsan@example.com',
-    avatar: '👤',
-    joinDate: '2024-01-15',
-    totalAnalysis: 45,
-    totalPosts: 12
+  const { user, isLoading: authLoading } = useAuth()
+  const { pets, loading: petsLoading } = usePets()
+
+  // 如果用户信息还在加载中
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    )
   }
 
-  // 模拟宠物数据
-  const pets: Pet[] = [
-    {
-      id: '1',
-      name: '豆豆',
-      type: '狗',
-      breed: '金毛',
-      age: 3,
-      weight: 28.5,
-      avatar: '🐕'
-    },
-    {
-      id: '2',
-      name: '咪咪',
-      type: '猫',
-      breed: '英短',
-      age: 2,
-      weight: 4.2,
-      avatar: '🐱'
-    }
-  ]
+  // 如果没有用户信息，显示错误状态
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-gray-600">无法获取用户信息</p>
+        </div>
+      </div>
+    )
+  }
+
+  // 格式化加入日期
+  const formatJoinDate = (date: Date | string) => {
+    return new Date(date).toLocaleDateString('zh-CN')
+  }
 
   const tabs = [
     { id: 'pets', name: '我的宠物' },
@@ -57,12 +49,12 @@ export default function Profile() {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center space-x-4">
           <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center text-3xl">
-            {user.avatar}
+            {user.avatar || '👤'}
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{user.username}</h1>
             <p className="text-gray-600">{user.email}</p>
-            <p className="text-sm text-gray-500">加入时间：{user.joinDate}</p>
+            <p className="text-sm text-gray-500">加入时间：{formatJoinDate(user.createdAt)}</p>
           </div>
           <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
             <Edit3 className="w-4 h-4 mr-2" />
@@ -72,15 +64,15 @@ export default function Profile() {
         
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-primary-600">{user.totalAnalysis}</div>
+            <div className="text-2xl font-bold text-orange-600">{user.stats.totalAnalysis}</div>
             <div className="text-sm text-gray-600">分析次数</div>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-primary-600">{pets.length}</div>
+            <div className="text-2xl font-bold text-orange-600">{pets.length}</div>
             <div className="text-sm text-gray-600">宠物数量</div>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-primary-600">{user.totalPosts}</div>
+            <div className="text-2xl font-bold text-orange-600">{user.stats.totalPosts}</div>
             <div className="text-sm text-gray-600">社区发帖</div>
           </div>
         </div>
@@ -96,7 +88,7 @@ export default function Profile() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-primary-500 text-primary-600'
+                    ? 'border-orange-500 text-orange-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -111,40 +103,63 @@ export default function Profile() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-medium text-gray-900">我的宠物</h2>
-                <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
                   <PlusCircle className="w-4 h-4 mr-2" />
                   添加宠物
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {pets.map((pet) => (
-                  <div key={pet.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-2xl">
-                        {pet.avatar}
+              {petsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600">加载宠物信息中...</p>
+                </div>
+              ) : pets.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-4">您还没有添加宠物</p>
+                  <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    添加第一只宠物
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {pets.map((pet) => (
+                    <div key={pet.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                          {pet.avatar ? (
+                            <img src={pet.avatar} alt={pet.name} className="w-12 h-12 rounded-full object-cover" />
+                          ) : (
+                            <span className="text-2xl">
+                              {pet.type === 'dog' ? '🐕' : pet.type === 'cat' ? '🐱' : '🐾'}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-medium text-gray-900">{pet.name}</h3>
+                          <p className="text-sm text-gray-600">
+                            {pet.breed || '未知品种'} · {pet.age ? `${Math.floor(pet.age / 12)}岁` : '年龄未知'}
+                          </p>
+                        </div>
+                        <button className="text-gray-400 hover:text-gray-600">
+                          <Edit3 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-medium text-gray-900">{pet.name}</h3>
-                        <p className="text-sm text-gray-600">{pet.breed} · {pet.age}岁</p>
+                      <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">类型：</span>
+                          <span className="text-gray-900 capitalize">{pet.type}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">体重：</span>
+                          <span className="text-gray-900">{pet.weight ? `${pet.weight}kg` : '未知'}</span>
+                        </div>
                       </div>
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <Edit3 className="w-4 h-4" />
-                      </button>
                     </div>
-                    <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">类型：</span>
-                        <span className="text-gray-900">{pet.type}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">体重：</span>
-                        <span className="text-gray-900">{pet.weight}kg</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -159,8 +174,8 @@ export default function Profile() {
                   </label>
                   <input
                     type="text"
-                    defaultValue={user.name}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                    defaultValue={user.username}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
                   />
                 </div>
                 
@@ -171,7 +186,7 @@ export default function Profile() {
                   <input
                     type="email"
                     defaultValue={user.email}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
                   />
                 </div>
                 
@@ -182,12 +197,12 @@ export default function Profile() {
                   <input
                     type="password"
                     placeholder="••••••••"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
                   />
                 </div>
                 
                 <div className="pt-4">
-                  <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                  <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
                     保存设置
                   </button>
                 </div>

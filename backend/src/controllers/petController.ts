@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import Pet, { IPet } from '../models/Pet';
-import { CreatePetRequest, UpdatePetRequest } from '../../../shared/types';
+import Pet from '../models/Pet';
+import { CreatePetRequest, UpdatePetRequest } from '../types';
 
 // 获取用户的宠物列表
 export const getPets = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({
@@ -39,7 +39,7 @@ export const getPets = async (req: Request, res: Response) => {
 // 获取特定宠物信息
 export const getPetById = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     const petId = req.params.id;
 
     if (!userId) {
@@ -79,7 +79,7 @@ export const getPetById = async (req: Request, res: Response) => {
 // 创建新宠物
 export const createPet = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({
@@ -158,7 +158,7 @@ export const createPet = async (req: Request, res: Response) => {
 // 更新宠物信息
 export const updatePet = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     const petId = req.params.id;
     
     if (!userId) {
@@ -241,7 +241,7 @@ export const updatePet = async (req: Request, res: Response) => {
 // 删除宠物（软删除）
 export const deletePet = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     const petId = req.params.id;
     
     if (!userId) {

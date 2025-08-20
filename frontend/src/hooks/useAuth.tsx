@@ -41,28 +41,43 @@ axios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
     
+    // 避免在刷新token的请求上重试
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      return Promise.reject(error)
+    }
+    
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
       
       const refreshToken = localStorage.getItem('refreshToken')
       if (refreshToken) {
         try {
+          console.log('尝试刷新token...')
           const response = await axios.post('/auth/refresh', {
             refreshToken
           })
           
           const { accessToken } = response.data.data.tokens
           localStorage.setItem('accessToken', accessToken)
+          console.log('Token刷新成功')
           
           // 重试原始请求
           originalRequest.headers.Authorization = `Bearer ${accessToken}`
           return axios(originalRequest)
         } catch (refreshError) {
-          // 刷新令牌失败，清除所有令牌并重定向到登录页
+          console.log('Token刷新失败:', refreshError)
+          // 刷新令牌失败，清除所有令牌
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
-          window.location.href = '/login'
+          // 触发认证状态更新
+          window.dispatchEvent(new Event('auth-logout'))
+          return Promise.reject(error)
         }
+      } else {
+        console.log('没有refresh token')
+        // 没有刷新令牌，清除访问令牌
+        localStorage.removeItem('accessToken')
+        window.dispatchEvent(new Event('auth-logout'))
       }
     }
     
@@ -80,20 +95,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('accessToken')
+      console.log('初始化认证，token存在:', !!token)
+      
       if (token) {
         try {
+          console.log('尝试获取用户信息...')
           const response = await axios.get('/auth/me')
+          console.log('用户信息获取成功:', response.data.data.user)
           setUser(response.data.data.user)
-        } catch (error) {
+        } catch (error: any) {
+          console.log('获取用户信息失败:', error.response?.status, error.response?.data?.message)
           // 令牌无效，清除本地存储
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
+          setUser(null)
         }
       }
       setIsLoading(false)
     }
 
+    // 监听认证状态变化事件
+    const handleAuthLogout = () => {
+      console.log('收到认证登出事件')
+      setUser(null)
+    }
+
+    window.addEventListener('auth-logout', handleAuthLogout)
     initAuth()
+
+    return () => {
+      window.removeEventListener('auth-logout', handleAuthLogout)
+    }
   }, [])
 
   const login = async (credentials: LoginRequest): Promise<AuthResponse> => {

@@ -118,15 +118,38 @@ export interface PetsListResponse {
 export interface PoopRecord {
   id: string;
   petId: string;
+  userId: string;
   imageUrl: string;
-  shape: 'type1' | 'type2' | 'type3' | 'type4' | 'type5' | 'type6' | 'type7';
-  healthStatus: 'healthy' | 'warning' | 'concerning';
-  notes?: string;
-  timestamp: Date;
-  aiAnalysis?: {
+  thumbnailUrl?: string;
+  analysis: {
+    shape: 'type1' | 'type2' | 'type3' | 'type4' | 'type5' | 'type6' | 'type7';
+    healthStatus: 'healthy' | 'warning' | 'concerning';
     confidence: number;
     details: string;
+    recommendations: string[];
+    detectedFeatures: {
+      color: string;
+      texture: string;
+      consistency: string;
+      size: string;
+    };
+    shapeDescription?: string;
+    healthStatusDescription?: string;
   };
+  userNotes?: string;
+  symptoms?: string[];
+  timestamp: Date;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
+  weather?: {
+    temperature: number;
+    humidity: number;
+  };
+  isShared: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CommunityPost {
@@ -137,16 +160,70 @@ export interface CommunityPost {
   content: string;
   images: string[];
   tags: string[];
-  likes: number;
-  comments: Comment[];
+  category: 'health' | 'help' | 'experience' | 'general';
+  status: 'published' | 'draft' | 'archived';
+  interactions: {
+    likes: string[];
+    views: number;
+    shares: number;
+  };
+  comments: string[];
+  isSticky: boolean;
+  isFeatured: boolean;
+  moderationStatus: 'approved' | 'pending' | 'rejected';
+  // 虚拟字段
+  likesCount?: number;
+  commentsCount?: number;
+  // 填充字段
+  user?: {
+    id: string;
+    username: string;
+    avatar?: string;
+    profile?: {
+      firstName?: string;
+      lastName?: string;
+    };
+    stats?: {
+      reputation: number;
+    };
+  };
+  pet?: {
+    id: string;
+    name: string;
+    type: string;
+    avatar?: string;
+    breed?: string;
+    age?: number;
+    weight?: number;
+  };
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Comment {
   id: string;
+  postId: string;
   userId: string;
+  parentId?: string;
   content: string;
+  likes: string[];
+  isDeleted: boolean;
+  moderationStatus: 'approved' | 'pending' | 'rejected';
+  // 虚拟字段
+  likesCount?: number;
+  replies?: Comment[];
+  // 填充字段
+  user?: {
+    id: string;
+    username: string;
+    avatar?: string;
+    profile?: {
+      firstName?: string;
+      lastName?: string;
+    };
+  };
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface HealthAnalysis {
@@ -154,4 +231,162 @@ export interface HealthAnalysis {
   healthStatus: 'healthy' | 'warning' | 'concerning';
   description: string;
   recommendations: string[];
+}
+
+// 分析相关的API类型
+export interface AnalysisRequest {
+  petId: string;
+  notes?: string;
+  symptoms?: string;
+}
+
+export interface AnalysisResponse {
+  success: boolean;
+  message: string;
+  data?: PoopRecord;
+  errors?: Array<{
+    field: string;
+    message: string;
+  }>;
+}
+
+export interface AnalysisRecordsResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    records: PoopRecord[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+    statistics: {
+      totalRecords: number;
+      healthyCount: number;
+      warningCount: number;
+      concerningCount: number;
+      healthyPercentage: number;
+      warningPercentage: number;
+      concerningPercentage: number;
+      averagePerWeek: number;
+    };
+  };
+}
+
+export interface AnalysisStatisticsResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    period: string;
+    days: number;
+    totalAnalysis: number;
+    healthyPercentage: number;
+    warningPercentage: number;
+    concerningPercentage: number;
+    averagePerWeek: number;
+    trends: Array<{
+      date: string;
+      healthy: number;
+      warning: number;
+      concerning: number;
+      total: number;
+    }>;
+    healthAssessment: {
+      currentStatus: string;
+      trend: 'improving' | 'stable' | 'declining';
+      riskLevel: 'low' | 'medium' | 'high';
+      urgency: 'none' | 'monitor' | 'consult' | 'urgent';
+      lastAnalysis: Date;
+      totalRecords: number;
+      recommendations: string[];
+    };
+    lastUpdated: Date;
+  };
+}
+//
+ 社区相关的API类型
+export interface CreatePostRequest {
+  title: string;
+  content: string;
+  petId?: string;
+  images?: string[];
+  tags?: string[];
+  category?: 'health' | 'help' | 'experience' | 'general';
+}
+
+export interface UpdatePostRequest {
+  title?: string;
+  content?: string;
+  images?: string[];
+  tags?: string[];
+  category?: 'health' | 'help' | 'experience' | 'general';
+}
+
+export interface PostsListRequest {
+  page?: number;
+  limit?: number;
+  category?: string;
+  tags?: string[];
+  search?: string;
+  sort?: 'latest' | 'popular' | 'views' | 'comments';
+}
+
+export interface PostsListResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    posts: CommunityPost[];
+    pagination: {
+      current: number;
+      total: number;
+      pageSize: number;
+      totalItems: number;
+    };
+    categories: Array<{
+      name: string;
+      label: string;
+      count: number;
+    }>;
+  };
+}
+
+export interface PostResponse {
+  success: boolean;
+  message?: string;
+  data?: CommunityPost;
+}
+
+export interface CreateCommentRequest {
+  content: string;
+  parentId?: string;
+}
+
+export interface CommentsListResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    comments: Comment[];
+    pagination: {
+      current: number;
+      total: number;
+      pageSize: number;
+      totalItems: number;
+    };
+  };
+}
+
+export interface CommentResponse {
+  success: boolean;
+  message?: string;
+  data?: Comment;
+}
+
+export interface LikeResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    isLiked: boolean;
+    likesCount: number;
+  };
 }

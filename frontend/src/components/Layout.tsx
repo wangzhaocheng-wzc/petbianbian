@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Camera, BarChart3, Users, User, LogOut, Menu, X, Heart } from 'lucide-react'
+import { Home, Camera, BarChart3, Users, User, LogOut, Menu, X, Heart, TrendingUp } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 
 interface LayoutProps {
@@ -16,7 +16,8 @@ export default function Layout({ children }: LayoutProps) {
     { name: '首页', href: '/', icon: Home, requireAuth: false },
     { name: '便便分析', href: '/analysis', icon: Camera, requireAuth: true },
     { name: '我的宠物', href: '/pets', icon: Heart, requireAuth: true },
-    { name: '记录统计', href: '/records', icon: BarChart3, requireAuth: true },
+    { name: '健康记录', href: '/records', icon: BarChart3, requireAuth: true },
+    { name: '数据统计', href: '/statistics', icon: TrendingUp, requireAuth: true },
     { name: '宠物社区', href: '/community', icon: Users, requireAuth: false },
     { name: '个人中心', href: '/profile', icon: User, requireAuth: true },
   ]

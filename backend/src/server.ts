@@ -9,7 +9,12 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import petRoutes from './routes/pets';
 import analysisRoutes from './routes/analysis';
+import recordsRoutes from './routes/records';
 import communityRoutes from './routes/community';
+import uploadRoutes from './routes/upload';
+import statisticsRoutes from './routes/statistics';
+// import alertRoutes from './routes/alerts';
+// import notificationRoutes from './routes/notifications';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { connectDB } from './utils/database';
 import { Logger } from './utils/logger';
@@ -36,7 +41,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/pets', petRoutes);
 app.use('/api/analysis', analysisRoutes);
+app.use('/api/records', recordsRoutes);
 app.use('/api/community', communityRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/statistics', statisticsRoutes);
+// app.use('/api/alerts', alertRoutes);
+// app.use('/api/notifications', notificationRoutes);
 
 // 健康检查
 app.get('/api/health', (req, res) => {

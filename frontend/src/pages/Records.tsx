@@ -1,183 +1,215 @@
-import { useState } from 'react'
-import { Calendar, TrendingUp, Filter } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { Calendar, BarChart3, Plus } from 'lucide-react';
+import RecordsList from '../components/RecordsList';
+import RecordDetail from '../components/RecordDetail';
+import RecordStatistics from '../components/RecordStatistics';
+import { useRecords, useRecordStatistics } from '../hooks/useRecords';
+import { HealthRecord } from '../services/recordsService';
+import { useAuth } from '../hooks/useAuth';
 
-interface Record {
-  id: string
-  date: string
-  time: string
-  healthStatus: 'healthy' | 'warning' | 'concerning'
-  shape: string
-  notes?: string
-}
+const Records: React.FC = () => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<'list' | 'stats'>('list');
+  const [selectedRecord, setSelectedRecord] = useState<HealthRecord | null>(null);
+  const [showRecordDetail, setShowRecordDetail] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
 
-export default function Records() {
-  const [selectedPeriod, setSelectedPeriod] = useState('week')
-  
-  // 模拟数据
-  const records: Record[] = [
-    {
-      id: '1',
-      date: '2025-01-18',
-      time: '08:30',
-      healthStatus: 'healthy',
-      shape: '类型4',
-      notes: '正常'
-    },
-    {
-      id: '2',
-      date: '2025-01-17',
-      time: '19:15',
-      healthStatus: 'healthy',
-      shape: '类型3',
-    },
-    {
-      id: '3',
-      date: '2025-01-17',
-      time: '07:45',
-      healthStatus: 'warning',
-      shape: '类型2',
-      notes: '稍微偏硬'
+  // 使用记录管理Hook
+  const {
+    records,
+    pagination,
+    filters,
+    loading: recordsLoading,
+    error: recordsError,
+    updateFilters,
+    resetFilters,
+    deleteRecord,
+    updateRecord,
+    batchDeleteRecords,
+    setError: setRecordsError
+  } = useRecords();
+
+  // 使用统计Hook
+  const {
+    statistics,
+    aggregationSummary,
+    loading: statsLoading,
+    error: statsError,
+    fetchStatistics,
+    fetchAggregationSummary,
+    setError: setStatsError
+  } = useRecordStatistics();
+
+  // 获取统计数据
+  useEffect(() => {
+    if (activeTab === 'stats') {
+      fetchStatistics(selectedPeriod);
+      fetchAggregationSummary();
     }
-  ]
+  }, [activeTab, selectedPeriod, fetchStatistics, fetchAggregationSummary]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return 'bg-green-100 text-green-800'
-      case 'warning':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'concerning':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
+  const handleViewRecord = (record: HealthRecord) => {
+    setSelectedRecord(record);
+    setShowRecordDetail(true);
+  };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return '健康'
-      case 'warning':
-        return '注意'
-      case 'concerning':
-        return '异常'
-      default:
-        return '未知'
+  const handleEditRecord = (record: HealthRecord) => {
+    setSelectedRecord(record);
+    setShowRecordDetail(true);
+  };
+
+  const handleDeleteRecord = async (record: HealthRecord) => {
+    if (window.confirm('确定要删除这条记录吗？此操作不可撤销。')) {
+      const success = await deleteRecord(record.id);
+      if (success) {
+        // 可以显示成功消息
+        console.log('记录删除成功');
+      }
     }
-  }
+  };
+
+  const handleBatchDelete = async (recordIds: string[]) => {
+    if (window.confirm(`确定要删除选中的 ${recordIds.length} 条记录吗？此操作不可撤销。`)) {
+      const result = await batchDeleteRecords(recordIds);
+      if (result) {
+        console.log(`成功删除 ${result.deletedCount} 条记录`);
+      }
+    }
+  };
+
+  const handleUpdateRecord = async (data: any) => {
+    if (selectedRecord) {
+      const updatedRecord = await updateRecord(selectedRecord.id, data);
+      if (updatedRecord) {
+        setSelectedRecord(updatedRecord);
+        console.log('记录更新成功');
+      }
+    }
+  };
+
+  const handleDeleteFromDetail = async () => {
+    if (selectedRecord) {
+      const success = await deleteRecord(selectedRecord.id);
+      if (success) {
+        setShowRecordDetail(false);
+        setSelectedRecord(null);
+        console.log('记录删除成功');
+      }
+    }
+  };
+
+  const handlePeriodChange = (period: string) => {
+    setSelectedPeriod(period);
+    fetchStatistics(period);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">健康记录</h1>
-        <div className="flex space-x-2">
-          <select
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2"
-          >
-            <option value="week">最近一周</option>
-            <option value="month">最近一月</option>
-            <option value="quarter">最近三月</option>
-          </select>
-          <button className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-            <Filter className="w-4 h-4 mr-2" />
-            筛选
-          </button>
-        </div>
-      </div>
-
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Calendar className="w-8 h-8 text-blue-500" />
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 页面标题 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">健康记录</h1>
+              <p className="mt-2 text-gray-600">查看和管理宠物的健康分析记录</p>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">本周次数</p>
-              <p className="text-2xl font-semibold text-gray-900">12</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <TrendingUp className="w-8 h-8 text-green-500" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">健康率</p>
-              <p className="text-2xl font-semibold text-gray-900">85%</p>
-            </div>
+            <button
+              onClick={() => window.location.href = '/analysis'}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+            >
+              <Plus className="w-4 h-4" />
+              新增记录
+            </button>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">!</span>
-              </div>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">需注意</p>
-              <p className="text-2xl font-semibold text-gray-900">2</p>
-            </div>
+        {/* 错误提示 */}
+        {(recordsError || statsError) && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600">
+              {recordsError || statsError}
+            </p>
+            <button
+              onClick={() => {
+                setRecordsError(null);
+                setStatsError(null);
+              }}
+              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+            >
+              关闭
+            </button>
+          </div>
+        )}
+
+        {/* 标签页导航 */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('list')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'list'
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Calendar className="w-4 h-4 inline mr-2" />
+                记录列表
+              </button>
+              <button
+                onClick={() => setActiveTab('stats')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'stats'
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4 inline mr-2" />
+                统计分析
+              </button>
+            </nav>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm">📊</span>
-              </div>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">平均/天</p>
-              <p className="text-2xl font-semibold text-gray-900">1.7</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        {/* 内容区域 */}
+        {activeTab === 'list' ? (
+          <RecordsList
+            records={records}
+            pagination={pagination}
+            filters={filters}
+            loading={recordsLoading}
+            onFiltersChange={updateFilters}
+            onViewRecord={handleViewRecord}
+            onEditRecord={handleEditRecord}
+            onDeleteRecord={handleDeleteRecord}
+            onBatchDelete={handleBatchDelete}
+          />
+        ) : (
+          <RecordStatistics
+            statistics={statistics}
+            petSummaries={aggregationSummary?.petSummaries || []}
+            loading={statsLoading}
+            onPeriodChange={handlePeriodChange}
+            selectedPeriod={selectedPeriod}
+          />
+        )}
 
-      {/* 记录列表 */}
-      <div className="bg-white shadow-sm rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">详细记录</h2>
-        </div>
-        <div className="divide-y divide-gray-200">
-          {records.map((record) => (
-            <div key={record.id} className="px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="text-sm text-gray-500">
-                    {record.date} {record.time}
-                  </div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(record.healthStatus)}`}>
-                    {getStatusText(record.healthStatus)}
-                  </span>
-                  <div className="text-sm text-gray-900">
-                    {record.shape}
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500">
-                  {record.notes}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 趋势图占位 */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">健康趋势</h2>
-        <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-          <p className="text-gray-500">趋势图表（待集成图表库）</p>
-        </div>
+        {/* 记录详情弹窗 */}
+        {selectedRecord && (
+          <RecordDetail
+            record={selectedRecord}
+            isOpen={showRecordDetail}
+            onClose={() => {
+              setShowRecordDetail(false);
+              setSelectedRecord(null);
+            }}
+            onUpdate={handleUpdateRecord}
+            onDelete={handleDeleteFromDetail}
+          />
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default Records;

@@ -14,6 +14,7 @@ const users_1 = __importDefault(require("./routes/users"));
 const pets_1 = __importDefault(require("./routes/pets"));
 const analysis_1 = __importDefault(require("./routes/analysis"));
 const community_1 = __importDefault(require("./routes/community"));
+const upload_1 = __importDefault(require("./routes/upload"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const database_1 = require("./utils/database");
 const logger_1 = require("./utils/logger");
@@ -35,6 +36,7 @@ app.use('/api/users', users_1.default);
 app.use('/api/pets', pets_1.default);
 app.use('/api/analysis', analysis_1.default);
 app.use('/api/community', community_1.default);
+app.use('/api/upload', upload_1.default);
 // 健康检查
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
