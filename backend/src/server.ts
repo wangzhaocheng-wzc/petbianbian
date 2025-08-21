@@ -13,11 +13,15 @@ import recordsRoutes from './routes/records';
 import communityRoutes from './routes/community';
 import uploadRoutes from './routes/upload';
 import statisticsRoutes from './routes/statistics';
+import moderationRoutes from './routes/moderation';
+import cacheRoutes from './routes/cache';
+import adminRoutes from './routes/admin';
 // import alertRoutes from './routes/alerts';
 // import notificationRoutes from './routes/notifications';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { connectDB } from './utils/database';
 import { Logger } from './utils/logger';
+import { connectRedis, disconnectRedis } from './config/redis';
 
 dotenv.config();
 
@@ -45,12 +49,32 @@ app.use('/api/records', recordsRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/statistics', statisticsRoutes);
+app.use('/api/moderation', moderationRoutes);
+app.use('/api/cache', cacheRoutes);
+app.use('/api/admin', adminRoutes);
 // app.use('/api/alerts', alertRoutes);
 // app.use('/api/notifications', notificationRoutes);
 
 // 健康检查
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  try {
+    const cacheService = (await import('./services/cacheService')).default;
+    const cacheStats = await cacheService.getStats();
+    
+    res.json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      cache: cacheStats?.connected ? 'connected' : 'disconnected'
+    });
+  } catch (error) {
+    res.json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      cache: 'error'
+    });
+  }
 });
 
 // 404处理
@@ -63,6 +87,7 @@ app.use(errorHandler);
 const startServer = async () => {
   try {
     await connectDB();
+    await connectRedis();
     
     app.listen(PORT, () => {
       Logger.info(`服务器运行在端口 ${PORT}`);
@@ -79,10 +104,11 @@ process.on('SIGTERM', async () => {
   Logger.info('收到SIGTERM信号，正在关闭服务器...');
   try {
     await mongoose.connection.close();
-    Logger.info('数据库连接已关闭');
+    await disconnectRedis();
+    Logger.info('数据库和缓存连接已关闭');
     process.exit(0);
   } catch (error) {
-    Logger.error('关闭数据库连接时出错:', error);
+    Logger.error('关闭连接时出错:', error);
     process.exit(1);
   }
 });
@@ -91,10 +117,11 @@ process.on('SIGINT', async () => {
   Logger.info('收到SIGINT信号，正在关闭服务器...');
   try {
     await mongoose.connection.close();
-    Logger.info('数据库连接已关闭');
+    await disconnectRedis();
+    Logger.info('数据库和缓存连接已关闭');
     process.exit(0);
   } catch (error) {
-    Logger.error('关闭数据库连接时出错:', error);
+    Logger.error('关闭连接时出错:', error);
     process.exit(1);
   }
 });

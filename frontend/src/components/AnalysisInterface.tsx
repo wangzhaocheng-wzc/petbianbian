@@ -30,4 +30,5 @@ interface AnalysisInterfaceProps {
   onSave?: (record: PoopRecord) => void;
   onEdit?: (record: PoopRecord) => void;
   onDelete?: (recordId: string) => void;
-  onRetakePhoto?: () => 
+  onRetakePhoto?: () => void;
+} 

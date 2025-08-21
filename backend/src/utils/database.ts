@@ -11,6 +11,9 @@ export const connectDB = async (): Promise<void> => {
     
     console.log('MongoDB 连接成功');
     
+    // 创建数据库索引以优化查询性能
+    await createDatabaseIndexes();
+    
     // 监听连接事件
     mongoose.connection.on('error', (err) => {
       console.error('MongoDB 连接错误:', err);
@@ -23,6 +26,71 @@ export const connectDB = async (): Promise<void> => {
   } catch (error) {
     console.error('MongoDB 连接失败:', error);
     process.exit(1);
+  }
+};
+
+// 创建数据库索引以优化查询性能
+export const createDatabaseIndexes = async (): Promise<void> => {
+  try {
+    const db = mongoose.connection.db;
+    
+    // 用户集合索引
+    await db.collection('users').createIndex({ email: 1 }, { unique: true });
+    await db.collection('users').createIndex({ username: 1 }, { unique: true });
+    await db.collection('users').createIndex({ isActive: 1 });
+    await db.collection('users').createIndex({ createdAt: -1 });
+    
+    // 宠物集合索引
+    await db.collection('pets').createIndex({ ownerId: 1, isActive: 1 });
+    await db.collection('pets').createIndex({ ownerId: 1, name: 1 });
+    await db.collection('pets').createIndex({ type: 1 });
+    await db.collection('pets').createIndex({ createdAt: -1 });
+    
+    // 便便记录集合索引
+    await db.collection('pooprecords').createIndex({ petId: 1, timestamp: -1 });
+    await db.collection('pooprecords').createIndex({ userId: 1, timestamp: -1 });
+    await db.collection('pooprecords').createIndex({ 'analysis.healthStatus': 1 });
+    await db.collection('pooprecords').createIndex({ isShared: 1 });
+    await db.collection('pooprecords').createIndex({ createdAt: -1 });
+    
+    // 社区帖子集合索引
+    await db.collection('communityposts').createIndex({ userId: 1, status: 1 });
+    await db.collection('communityposts').createIndex({ category: 1, status: 1 });
+    await db.collection('communityposts').createIndex({ tags: 1 });
+    await db.collection('communityposts').createIndex({ moderationStatus: 1 });
+    await db.collection('communityposts').createIndex({ createdAt: -1 });
+    await db.collection('communityposts').createIndex({ 'interactions.likes': 1 });
+    
+    // 评论集合索引
+    await db.collection('comments').createIndex({ postId: 1, createdAt: -1 });
+    await db.collection('comments').createIndex({ userId: 1 });
+    await db.collection('comments').createIndex({ parentId: 1 });
+    await db.collection('comments').createIndex({ moderationStatus: 1 });
+    
+    // 内容举报集合索引
+    await db.collection('contentreports').createIndex({ contentId: 1, contentType: 1 });
+    await db.collection('contentreports').createIndex({ reporterId: 1 });
+    await db.collection('contentreports').createIndex({ status: 1 });
+    await db.collection('contentreports').createIndex({ createdAt: -1 });
+    
+    // 复合索引用于复杂查询
+    await db.collection('pooprecords').createIndex({ 
+      petId: 1, 
+      'analysis.healthStatus': 1, 
+      timestamp: -1 
+    });
+    
+    await db.collection('communityposts').createIndex({ 
+      category: 1, 
+      status: 1, 
+      moderationStatus: 1, 
+      createdAt: -1 
+    });
+    
+    console.log('数据库索引创建成功');
+  } catch (error) {
+    console.error('创建数据库索引时出错:', error);
+    // 不抛出错误，允许应用继续运行
   }
 };
 

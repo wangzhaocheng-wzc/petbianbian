@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Heart, MessageCircle, Share2, Eye, Send, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, MessageCircle, Share2, Eye, MoreHorizontal, Edit } from 'lucide-react';
 import { usePost } from '../hooks/useCommunity';
+import { useCommunity } from '../hooks/useCommunity';
 import { useAuth } from '../hooks/useAuth';
-import { CommunityPost, Comment } from '../../../shared/types';
+import { CommunityPost } from '../../../shared/types';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { LikeButton } from './LikeButton';
+import { CommentList } from './CommentList';
 
 interface PostDetailProps {
   postId: string;
@@ -20,6 +23,7 @@ export const PostDetail: React.FC<PostDetailProps> = ({
   className = ''
 }) => {
   const { user } = useAuth();
+  const { toggleLikePost } = useCommunity();
   const {
     post,
     comments,
@@ -30,12 +34,9 @@ export const PostDetail: React.FC<PostDetailProps> = ({
     fetchComments,
     createComment,
     toggleLikeComment,
-    clearError
+
   } = usePost(postId);
 
-  const [commentText, setCommentText] = useState('');
-  const [submittingComment, setSubmittingComment] = useState(false);
-  const [replyTo, setReplyTo] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
 
   // 检查是否是帖子作者
@@ -50,53 +51,26 @@ export const PostDetail: React.FC<PostDetailProps> = ({
       alert('请先登录');
       return;
     }
-    // TODO: 实现帖子点赞功能
-  };
-
-  // 处理评论提交
-  const handleCommentSubmit = async () => {
-    if (!user) {
-      alert('请先登录');
-      return;
-    }
-
-    if (!commentText.trim()) {
-      alert('请输入评论内容');
-      return;
-    }
-
-    setSubmittingComment(true);
     try {
-      await createComment(postId, {
-        content: commentText.trim(),
-        parentId: replyTo || undefined
-      });
-      setCommentText('');
-      setReplyTo(null);
-    } catch (error) {
-      console.error('发布评论失败:', error);
-    } finally {
-      setSubmittingComment(false);
-    }
-  };
-
-  // 处理评论点赞
-  const handleCommentLike = async (commentId: string) => {
-    if (!user) {
-      alert('请先登录');
-      return;
-    }
-    try {
-      await toggleLikeComment(commentId);
+      await toggleLikePost(postId);
+      // 重新获取帖子数据以更新点赞状态
+      await fetchPost(postId);
     } catch (error) {
       console.error('点赞失败:', error);
     }
   };
 
-  // 处理回复
-  const handleReply = (commentId: string, username: string) => {
-    setReplyTo(commentId);
-    setCommentText(`@${username} `);
+  // 处理评论提交
+  const handleCommentSubmit = async (content: string, parentId?: string) => {
+    await createComment(postId, {
+      content,
+      parentId
+    });
+  };
+
+  // 处理评论点赞
+  const handleCommentLike = async (commentId: string) => {
+    await toggleLikeComment(commentId);
   };
 
   // 处理分享
@@ -127,84 +101,6 @@ export const PostDetail: React.FC<PostDetailProps> = ({
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-orange-600 hover:text-orange-700 underline">$1</a>')
       .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg my-2" />')
       .replace(/\n/g, '<br />');
-  };
-
-  // 渲染评论
-  const renderComment = (comment: Comment, isReply = false) => {
-    const isCommentLiked = user ? comment.likes.includes(user.id) : false;
-    
-    return (
-      <div key={comment.id} className={`${isReply ? 'ml-8 mt-3' : 'mb-4'}`}>
-        <div className="flex space-x-3">
-          {/* 用户头像 */}
-          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-            {comment.user?.avatar ? (
-              <img
-                src={comment.user.avatar}
-                alt={comment.user.username}
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-orange-600 text-sm font-medium">
-                {comment.user?.username?.charAt(0)?.toUpperCase() || 'U'}
-              </span>
-            )}
-          </div>
-          
-          <div className="flex-1">
-            {/* 评论头部 */}
-            <div className="flex items-center space-x-2 mb-1">
-              <span className="font-medium text-gray-900">
-                {comment.user?.username || '匿名用户'}
-              </span>
-              <span className="text-sm text-gray-500">
-                {formatDistanceToNow(new Date(comment.createdAt), { 
-                  addSuffix: true, 
-                  locale: zhCN 
-                })}
-              </span>
-            </div>
-            
-            {/* 评论内容 */}
-            <div 
-              className="text-gray-700 text-sm mb-2"
-              dangerouslySetInnerHTML={{ __html: renderContent(comment.content) }}
-            />
-            
-            {/* 评论操作 */}
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => handleCommentLike(comment.id)}
-                className={`flex items-center space-x-1 text-xs transition-colors ${
-                  isCommentLiked 
-                    ? 'text-red-600 hover:text-red-700' 
-                    : 'text-gray-500 hover:text-red-600'
-                }`}
-              >
-                <Heart size={14} className={isCommentLiked ? 'fill-current' : ''} />
-                <span>{comment.likesCount || comment.likes.length}</span>
-              </button>
-              
-              {user && (
-                <button
-                  onClick={() => handleReply(comment.id, comment.user?.username || '用户')}
-                  className="text-xs text-gray-500 hover:text-orange-600 transition-colors"
-                >
-                  回复
-                </button>
-              )}
-            </div>
-            
-            {/* 回复列表 */}
-            {comment.replies && comment.replies.length > 0 && (
-              <div className="mt-3">
-                {comment.replies.map(reply => renderComment(reply, true))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
   };
 
   if (loading && !post) {
@@ -364,17 +260,12 @@ export const PostDetail: React.FC<PostDetailProps> = ({
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
-              <button
-                onClick={handlePostLike}
-                className={`flex items-center space-x-2 transition-colors ${
-                  isPostLiked 
-                    ? 'text-red-600 hover:text-red-700' 
-                    : 'text-gray-500 hover:text-red-600'
-                }`}
-              >
-                <Heart size={20} className={isPostLiked ? 'fill-current' : ''} />
-                <span>{post.likesCount || post.interactions.likes.length}</span>
-              </button>
+              <LikeButton
+                isLiked={isPostLiked}
+                likesCount={post.likesCount || post.interactions.likes.length}
+                onToggle={handlePostLike}
+                size="lg"
+              />
               
               <div className="flex items-center space-x-2 text-gray-500">
                 <MessageCircle size={20} />
@@ -399,113 +290,18 @@ export const PostDetail: React.FC<PostDetailProps> = ({
       </div>
 
       {/* 评论区 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            评论 ({commentsPagination.totalItems})
-          </h3>
-          
-          {/* 发表评论 */}
-          {user ? (
-            <div className="mb-6">
-              {replyTo && (
-                <div className="mb-2 text-sm text-gray-500">
-                  回复评论
-                  <button
-                    onClick={() => {
-                      setReplyTo(null);
-                      setCommentText('');
-                    }}
-                    className="ml-2 text-orange-600 hover:text-orange-700"
-                  >
-                    取消
-                  </button>
-                </div>
-              )}
-              
-              <div className="flex space-x-3">
-                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.username}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-orange-600 text-sm font-medium">
-                      {user.username?.charAt(0)?.toUpperCase() || 'U'}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex-1">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="写下你的评论..."
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
-                    maxLength={2000}
-                  />
-                  
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm text-gray-500">
-                      {commentText.length}/2000
-                    </span>
-                    
-                    <button
-                      onClick={handleCommentSubmit}
-                      disabled={!commentText.trim() || submittingComment}
-                      className="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Send size={16} className="mr-2" />
-                      {submittingComment ? '发布中...' : '发布评论'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg text-center">
-              <p className="text-gray-600 mb-2">登录后可以发表评论</p>
-              <button className="text-orange-600 hover:text-orange-700 font-medium">
-                立即登录
-              </button>
-            </div>
-          )}
-          
-          {/* 评论列表 */}
-          <div>
-            {loading && comments.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="animate-spin w-6 h-6 border-2 border-orange-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                <p className="text-gray-500 text-sm">加载评论中...</p>
-              </div>
-            ) : comments.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">暂无评论，来发表第一个评论吧！</p>
-              </div>
-            ) : (
-              <div>
-                {comments.map(comment => renderComment(comment))}
-                
-                {/* 加载更多评论 */}
-                {commentsPagination.current < commentsPagination.total && (
-                  <div className="text-center mt-6">
-                    <button
-                      onClick={() => fetchComments(postId, commentsPagination.current + 1)}
-                      disabled={loading}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-                    >
-                      {loading ? '加载中...' : '加载更多评论'}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <CommentList
+        comments={comments}
+        currentUserId={user?.id}
+        currentUserAvatar={user?.avatar}
+        currentUserUsername={user?.username}
+        totalComments={commentsPagination.totalItems}
+        loading={loading}
+        hasMore={commentsPagination.current < commentsPagination.total}
+        onLoadMore={() => fetchComments(postId, commentsPagination.current + 1)}
+        onCreateComment={handleCommentSubmit}
+        onLikeComment={handleCommentLike}
+      />
       
       {/* 点击遮罩，用于关闭菜单 */}
       {showMenu && (

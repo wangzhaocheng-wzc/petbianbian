@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Camera, BarChart3, Users, User, LogOut, Menu, X, Heart, TrendingUp } from 'lucide-react'
+import { Home, Camera, BarChart3, Users, User, LogOut, Menu, X, Heart, TrendingUp, Shield } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 
 interface LayoutProps {
@@ -20,12 +20,22 @@ export default function Layout({ children }: LayoutProps) {
     { name: '数据统计', href: '/statistics', icon: TrendingUp, requireAuth: true },
     { name: '宠物社区', href: '/community', icon: Users, requireAuth: false },
     { name: '个人中心', href: '/profile', icon: User, requireAuth: true },
+    { name: '管理后台', href: '/admin', icon: Shield, requireAuth: true, requireRole: 'admin' },
   ]
 
-  // 根据认证状态过滤导航项
-  const filteredNavigation = navigation.filter(item => 
-    !item.requireAuth || isAuthenticated
-  )
+  // 根据认证状态和角色过滤导航项
+  const filteredNavigation = navigation.filter(item => {
+    // 如果不需要认证，直接显示
+    if (!item.requireAuth) return true
+    
+    // 如果需要认证但用户未登录，不显示
+    if (!isAuthenticated) return false
+    
+    // 如果需要特定角色但用户角色不匹配，不显示
+    if (item.requireRole && user?.role !== item.requireRole) return false
+    
+    return true
+  })
 
   const handleLogout = () => {
     logout()

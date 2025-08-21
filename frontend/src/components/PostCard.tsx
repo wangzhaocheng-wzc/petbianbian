@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, Eye, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { MessageCircle, Share2, Eye, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { CommunityPost } from '../../../shared/types';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { LikeButton } from './LikeButton';
 
 interface PostCardProps {
   post: CommunityPost;
   currentUserId?: string;
-  onLike?: (postId: string) => void;
+  onLike?: (postId: string) => Promise<void>;
   onComment?: (postId: string) => void;
   onShare?: (postId: string) => void;
   onEdit?: (post: CommunityPost) => void;
@@ -290,20 +291,18 @@ export const PostCard: React.FC<PostCardProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             {/* 点赞 */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onLike?.(post.id);
+            <LikeButton
+              isLiked={isLiked}
+              likesCount={post.likesCount || post.interactions.likes.length}
+              onToggle={async () => {
+                if (!currentUserId) {
+                  alert('请先登录');
+                  return;
+                }
+                await onLike?.(post.id);
               }}
-              className={`flex items-center space-x-1 text-sm transition-colors ${
-                isLiked 
-                  ? 'text-red-600 hover:text-red-700' 
-                  : 'text-gray-500 hover:text-red-600'
-              }`}
-            >
-              <Heart size={16} className={isLiked ? 'fill-current' : ''} />
-              <span>{post.likesCount || post.interactions.likes.length}</span>
-            </button>
+              size="sm"
+            />
             
             {/* 评论 */}
             <button

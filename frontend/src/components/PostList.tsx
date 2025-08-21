@@ -81,7 +81,7 @@ export const PostList: React.FC<PostListProps> = ({
 
   // 处理排序切换
   const handleSortChange = (sort: string) => {
-    const newFilters = { ...filters, sort, page: 1 };
+    const newFilters = { ...filters, sort: sort as 'latest' | 'popular' | 'views' | 'comments', page: 1 };
     setFilters(newFilters);
     loadPosts(newFilters);
   };

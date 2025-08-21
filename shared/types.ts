@@ -5,6 +5,7 @@ export interface User {
   username: string;
   email: string;
   avatar?: string;
+  role: 'user' | 'admin' | 'moderator';
   profile: {
     firstName?: string;
     lastName?: string;
@@ -304,8 +305,7 @@ export interface AnalysisStatisticsResponse {
     lastUpdated: Date;
   };
 }
-//
- 社区相关的API类型
+// 社区相关的API类型
 export interface CreatePostRequest {
   title: string;
   content: string;
@@ -388,5 +388,143 @@ export interface LikeResponse {
   data?: {
     isLiked: boolean;
     likesCount: number;
+  };
+}
+
+// 内容审核相关类型
+export interface ContentReport {
+  id: string;
+  reporterId: string;
+  targetType: 'post' | 'comment';
+  targetId: string;
+  reason: 'spam' | 'inappropriate' | 'harassment' | 'violence' | 'hate_speech' | 'misinformation' | 'other';
+  description?: string;
+  status: 'pending' | 'reviewing' | 'resolved' | 'dismissed';
+  reviewerId?: string;
+  reviewNotes?: string;
+  action?: 'none' | 'warning' | 'content_removed' | 'user_suspended' | 'user_banned';
+  // 填充字段
+  reporter?: {
+    id: string;
+    username: string;
+    avatar?: string;
+  };
+  reviewer?: {
+    id: string;
+    username: string;
+    avatar?: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ModerationRule {
+  id: string;
+  name: string;
+  description: string;
+  type: 'keyword' | 'pattern' | 'length' | 'frequency' | 'custom';
+  config: {
+    keywords?: string[];
+    patterns?: string[];
+    minLength?: number;
+    maxLength?: number;
+    maxFrequency?: number;
+    timeWindow?: number;
+    customScript?: string;
+  };
+  action: 'flag' | 'auto_reject' | 'require_approval' | 'warning';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  isActive: boolean;
+  appliesTo: ('post' | 'comment')[];
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// 审核相关的API类型
+export interface CreateReportRequest {
+  targetType: 'post' | 'comment';
+  targetId: string;
+  reason: 'spam' | 'inappropriate' | 'harassment' | 'violence' | 'hate_speech' | 'misinformation' | 'other';
+  description?: string;
+}
+
+export interface ProcessReportRequest {
+  action: 'none' | 'warning' | 'content_removed' | 'user_suspended' | 'user_banned';
+  reviewNotes?: string;
+}
+
+export interface CreateModerationRuleRequest {
+  name: string;
+  description: string;
+  type: 'keyword' | 'pattern' | 'length' | 'frequency' | 'custom';
+  config: {
+    keywords?: string[];
+    patterns?: string[];
+    minLength?: number;
+    maxLength?: number;
+    maxFrequency?: number;
+    timeWindow?: number;
+    customScript?: string;
+  };
+  action: 'flag' | 'auto_reject' | 'require_approval' | 'warning';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  appliesTo: ('post' | 'comment')[];
+}
+
+export interface ReportsListResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    reports: ContentReport[];
+    pagination: {
+      current: number;
+      total: number;
+      pageSize: number;
+      totalItems: number;
+    };
+  };
+}
+
+export interface ModerationRulesResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    rules: ModerationRule[];
+    pagination: {
+      current: number;
+      total: number;
+      pageSize: number;
+      totalItems: number;
+    };
+  };
+}
+
+export interface ModerationStatsResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    reports: {
+      pending?: number;
+      reviewing?: number;
+      resolved?: number;
+      dismissed?: number;
+    };
+    pendingContent: {
+      posts: number;
+      comments: number;
+    };
+  };
+}
+
+export interface ContentModerationTestResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    isAllowed: boolean;
+    action: 'approve' | 'flag' | 'reject' | 'require_approval';
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    reasons: string[];
+    triggeredRules: string[];
   };
 }

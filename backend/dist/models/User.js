@@ -65,6 +65,11 @@ const UserSchema = new mongoose_1.Schema({
         type: String,
         default: null
     },
+    role: {
+        type: String,
+        enum: ['user', 'admin', 'moderator'],
+        default: 'user'
+    },
     profile: {
         firstName: { type: String, trim: true },
         lastName: { type: String, trim: true },

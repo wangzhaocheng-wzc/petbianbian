@@ -3,6 +3,9 @@ import mongoose from 'mongoose';
 import CommunityPost, { ICommunityPost } from '../models/CommunityPost';
 import Comment, { IComment } from '../models/Comment';
 import { AuthRequest } from '../middleware/auth';
+import ModerationService from '../services/moderationService';
+
+const moderationService = new ModerationService();
 
 // 获取帖子列表
 export const getPosts = async (req: Request, res: Response) => {
@@ -219,6 +222,29 @@ export const createPost = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // 内容审核
+    const moderationResult = ModerationService.moderateContent(content.trim(), title.trim());
+
+    // 根据审核结果决定状态
+    let moderationStatus: 'approved' | 'pending' | 'rejected' = 'approved';
+    let status: 'published' | 'draft' | 'archived' = 'published';
+
+    if (!moderationResult.isAllowed) {
+      if (moderationResult.action === 'reject') {
+        return res.status(400).json({
+          success: false,
+          message: '内容违规，无法发布',
+          details: moderationResult.reasons
+        });
+      } else if (moderationResult.action === 'require_approval') {
+        moderationStatus = 'pending';
+        status = 'draft';
+      }
+    } else if (moderationResult.action === 'flag') {
+      // 内容可以发布但需要标记
+      moderationStatus = 'approved';
+    }
+
     const postData: Partial<ICommunityPost> = {
       userId: new mongoose.Types.ObjectId(userId),
       title: title.trim(),
@@ -226,7 +252,7 @@ export const createPost = async (req: AuthRequest, res: Response) => {
       images: Array.isArray(images) ? images : [],
       tags: Array.isArray(tags) ? tags.map((tag: string) => tag.trim()).filter(Boolean) : [],
       category,
-      status: 'published',
+      status,
       interactions: {
         likes: [],
         views: 0,
@@ -235,7 +261,7 @@ export const createPost = async (req: AuthRequest, res: Response) => {
       comments: [],
       isSticky: false,
       isFeatured: false,
-      moderationStatus: 'approved' // 简化版本，直接通过审核
+      moderationStatus
     };
 
     if (petId) {
@@ -589,13 +615,34 @@ export const createComment = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    // 内容审核
+    const moderationResult = ModerationService.moderateContent(content.trim());
+
+    // 根据审核结果决定状态
+    let moderationStatus: 'approved' | 'pending' | 'rejected' = 'approved';
+
+    if (!moderationResult.isAllowed) {
+      if (moderationResult.action === 'reject') {
+        return res.status(400).json({
+          success: false,
+          message: '评论违规，无法发布',
+          details: moderationResult.reasons
+        });
+      } else if (moderationResult.action === 'require_approval') {
+        moderationStatus = 'pending';
+      }
+    } else if (moderationResult.action === 'flag') {
+      // 评论可以发布但需要标记
+      moderationStatus = 'approved';
+    }
+
     const commentData: Partial<IComment> = {
       postId: new mongoose.Types.ObjectId(id),
       userId: new mongoose.Types.ObjectId(userId),
       content: content.trim(),
       likes: [],
       isDeleted: false,
-      moderationStatus: 'approved' // 简化版本，直接通过审核
+      moderationStatus
     };
 
     if (parentId) {

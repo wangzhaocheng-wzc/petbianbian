@@ -28,14 +28,15 @@ const CommentSchema = new Schema<IComment>({
   parentId: {
     type: Schema.Types.ObjectId,
     ref: 'Comment',
-    required: false,
+    default: null,
     index: true
   },
   content: {
     type: String,
-    required: true,
+    required: [true, '评论内容不能为空'],
     trim: true,
-    maxlength: 2000
+    maxlength: [1000, '评论内容不能超过1000个字符'],
+    minlength: [1, '评论内容不能为空']
   },
   likes: [{
     type: Schema.Types.ObjectId,
@@ -59,9 +60,10 @@ const CommentSchema = new Schema<IComment>({
 });
 
 // 索引优化
-CommentSchema.index({ postId: 1, createdAt: 1 });
+CommentSchema.index({ postId: 1, createdAt: -1 });
 CommentSchema.index({ userId: 1, createdAt: -1 });
 CommentSchema.index({ parentId: 1, createdAt: 1 });
+CommentSchema.index({ 'likes': 1 });
 
 // 虚拟字段
 CommentSchema.virtual('likesCount').get(function() {
@@ -71,46 +73,43 @@ CommentSchema.virtual('likesCount').get(function() {
 CommentSchema.virtual('replies', {
   ref: 'Comment',
   localField: '_id',
-  foreignField: 'parentId'
-});
-
-// 中间件：更新时间
-CommentSchema.pre('save', function(next) {
-  if (this.isModified() && !this.isNew) {
-    this.updatedAt = new Date();
+  foreignField: 'parentId',
+  options: { 
+    sort: { createdAt: 1 },
+    populate: {
+      path: 'userId',
+      select: 'username avatar profile.firstName profile.lastName'
+    }
   }
-  next();
 });
 
 // 静态方法：获取帖子的评论
 CommentSchema.statics.findByPost = function(postId: mongoose.Types.ObjectId, options: any = {}) {
   const query = this.find({ 
-    postId, 
+    postId,
     isDeleted: false,
     moderationStatus: 'approved',
-    parentId: { $exists: false } // 只获取顶级评论
+    parentId: null // 只获取顶级评论
   });
   
   if (options.limit) query.limit(options.limit);
   if (options.skip) query.skip(options.skip);
   
-  return query.sort({ createdAt: 1 })
-    .populate('userId', 'username avatar')
+  return query.sort({ createdAt: -1 })
+    .populate('userId', 'username avatar profile.firstName profile.lastName')
     .populate({
       path: 'replies',
-      match: { isDeleted: false, moderationStatus: 'approved' },
       populate: {
         path: 'userId',
-        select: 'username avatar'
-      },
-      options: { sort: { createdAt: 1 } }
+        select: 'username avatar profile.firstName profile.lastName'
+      }
     });
 };
 
 // 静态方法：获取用户的评论
 CommentSchema.statics.findByUser = function(userId: mongoose.Types.ObjectId, options: any = {}) {
   const query = this.find({ 
-    userId, 
+    userId,
     isDeleted: false,
     moderationStatus: 'approved'
   });
@@ -142,5 +141,17 @@ CommentSchema.methods.softDelete = function() {
   this.isDeleted = true;
   return this.save();
 };
+
+// 中间件：删除评论时同时删除回复
+CommentSchema.pre('save', async function(next) {
+  if (this.isModified('isDeleted') && this.isDeleted) {
+    // 软删除所有回复
+    await mongoose.model('Comment').updateMany(
+      { parentId: this._id },
+      { isDeleted: true }
+    );
+  }
+  next();
+});
 
 export default mongoose.model<IComment>('Comment', CommentSchema);

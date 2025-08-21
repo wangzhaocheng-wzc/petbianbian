@@ -9,6 +9,7 @@ declare module 'express-serve-static-core' {
       userId: string;
       email: string;
       type?: string;
+      role?: string;
     };
   }
 }
@@ -19,6 +20,7 @@ export interface AuthRequest extends Request {
     userId: string;
     email: string;
     type?: string;
+    role?: string;
   };
 }
 
@@ -158,4 +160,50 @@ export const validateRefreshToken = (req: Request, res: Response, next: NextFunc
       code: 'REFRESH_TOKEN_VERIFICATION_FAILED'
     });
   }
+};
+
+// 角色权限中间件
+export const requireRole = (allowedRoles: string[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user?.userId) {
+        return res.status(401).json({
+          success: false,
+          message: '用户未认证',
+          code: 'USER_NOT_AUTHENTICATED'
+        });
+      }
+
+      // 动态导入User模型以避免循环依赖
+      const User = (await import('../models/User')).default;
+      
+      const user = await User.findById(req.user.userId).select('role');
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: '用户不存在',
+          code: 'USER_NOT_FOUND'
+        });
+      }
+
+      if (!allowedRoles.includes(user.role)) {
+        return res.status(403).json({
+          success: false,
+          message: '权限不足',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+
+      // 将用户角色添加到请求对象中
+      req.user.role = user.role;
+      next();
+    } catch (error) {
+      console.error('角色验证失败:', error);
+      return res.status(500).json({
+        success: false,
+        message: '角色验证失败',
+        code: 'ROLE_VERIFICATION_FAILED'
+      });
+    }
+  };
 };

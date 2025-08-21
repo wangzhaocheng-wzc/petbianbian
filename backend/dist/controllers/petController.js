@@ -8,7 +8,7 @@ const Pet_1 = __importDefault(require("../models/Pet"));
 // 获取用户的宠物列表
 const getPets = async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         if (!userId) {
             return res.status(401).json({
                 success: false,
@@ -40,7 +40,7 @@ exports.getPets = getPets;
 // 获取特定宠物信息
 const getPetById = async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         const petId = req.params.id;
         if (!userId) {
             return res.status(401).json({
@@ -77,7 +77,7 @@ exports.getPetById = getPetById;
 // 创建新宠物
 const createPet = async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         if (!userId) {
             return res.status(401).json({
                 success: false,
@@ -146,7 +146,7 @@ exports.createPet = createPet;
 // 更新宠物信息
 const updatePet = async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         const petId = req.params.id;
         if (!userId) {
             return res.status(401).json({
@@ -215,7 +215,7 @@ exports.updatePet = updatePet;
 // 删除宠物（软删除）
 const deletePet = async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         const petId = req.params.id;
         if (!userId) {
             return res.status(401).json({
