@@ -64,7 +64,7 @@ class ModerationService {
   // 从数据库加载审核规则
   async loadRules() {
     try {
-      this.rules = await ModerationRule.findActiveRules();
+      this.rules = await ModerationRule.find({ isActive: true }).sort({ severity: -1, createdAt: -1 });
       
       // 更新敏感词库
       this.sensitiveWords.clear();
@@ -304,8 +304,16 @@ class ModerationService {
         throw new Error('举报记录不存在');
       }
 
-      await report.assignReviewer(reviewerId);
-      await report.completeReview(action, reviewNotes);
+      // 分配审核员
+      report.reviewerId = reviewerId;
+      report.status = 'reviewing';
+      
+      // 完成审核
+      report.action = action as any;
+      report.reviewNotes = reviewNotes;
+      report.status = action === 'none' ? 'dismissed' : 'resolved';
+      
+      await report.save();
 
       // 根据处理结果执行相应动作
       await this.executeAction(report, action);
@@ -420,204 +428,6 @@ class ModerationService {
       Logger.error('Failed to get moderation stats:', error);
       throw error;
     }
-  }
-}
-
-export const moderationService = new ModerationService();创建举报
-   */
-  static async createReport(
-    reporterId: mongoose.Types.ObjectId,
-    targetType: 'post' | 'comment' | 'user',
-    targetId: mongoose.Types.ObjectId,
-    reason: string,
-    description?: string
-  ) {
-    try {
-      const report = new Report({
-        reporterId,
-        targetType,
-        targetId,
-        reason,
-        description
-      });
-
-      await report.save();
-
-      // 如果举报数量达到阈值，自动标记为待审核
-      const reportCount = await Report.countDocuments({
-        targetType,
-        targetId,
-        status: { $in: ['pending', 'reviewed'] }
-      });
-
-      if (reportCount >= 3) {
-        await this.autoModerateBatch(targetType, targetId);
-      }
-
-      return report;
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new Error('您已经举报过此内容');
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * 自动审核批处理
-   */
-  static async autoModerateBatch(
-    targetType: 'post' | 'comment' | 'user',
-    targetId: mongoose.Types.ObjectId
-  ) {
-    try {
-      if (targetType === 'post') {
-        await CommunityPost.findByIdAndUpdate(targetId, {
-          moderationStatus: 'pending'
-        });
-      } else if (targetType === 'comment') {
-        await Comment.findByIdAndUpdate(targetId, {
-          moderationStatus: 'pending'
-        });
-      }
-    } catch (error) {
-      console.error('Auto moderation failed:', error);
-    }
-  }
-
-  /**
-   * 获取待审核内容
-   */
-  static async getPendingContent(page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
-
-    const [posts, comments, reports] = await Promise.all([
-      CommunityPost.find({ moderationStatus: 'pending' })
-        .populate('userId', 'username avatar')
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .skip(skip),
-      
-      Comment.find({ moderationStatus: 'pending' })
-        .populate('userId', 'username avatar')
-        .populate('postId', 'title')
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .skip(skip),
-      
-      Report.find({ status: 'pending' })
-        .populate('reporterId', 'username')
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .skip(skip)
-    ]);
-
-    return {
-      posts,
-      comments,
-      reports,
-      pagination: {
-        page,
-        limit,
-        total: await Promise.all([
-          CommunityPost.countDocuments({ moderationStatus: 'pending' }),
-          Comment.countDocuments({ moderationStatus: 'pending' }),
-          Report.countDocuments({ status: 'pending' })
-        ])
-      }
-    };
-  }
-
-  /**
-   * 审核决定
-   */
-  static async moderateDecision(
-    type: 'post' | 'comment' | 'report',
-    id: mongoose.Types.ObjectId,
-    decision: 'approve' | 'reject',
-    reviewerId: mongoose.Types.ObjectId,
-    notes?: string
-  ) {
-    try {
-      if (type === 'post') {
-        await CommunityPost.findByIdAndUpdate(id, {
-          moderationStatus: decision === 'approve' ? 'approved' : 'rejected'
-        });
-      } else if (type === 'comment') {
-        await Comment.findByIdAndUpdate(id, {
-          moderationStatus: decision === 'approve' ? 'approved' : 'rejected'
-        });
-      } else if (type === 'report') {
-        await Report.findByIdAndUpdate(id, {
-          status: decision === 'approve' ? 'resolved' : 'dismissed',
-          reviewerId,
-          reviewNotes: notes
-        });
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Moderation decision failed:', error);
-      return false;
-    }
-  }
-
-  /**
-   * 获取用户违规统计
-   */
-  static async getUserViolationStats(userId: mongoose.Types.ObjectId) {
-    const [rejectedPosts, rejectedComments, reports] = await Promise.all([
-      CommunityPost.countDocuments({
-        userId,
-        moderationStatus: 'rejected'
-      }),
-      Comment.countDocuments({
-        userId,
-        moderationStatus: 'rejected'
-      }),
-      Report.countDocuments({
-        targetType: 'user',
-        targetId: userId,
-        status: { $in: ['pending', 'resolved'] }
-      })
-    ]);
-
-    return {
-      rejectedPosts,
-      rejectedComments,
-      reports,
-      totalViolations: rejectedPosts + rejectedComments + reports
-    };
-  }
-
-  /**
-   * 批量审核
-   */
-  static async batchModerate(
-    items: Array<{
-      type: 'post' | 'comment';
-      id: mongoose.Types.ObjectId;
-      decision: 'approve' | 'reject';
-    }>,
-    reviewerId: mongoose.Types.ObjectId
-  ) {
-    const results = [];
-
-    for (const item of items) {
-      try {
-        const result = await this.moderateDecision(
-          item.type,
-          item.id,
-          item.decision,
-          reviewerId
-        );
-        results.push({ id: item.id, success: result });
-      } catch (error) {
-        results.push({ id: item.id, success: false, error: error.message });
-      }
-    }
-
-    return results;
   }
 }
 

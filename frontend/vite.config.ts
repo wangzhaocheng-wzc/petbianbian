@@ -1,11 +1,72 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    // PWA配置
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      manifest: {
+        name: '宠物健康监测社区平台',
+        short_name: '宠物健康',
+        description: '专业的宠物健康监测和社区交流平台，通过AI分析帮助您了解宠物健康状况',
+        theme_color: '#f97316',
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'portrait',
+        scope: '/',
+        start_url: '/',
+        icons: [
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^\/api\//,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 300 // 5分钟
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 86400 // 1天
+              }
+            }
+          }
+        ]
+      },
+      devOptions: {
+        enabled: false
+      }
+    }),
     // 只在分析模式下启用bundle分析器
     ...(mode === 'analyze' ? [
       visualizer({
@@ -100,4 +161,11 @@ export default defineConfig(({ mode }) => ({
     // 移除生产环境的console和debugger
     drop: ['console', 'debugger'],
   },
+  // 测试配置
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    css: true
+  }
 }))

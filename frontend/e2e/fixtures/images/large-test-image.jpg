@@ -1,0 +1,4 @@
+# This is a placeholder for a large test image (>10MB simulation)
+# In a real implementation, this would be a large binary image file
+# For testing purposes, we'll simulate a large file
+LARGE_TEST_IMAGE_PLACEHOLDER_CONTENT_THAT_SIMULATES_A_LARGE_FILE

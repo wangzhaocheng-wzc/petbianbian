@@ -1,0 +1,20 @@
+[
+  {
+    "name": "导入测试宠物1",
+    "type": "dog",
+    "breed": "拉布拉多",
+    "age": 4,
+    "weight": 28.5,
+    "gender": "male",
+    "description": "从JSON文件导入的测试宠物1"
+  },
+  {
+    "name": "导入测试宠物2",
+    "type": "cat",
+    "breed": "英国短毛猫",
+    "age": 2,
+    "weight": 4.8,
+    "gender": "female",
+    "description": "从JSON文件导入的测试宠物2"
+  }
+]

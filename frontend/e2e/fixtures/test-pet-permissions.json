@@ -1,0 +1,233 @@
+{
+  "testUsers": [
+    {
+      "username": "pet_owner_1",
+      "email": "owner1@test.com",
+      "password": "TestPass123!",
+      "firstName": "Pet",
+      "lastName": "Owner1",
+      "role": "user"
+    },
+    {
+      "username": "pet_owner_2", 
+      "email": "owner2@test.com",
+      "password": "TestPass123!",
+      "firstName": "Pet",
+      "lastName": "Owner2",
+      "role": "user"
+    },
+    {
+      "username": "shared_user",
+      "email": "shared@test.com", 
+      "password": "TestPass123!",
+      "firstName": "Shared",
+      "lastName": "User",
+      "role": "user"
+    },
+    {
+      "username": "admin_user",
+      "email": "admin@test.com",
+      "password": "AdminPass123!",
+      "firstName": "Admin",
+      "lastName": "User", 
+      "role": "admin"
+    }
+  ],
+  
+  "testPets": [
+    {
+      "name": "Buddy",
+      "type": "dog",
+      "breed": "Golden Retriever",
+      "age": 3,
+      "weight": 25.5,
+      "gender": "male",
+      "color": "金色",
+      "description": "友好活泼的金毛犬"
+    },
+    {
+      "name": "Whiskers",
+      "type": "cat", 
+      "breed": "Persian",
+      "age": 2,
+      "weight": 4.2,
+      "gender": "female",
+      "color": "白色",
+      "description": "优雅的波斯猫"
+    },
+    {
+      "name": "Max",
+      "type": "dog",
+      "breed": "German Shepherd", 
+      "age": 5,
+      "weight": 35.0,
+      "gender": "male",
+      "color": "黑棕色",
+      "description": "忠诚的德国牧羊犬"
+    },
+    {
+      "name": "Luna",
+      "type": "cat",
+      "breed": "Maine Coon",
+      "age": 4, 
+      "weight": 6.8,
+      "gender": "female",
+      "color": "灰色",
+      "description": "大型缅因猫"
+    }
+  ],
+
+  "testAnalysisRecords": [
+    {
+      "result": {
+        "healthStatus": "healthy",
+        "confidence": 0.95,
+        "recommendations": ["继续保持良好的饮食习惯", "定期检查身体状况"],
+        "details": {
+          "shape": "正常成型",
+          "color": "棕色", 
+          "consistency": "正常"
+        }
+      },
+      "notes": "健康状况良好"
+    },
+    {
+      "result": {
+        "healthStatus": "warning",
+        "confidence": 0.78,
+        "recommendations": ["注意观察宠物状态", "适当调整饮食"],
+        "details": {
+          "shape": "偏软",
+          "color": "黄色",
+          "consistency": "偏软"
+        }
+      },
+      "notes": "需要注意观察"
+    },
+    {
+      "result": {
+        "healthStatus": "concerning", 
+        "confidence": 0.85,
+        "recommendations": ["建议立即咨询兽医", "密切观察宠物状态"],
+        "details": {
+          "shape": "水样",
+          "color": "绿色",
+          "consistency": "水样"
+        }
+      },
+      "notes": "需要医疗关注"
+    }
+  ],
+
+  "sharingScenarios": [
+    {
+      "name": "只读分享",
+      "permission": "read",
+      "description": "被分享用户只能查看宠物信息，无法编辑或删除",
+      "allowedActions": ["view", "viewDetails", "viewRecords"],
+      "deniedActions": ["edit", "delete", "addRecord", "editRecord", "deleteRecord"]
+    },
+    {
+      "name": "编辑分享", 
+      "permission": "edit",
+      "description": "被分享用户可以查看和编辑宠物信息，但无法删除",
+      "allowedActions": ["view", "viewDetails", "viewRecords", "edit", "addRecord", "editRecord"],
+      "deniedActions": ["delete", "deleteRecord", "share", "revoke"]
+    }
+  ],
+
+  "securityTestCases": [
+    {
+      "type": "sql_injection",
+      "name": "SQL注入攻击测试",
+      "payloads": [
+        "'; DROP TABLE pets; --",
+        "' OR '1'='1",
+        "'; SELECT * FROM users; --",
+        "' UNION SELECT * FROM pets WHERE owner_id != 'current_user' --"
+      ],
+      "expectedResult": "攻击被阻止，返回空结果或错误"
+    },
+    {
+      "type": "xss_attack",
+      "name": "XSS攻击测试", 
+      "payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=\"x\" onerror=\"alert(1)\">",
+        "javascript:alert('XSS')",
+        "<svg onload=\"alert(1)\">"
+      ],
+      "expectedResult": "恶意脚本被转义，不会执行"
+    },
+    {
+      "type": "privilege_escalation",
+      "name": "权限提升攻击测试",
+      "targets": [
+        "/api/admin/users",
+        "/api/admin/pets", 
+        "/api/admin/system",
+        "/api/admin/reports"
+      ],
+      "expectedResult": "普通用户被拒绝访问管理员功能"
+    },
+    {
+      "type": "session_hijacking",
+      "name": "会话劫持测试",
+      "description": "尝试在不同浏览器上下文中使用相同的会话token",
+      "expectedResult": "会话token无法在不同上下文中复用"
+    }
+  ],
+
+  "performanceTestData": {
+    "concurrentUsers": 5,
+    "petsPerUser": 10,
+    "recordsPerPet": 5,
+    "maxResponseTime": 2000,
+    "maxMemoryUsage": "100MB"
+  },
+
+  "privacyTestScenarios": [
+    {
+      "name": "医疗记录隐私",
+      "description": "验证用户无法访问其他用户宠物的医疗记录",
+      "sensitiveData": ["health_status", "medical_notes", "vet_recommendations"]
+    },
+    {
+      "name": "图片隐私",
+      "description": "验证宠物图片的访问权限控制",
+      "testFiles": ["pet-avatar-1.jpg", "analysis-image-1.jpg"]
+    },
+    {
+      "name": "个人信息隐私",
+      "description": "验证用户个人信息不会泄露给其他用户", 
+      "sensitiveFields": ["email", "phone", "address", "real_name"]
+    }
+  ],
+
+  "dataExportTestCases": [
+    {
+      "name": "完整数据导出",
+      "format": "json",
+      "includeFields": ["pets", "records", "analysis_results"],
+      "excludeFields": ["passwords", "tokens", "internal_ids"]
+    },
+    {
+      "name": "CSV格式导出",
+      "format": "csv", 
+      "includeFields": ["pet_name", "pet_type", "analysis_date", "health_status"],
+      "maxRecords": 1000
+    }
+  ],
+
+  "accountDeletionTestData": {
+    "cascadeDeletes": [
+      "user_pets",
+      "pet_records", 
+      "analysis_results",
+      "shared_permissions",
+      "uploaded_files"
+    ],
+    "retentionPeriod": "30_days",
+    "anonymizationFields": ["username", "email", "real_name"]
+  }
+}

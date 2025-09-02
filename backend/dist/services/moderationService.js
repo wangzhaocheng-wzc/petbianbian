@@ -3,304 +3,370 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ModerationService = void 0;
+const ModerationRule_1 = __importDefault(require("../models/ModerationRule"));
+const ContentReport_1 = __importDefault(require("../models/ContentReport"));
 const CommunityPost_1 = __importDefault(require("../models/CommunityPost"));
 const Comment_1 = __importDefault(require("../models/Comment"));
-const Report_1 = __importDefault(require("../models/Report"));
-// 敏感词库 - 在实际应用中应该从数据库或配置文件加载
-const SENSITIVE_WORDS = [
-    // 政治敏感词
-    '政治', '政府', '官员', '腐败',
-    // 色情内容
-    '色情', '裸体', '性行为', '成人',
-    // 暴力内容
-    '暴力', '杀害', '伤害', '虐待',
-    // 垃圾信息
-    '广告', '推广', '营销', '代理',
-    // 其他不当内容
-    '赌博', '毒品', '诈骗', '欺诈'
-];
-// 违规模式检测
-const VIOLATION_PATTERNS = [
-    // 重复字符模式
-    /(.)\1{4,}/g,
-    // 联系方式模式
-    /\d{11}|\d{3}-\d{4}-\d{4}/g,
-    // 网址模式
-    /https?:\/\/[^\s]+/g,
-    // QQ/微信号模式
-    /[qQ]{2}[:：]\s*\d+|微信[:：]\s*\w+/g
-];
+const logger_1 = require("../utils/logger");
 class ModerationService {
-    /**
-     * 检查文本内容是否包含敏感词
-     */
-    static checkSensitiveWords(content) {
-        const detectedWords = [];
-        let filteredContent = content;
-        // 转换为小写进行检查
-        const lowerContent = content.toLowerCase();
-        SENSITIVE_WORDS.forEach(word => {
-            const lowerWord = word.toLowerCase();
-            if (lowerContent.includes(lowerWord)) {
-                detectedWords.push(word);
-                // 用星号替换敏感词
-                const regex = new RegExp(word, 'gi');
-                filteredContent = filteredContent.replace(regex, '*'.repeat(word.length));
-            }
-        });
-        return {
-            hasSensitiveWords: detectedWords.length > 0,
-            detectedWords,
-            filteredContent
-        };
+    constructor() {
+        this.sensitiveWords = new Set();
+        this.patterns = [];
+        this.rules = [];
+        this.initializeDefaultRules();
+        this.loadRules();
     }
-    /**
-     * 检查违规模式
-     */
-    static checkViolationPatterns(content) {
-        const violations = [];
-        VIOLATION_PATTERNS.forEach((pattern, index) => {
-            if (pattern.test(content)) {
-                switch (index) {
-                    case 0:
-                        violations.push('重复字符');
-                        break;
-                    case 1:
-                        violations.push('联系方式');
-                        break;
-                    case 2:
-                        violations.push('外部链接');
-                        break;
-                    case 3:
-                        violations.push('社交账号');
-                        break;
+    // 初始化默认敏感词和规则
+    initializeDefaultRules() {
+        // 基础敏感词库
+        const defaultSensitiveWords = [
+            // 垃圾信息
+            '广告', '推广', '加微信', '加QQ', '代理', '兼职', '赚钱', '投资', '理财',
+            // 不当内容
+            '色情', '暴力', '血腥', '恐怖', '自杀', '毒品', '赌博',
+            // 仇恨言论
+            '歧视', '种族主义', '性别歧视', '地域歧视',
+            // 欺诈信息
+            '诈骗', '虚假', '假冒', '盗版', '侵权'
+        ];
+        defaultSensitiveWords.forEach(word => this.sensitiveWords.add(word));
+        // 默认正则模式
+        this.patterns = [
+            /\b(?:https?:\/\/|www\.)\S+/gi, // URL链接
+            /\b\d{11}\b/g, // 手机号
+            /\b\d{6,10}\b/g, // QQ号
+            /微信号?[:：]\s*\w+/gi, // 微信号
+            /[￥$]\d+/g, // 价格信息
+            /[\u4e00-\u9fa5]{2,}(?:群|代理|加盟|招聘)/g // 可疑商业信息
+        ];
+    }
+    // 从数据库加载审核规则
+    async loadRules() {
+        try {
+            this.rules = await ModerationRule_1.default.find({ isActive: true }).sort({ severity: -1, createdAt: -1 });
+            // 更新敏感词库
+            this.sensitiveWords.clear();
+            this.patterns = [];
+            for (const rule of this.rules) {
+                if (rule.type === 'keyword' && rule.config.keywords) {
+                    rule.config.keywords.forEach(keyword => this.sensitiveWords.add(keyword));
+                }
+                if (rule.type === 'pattern' && rule.config.patterns) {
+                    rule.config.patterns.forEach(pattern => {
+                        try {
+                            this.patterns.push(new RegExp(pattern, 'gi'));
+                        }
+                        catch (error) {
+                            logger_1.Logger.error(`Invalid regex pattern: ${pattern}`, error);
+                        }
+                    });
                 }
             }
-        });
-        return {
-            hasViolations: violations.length > 0,
-            violations
-        };
+            logger_1.Logger.info(`Loaded ${this.rules.length} moderation rules`);
+        }
+        catch (error) {
+            logger_1.Logger.error('Failed to load moderation rules:', error);
+        }
     }
-    /**
-     * 综合内容审核
-     */
-    static moderateContent(content, title) {
-        const issues = [];
-        let approved = true;
-        let moderationStatus = 'approved';
-        // 检查内容
-        const contentCheck = this.checkSensitiveWords(content);
-        const patternCheck = this.checkViolationPatterns(content);
-        let filteredContent = contentCheck.filteredContent;
-        let filteredTitle = title;
-        // 检查标题（如果有）
-        if (title) {
-            const titleCheck = this.checkSensitiveWords(title);
-            const titlePatternCheck = this.checkViolationPatterns(title);
-            if (titleCheck.hasSensitiveWords) {
-                issues.push(...titleCheck.detectedWords.map(word => `标题包含敏感词: ${word}`));
-                filteredTitle = titleCheck.filteredContent;
+    // 分析内容
+    async analyzeContent(analysis) {
+        const result = {
+            isAllowed: true,
+            action: 'approve',
+            severity: 'low',
+            reasons: [],
+            triggeredRules: []
+        };
+        try {
+            // 检查敏感词
+            const keywordResult = this.checkKeywords(analysis.content);
+            if (keywordResult.violations.length > 0) {
+                result.reasons.push(...keywordResult.violations);
+                result.triggeredRules.push('keyword_filter');
+                this.updateResult(result, 'medium', 'flag');
             }
-            if (titlePatternCheck.hasViolations) {
-                issues.push(...titlePatternCheck.violations.map(v => `标题违规: ${v}`));
+            // 检查正则模式
+            const patternResult = this.checkPatterns(analysis.content);
+            if (patternResult.violations.length > 0) {
+                result.reasons.push(...patternResult.violations);
+                result.triggeredRules.push('pattern_filter');
+                this.updateResult(result, 'medium', 'flag');
+            }
+            // 检查内容长度
+            const lengthResult = this.checkLength(analysis.content, analysis.type);
+            if (lengthResult.violation) {
+                result.reasons.push(lengthResult.violation);
+                result.triggeredRules.push('length_filter');
+                this.updateResult(result, 'low', 'flag');
+            }
+            // 检查发布频率
+            const frequencyResult = await this.checkFrequency(analysis.userId, analysis.type);
+            if (frequencyResult.violation) {
+                result.reasons.push(frequencyResult.violation);
+                result.triggeredRules.push('frequency_filter');
+                this.updateResult(result, 'high', 'require_approval');
+            }
+            // 应用自定义规则
+            await this.applyCustomRules(analysis, result);
+            // 根据严重程度决定最终动作
+            if (result.severity === 'critical') {
+                result.isAllowed = false;
+                result.action = 'reject';
+            }
+            else if (result.severity === 'high') {
+                result.isAllowed = false;
+                result.action = 'require_approval';
+            }
+            else if (result.severity === 'medium') {
+                result.isAllowed = true;
+                result.action = 'flag';
             }
         }
-        // 处理内容问题
-        if (contentCheck.hasSensitiveWords) {
-            issues.push(...contentCheck.detectedWords.map(word => `内容包含敏感词: ${word}`));
-            // 如果敏感词过多，直接拒绝
-            if (contentCheck.detectedWords.length > 3) {
-                approved = false;
-                moderationStatus = 'rejected';
+        catch (error) {
+            logger_1.Logger.error('Content analysis failed:', error);
+            // 出错时采用保守策略
+            result.isAllowed = false;
+            result.action = 'require_approval';
+            result.reasons.push('系统错误，需要人工审核');
+        }
+        return result;
+    }
+    // 检查敏感词
+    checkKeywords(content) {
+        const violations = [];
+        const lowerContent = content.toLowerCase();
+        for (const word of this.sensitiveWords) {
+            if (lowerContent.includes(word.toLowerCase())) {
+                violations.push(`包含敏感词: ${word}`);
+            }
+        }
+        return { violations };
+    }
+    // 检查正则模式
+    checkPatterns(content) {
+        const violations = [];
+        for (const pattern of this.patterns) {
+            const matches = content.match(pattern);
+            if (matches && matches.length > 0) {
+                violations.push(`匹配可疑模式: ${matches[0]}`);
+            }
+        }
+        return { violations };
+    }
+    // 检查内容长度
+    checkLength(content, type) {
+        const minLength = type === 'post' ? 10 : 1;
+        const maxLength = type === 'post' ? 10000 : 2000;
+        if (content.length < minLength) {
+            return { violation: `内容过短，至少需要${minLength}个字符` };
+        }
+        if (content.length > maxLength) {
+            return { violation: `内容过长，最多允许${maxLength}个字符` };
+        }
+        return {};
+    }
+    // 检查发布频率
+    async checkFrequency(userId, type) {
+        try {
+            const timeWindow = 10; // 10分钟
+            const maxFrequency = type === 'post' ? 3 : 10; // 帖子3个，评论10个
+            const since = new Date(Date.now() - timeWindow * 60 * 1000);
+            let count = 0;
+            if (type === 'post') {
+                count = await CommunityPost_1.default.countDocuments({
+                    userId,
+                    createdAt: { $gte: since }
+                });
             }
             else {
-                // 少量敏感词，标记为待审核
-                approved = false;
-                moderationStatus = 'pending';
+                count = await Comment_1.default.countDocuments({
+                    userId,
+                    createdAt: { $gte: since }
+                });
             }
+            if (count >= maxFrequency) {
+                return { violation: `发布过于频繁，${timeWindow}分钟内最多发布${maxFrequency}个${type === 'post' ? '帖子' : '评论'}` };
+            }
+            return {};
         }
-        if (patternCheck.hasViolations) {
-            issues.push(...patternCheck.violations.map(v => `内容违规: ${v}`));
-            approved = false;
-            moderationStatus = 'pending';
+        catch (error) {
+            logger_1.Logger.error('Frequency check failed:', error);
+            return {};
         }
-        // 内容长度检查
-        if (content.length < 5) {
-            issues.push('内容过短');
-            approved = false;
-            moderationStatus = 'pending';
-        }
-        return {
-            approved,
-            moderationStatus,
-            issues,
-            filteredContent,
-            filteredTitle
-        };
     }
-    /**
-     * 创建举报
-     */
-    static async createReport(reporterId, targetType, targetId, reason, description) {
-        try {
-            const report = new Report_1.default({
-                reporterId,
-                targetType,
-                targetId,
-                reason,
-                description
-            });
-            await report.save();
-            // 如果举报数量达到阈值，自动标记为待审核
-            const reportCount = await Report_1.default.countDocuments({
-                targetType,
-                targetId,
-                status: { $in: ['pending', 'reviewed'] }
-            });
-            if (reportCount >= 3) {
-                await this.autoModerateBatch(targetType, targetId);
+    // 应用自定义规则
+    async applyCustomRules(analysis, result) {
+        const customRules = this.rules.filter(rule => rule.type === 'custom' &&
+            rule.appliesTo.includes(analysis.type));
+        for (const rule of customRules) {
+            try {
+                // 这里可以实现自定义脚本执行
+                // 为了安全起见，暂时跳过自定义脚本执行
+                logger_1.Logger.info(`Skipping custom rule: ${rule.name}`);
             }
+            catch (error) {
+                logger_1.Logger.error(`Custom rule execution failed: ${rule.name}`, error);
+            }
+        }
+    }
+    // 更新结果
+    updateResult(result, severity, action) {
+        const severityLevels = { low: 1, medium: 2, high: 3, critical: 4 };
+        if (severityLevels[severity] > severityLevels[result.severity]) {
+            result.severity = severity;
+            result.action = action;
+        }
+    }
+    // 创建举报
+    async createReport(reportData) {
+        try {
+            // 检查是否已经举报过
+            const existingReport = await ContentReport_1.default.findOne({
+                reporterId: reportData.reporterId,
+                targetType: reportData.targetType,
+                targetId: reportData.targetId,
+                status: { $in: ['pending', 'reviewing'] }
+            });
+            if (existingReport) {
+                throw new Error('您已经举报过此内容，请等待处理结果');
+            }
+            const report = new ContentReport_1.default(reportData);
+            await report.save();
+            logger_1.Logger.info(`New content report created: ${report._id}`);
             return report;
         }
         catch (error) {
-            if (error.code === 11000) {
-                throw new Error('您已经举报过此内容');
-            }
+            logger_1.Logger.error('Failed to create content report:', error);
             throw error;
         }
     }
-    /**
-     * 自动审核批处理
-     */
-    static async autoModerateBatch(targetType, targetId) {
+    // 处理举报
+    async processReport(reportId, reviewerId, action, reviewNotes) {
+        try {
+            const report = await ContentReport_1.default.findById(reportId);
+            if (!report) {
+                throw new Error('举报记录不存在');
+            }
+            // 分配审核员
+            report.reviewerId = reviewerId;
+            report.status = 'reviewing';
+            // 完成审核
+            report.action = action;
+            report.reviewNotes = reviewNotes;
+            report.status = action === 'none' ? 'dismissed' : 'resolved';
+            await report.save();
+            // 根据处理结果执行相应动作
+            await this.executeAction(report, action);
+            logger_1.Logger.info(`Content report processed: ${reportId}, action: ${action}`);
+            return report;
+        }
+        catch (error) {
+            logger_1.Logger.error('Failed to process content report:', error);
+            throw error;
+        }
+    }
+    // 执行审核动作
+    async executeAction(report, action) {
+        try {
+            switch (action) {
+                case 'content_removed':
+                    await this.removeContent(report.targetType, report.targetId);
+                    break;
+                case 'user_suspended':
+                    // TODO: 实现用户暂停功能
+                    logger_1.Logger.info(`User suspension not implemented for report: ${report._id}`);
+                    break;
+                case 'user_banned':
+                    // TODO: 实现用户封禁功能
+                    logger_1.Logger.info(`User ban not implemented for report: ${report._id}`);
+                    break;
+                case 'warning':
+                    // TODO: 实现用户警告功能
+                    logger_1.Logger.info(`User warning not implemented for report: ${report._id}`);
+                    break;
+                default:
+                    // 无动作
+                    break;
+            }
+        }
+        catch (error) {
+            logger_1.Logger.error('Failed to execute moderation action:', error);
+        }
+    }
+    // 移除内容
+    async removeContent(targetType, targetId) {
         try {
             if (targetType === 'post') {
                 await CommunityPost_1.default.findByIdAndUpdate(targetId, {
-                    moderationStatus: 'pending'
+                    status: 'archived',
+                    moderationStatus: 'rejected'
                 });
             }
-            else if (targetType === 'comment') {
+            else {
                 await Comment_1.default.findByIdAndUpdate(targetId, {
-                    moderationStatus: 'pending'
+                    isDeleted: true,
+                    moderationStatus: 'rejected'
                 });
             }
+            logger_1.Logger.info(`Content removed: ${targetType} ${targetId}`);
         }
         catch (error) {
-            console.error('Auto moderation failed:', error);
+            logger_1.Logger.error('Failed to remove content:', error);
         }
     }
-    /**
-     * 获取待审核内容
-     */
-    static async getPendingContent(page = 1, limit = 20) {
-        const skip = (page - 1) * limit;
-        const [posts, comments, reports] = await Promise.all([
-            CommunityPost_1.default.find({ moderationStatus: 'pending' })
-                .populate('userId', 'username avatar')
-                .sort({ createdAt: -1 })
-                .limit(limit)
-                .skip(skip),
-            Comment_1.default.find({ moderationStatus: 'pending' })
-                .populate('userId', 'username avatar')
-                .populate('postId', 'title')
-                .sort({ createdAt: -1 })
-                .limit(limit)
-                .skip(skip),
-            Report_1.default.find({ status: 'pending' })
-                .populate('reporterId', 'username')
-                .sort({ createdAt: -1 })
-                .limit(limit)
-                .skip(skip)
-        ]);
-        return {
-            posts,
-            comments,
-            reports,
-            pagination: {
-                page,
-                limit,
-                total: await Promise.all([
-                    CommunityPost_1.default.countDocuments({ moderationStatus: 'pending' }),
-                    Comment_1.default.countDocuments({ moderationStatus: 'pending' }),
-                    Report_1.default.countDocuments({ status: 'pending' })
-                ])
-            }
-        };
-    }
-    /**
-     * 审核决定
-     */
-    static async moderateDecision(type, id, decision, reviewerId, notes) {
+    // 获取审核统计
+    async getModerationStats(timeRange = 'week') {
         try {
-            if (type === 'post') {
-                await CommunityPost_1.default.findByIdAndUpdate(id, {
-                    moderationStatus: decision === 'approve' ? 'approved' : 'rejected'
-                });
+            const now = new Date();
+            let since;
+            switch (timeRange) {
+                case 'day':
+                    since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                    break;
+                case 'week':
+                    since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case 'month':
+                    since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    break;
             }
-            else if (type === 'comment') {
-                await Comment_1.default.findByIdAndUpdate(id, {
-                    moderationStatus: decision === 'approve' ? 'approved' : 'rejected'
-                });
-            }
-            else if (type === 'report') {
-                await Report_1.default.findByIdAndUpdate(id, {
-                    status: decision === 'approve' ? 'resolved' : 'dismissed',
-                    reviewerId,
-                    reviewNotes: notes
-                });
-            }
-            return true;
+            const [reportStats, contentStats] = await Promise.all([
+                ContentReport_1.default.aggregate([
+                    { $match: { createdAt: { $gte: since } } },
+                    {
+                        $group: {
+                            _id: '$status',
+                            count: { $sum: 1 }
+                        }
+                    }
+                ]),
+                Promise.all([
+                    CommunityPost_1.default.countDocuments({
+                        createdAt: { $gte: since },
+                        moderationStatus: 'pending'
+                    }),
+                    Comment_1.default.countDocuments({
+                        createdAt: { $gte: since },
+                        moderationStatus: 'pending'
+                    })
+                ])
+            ]);
+            return {
+                reports: reportStats.reduce((acc, stat) => {
+                    acc[stat._id] = stat.count;
+                    return acc;
+                }, {}),
+                pendingContent: {
+                    posts: contentStats[0],
+                    comments: contentStats[1]
+                }
+            };
         }
         catch (error) {
-            console.error('Moderation decision failed:', error);
-            return false;
+            logger_1.Logger.error('Failed to get moderation stats:', error);
+            throw error;
         }
-    }
-    /**
-     * 获取用户违规统计
-     */
-    static async getUserViolationStats(userId) {
-        const [rejectedPosts, rejectedComments, reports] = await Promise.all([
-            CommunityPost_1.default.countDocuments({
-                userId,
-                moderationStatus: 'rejected'
-            }),
-            Comment_1.default.countDocuments({
-                userId,
-                moderationStatus: 'rejected'
-            }),
-            Report_1.default.countDocuments({
-                targetType: 'user',
-                targetId: userId,
-                status: { $in: ['pending', 'resolved'] }
-            })
-        ]);
-        return {
-            rejectedPosts,
-            rejectedComments,
-            reports,
-            totalViolations: rejectedPosts + rejectedComments + reports
-        };
-    }
-    /**
-     * 批量审核
-     */
-    static async batchModerate(items, reviewerId) {
-        const results = [];
-        for (const item of items) {
-            try {
-                const result = await this.moderateDecision(item.type, item.id, item.decision, reviewerId);
-                results.push({ id: item.id, success: result });
-            }
-            catch (error) {
-                results.push({ id: item.id, success: false, error: error.message });
-            }
-        }
-        return results;
     }
 }
-exports.ModerationService = ModerationService;
 exports.default = ModerationService;
 //# sourceMappingURL=moderationService.js.map

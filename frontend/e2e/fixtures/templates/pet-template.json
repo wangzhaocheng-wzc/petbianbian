@@ -1,0 +1,40 @@
+{
+  "small-dog": {
+    "type": "dog",
+    "breed": "泰迪",
+    "age": 2,
+    "weight": 5.5,
+    "gender": "male"
+  },
+  "large-dog": {
+    "type": "dog",
+    "breed": "金毛",
+    "age": 4,
+    "weight": 30.0,
+    "gender": "female"
+  },
+  "indoor-cat": {
+    "type": "cat",
+    "breed": "英短",
+    "age": 3,
+    "weight": 4.2,
+    "gender": "female"
+  },
+  "outdoor-cat": {
+    "type": "cat",
+    "breed": "田园猫",
+    "age": 5,
+    "weight": 5.8,
+    "gender": "male"
+  },
+  "senior-pet": {
+    "age": 12,
+    "weight": 8.0,
+    "healthIssues": ["关节炎", "肾病"]
+  },
+  "puppy": {
+    "age": 0.5,
+    "weight": 2.0,
+    "isVaccinated": false
+  }
+}

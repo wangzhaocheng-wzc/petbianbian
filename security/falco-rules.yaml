@@ -1,0 +1,64 @@
+# Falco Security Rules for Pet Health Platform
+
+# Custom rules for the Pet Health Platform
+- rule: Unauthorized Process in Pet Health Container
+  desc: Detect unauthorized processes in pet health containers
+  condition: >
+    spawned_process and
+    container and
+    k8s.ns.name = "pet-health" and
+    not proc.name in (node, npm, nginx, mongod, redis-server)
+  output: >
+    Unauthorized process in pet health container
+    (user=%user.name command=%proc.cmdline container=%container.name
+    image=%container.image.repository:%container.image.tag)
+  priority: WARNING
+  tags: [container, process, pet-health]
+
+- rule: Sensitive File Access in Pet Health
+  desc: Detect access to sensitive files in pet health containers
+  condition: >
+    open_read and
+    container and
+    k8s.ns.name = "pet-health" and
+    (fd.name startswith /etc/passwd or
+     fd.name startswith /etc/shadow or
+     fd.name startswith /etc/ssh/ or
+     fd.name contains .env)
+  output: >
+    Sensitive file accessed in pet health container
+    (user=%user.name file=%fd.name container=%container.name
+    image=%container.image.repository:%container.image.tag)
+  priority: WARNING
+  tags: [filesystem, pet-health]
+
+- rule: Network Connection from Pet Health Container
+  desc: Detect unexpected network connections from pet health containers
+  condition: >
+    outbound and
+    container and
+    k8s.ns.name = "pet-health" and
+    not fd.sip in (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) and
+    not fd.sport in (80, 443, 53, 27017, 6379)
+  output: >
+    Unexpected network connection from pet health container
+    (user=%user.name connection=%fd.name container=%container.name
+    image=%container.image.repository:%container.image.tag)
+  priority: NOTICE
+  tags: [network, pet-health]
+
+- rule: File Modification in Pet Health Container
+  desc: Detect file modifications in pet health containers
+  condition: >
+    modify and
+    container and
+    k8s.ns.name = "pet-health" and
+    not fd.name startswith /tmp and
+    not fd.name startswith /var/log and
+    not fd.name startswith /app/uploads
+  output: >
+    File modified in pet health container
+    (user=%user.name file=%fd.name container=%container.name
+    image=%container.image.repository:%container.image.tag)
+  priority: INFO
+  tags: [filesystem, pet-health]

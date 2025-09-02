@@ -2,13 +2,32 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>宠物健康监测社区平台</title>
     <meta name="description" content="专业的宠物健康监测和社区交流平台，通过AI分析帮助您了解宠物健康状况" />
-    <script type="module" crossorigin src="/assets/index-66114b7e.js"></script>
-    <link rel="stylesheet" href="/assets/index-7742221a.css">
-  </head>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#f97316" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="宠物健康" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileColor" content="#f97316" />
+    <meta name="msapplication-TileImage" content="/pwa-192x192.png" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script type="module" crossorigin src="/assets/js/index-379b094b.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/js/react-vendor-7927b0b6.js">
+    <link rel="modulepreload" crossorigin href="/assets/js/router-2b5ad94b.js">
+    <link rel="modulepreload" crossorigin href="/assets/js/utils-2ce30174.js">
+    <link rel="modulepreload" crossorigin href="/assets/js/ui-vendor-f43192ea.js">
+    <link rel="stylesheet" href="/assets/css/index-5ab4ed3f.css">
+  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
     <div id="root"></div>
     

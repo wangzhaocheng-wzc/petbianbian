@@ -223,7 +223,12 @@ export const createPost = async (req: AuthRequest, res: Response) => {
     }
 
     // 内容审核
-    const moderationResult = ModerationService.moderateContent(content.trim(), title.trim());
+    const moderationResult = await moderationService.analyzeContent({
+      content: content.trim(),
+      type: 'post',
+      userId: new mongoose.Types.ObjectId(userId),
+      metadata: { title: title.trim() }
+    });
 
     // 根据审核结果决定状态
     let moderationStatus: 'approved' | 'pending' | 'rejected' = 'approved';
@@ -616,7 +621,11 @@ export const createComment = async (req: AuthRequest, res: Response) => {
     }
 
     // 内容审核
-    const moderationResult = ModerationService.moderateContent(content.trim());
+    const moderationResult = await moderationService.analyzeContent({
+      content: content.trim(),
+      type: 'comment',
+      userId: new mongoose.Types.ObjectId(userId)
+    });
 
     // 根据审核结果决定状态
     let moderationStatus: 'approved' | 'pending' | 'rejected' = 'approved';

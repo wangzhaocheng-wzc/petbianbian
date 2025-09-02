@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Users, AlertTriangle, TrendingUp, Eye, CheckCircle } from 'lucide-react';
+import { Shield, Users, AlertTriangle, TrendingUp, Eye, CheckCircle, Activity, FileText } from 'lucide-react';
 import moderationService, { ModerationStats } from '../services/moderationService';
 import { useAuth } from '../hooks/useAuth';
 import ModerationDashboard from '../components/admin/ModerationDashboard';
 import PendingContent from '../components/admin/PendingContent';
 import ReportsList from '../components/admin/ReportsList';
 import UserManagement from '../components/admin/UserManagement';
+import SystemMonitoring from '../components/admin/SystemMonitoring';
+import ContentManagement from '../components/admin/ContentManagement';
 
 const Admin: React.FC = () => {
   const { user } = useAuth();
@@ -44,6 +46,8 @@ const Admin: React.FC = () => {
 
   const tabs = [
     { id: 'dashboard', name: '概览', icon: TrendingUp },
+    { id: 'monitoring', name: '系统监控', icon: Activity },
+    { id: 'content', name: '内容管理', icon: FileText },
     { id: 'pending', name: '待审核', icon: Eye, badge: stats?.pending.total },
     { id: 'reports', name: '举报管理', icon: AlertTriangle, badge: stats?.pending.reports },
     { id: 'users', name: '用户管理', icon: Users }
@@ -188,6 +192,8 @@ const Admin: React.FC = () => {
             ) : (
               <>
                 {activeTab === 'dashboard' && <ModerationDashboard stats={stats} />}
+                {activeTab === 'monitoring' && <SystemMonitoring />}
+                {activeTab === 'content' && <ContentManagement />}
                 {activeTab === 'pending' && <PendingContent onUpdate={loadStats} />}
                 {activeTab === 'reports' && <ReportsList onUpdate={loadStats} />}
                 {activeTab === 'users' && <UserManagement />}

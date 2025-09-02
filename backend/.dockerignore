@@ -1,0 +1,51 @@
+# Node modules
+node_modules
+
+# Source files (will be built)
+src/
+
+# Development files
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Build tools
+tsconfig.json
+nodemon.json
+
+# Linting
+.eslintrc.js
+.prettierrc
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage
+
+# Test files
+tests/
+test/
+
+# Uploads (will be mounted as volume)
+uploads/
+
+# Build output (will be created during build)
+dist

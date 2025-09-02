@@ -16,9 +16,16 @@ import statisticsRoutes from './routes/statistics';
 import moderationRoutes from './routes/moderation';
 import cacheRoutes from './routes/cache';
 import adminRoutes from './routes/admin';
+// import comparisonRoutes from './routes/comparison';
+import reportsRoutes from './routes/reports';
+import monitoringRoutes from './routes/monitoring';
+import logsRoutes from './routes/logs';
 // import alertRoutes from './routes/alerts';
 // import notificationRoutes from './routes/notifications';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { monitoringMiddleware } from './services/monitoringService';
+import { errorTrackingMiddleware } from './services/errorTrackingService';
+import { requestLoggerMiddleware } from './middleware/requestLogger';
 import { connectDB } from './utils/database';
 import { Logger } from './utils/logger';
 import { connectRedis, disconnectRedis } from './config/redis';
@@ -37,6 +44,12 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// 监控中间件
+app.use(monitoringMiddleware);
+
+// 请求日志中间件
+app.use(requestLoggerMiddleware);
+
 // 静态文件
 app.use('/uploads', express.static('uploads'));
 
@@ -52,6 +65,10 @@ app.use('/api/statistics', statisticsRoutes);
 app.use('/api/moderation', moderationRoutes);
 app.use('/api/cache', cacheRoutes);
 app.use('/api/admin', adminRoutes);
+// app.use('/api/comparison', comparisonRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/monitoring', monitoringRoutes);
+app.use('/api/logs', logsRoutes);
 // app.use('/api/alerts', alertRoutes);
 // app.use('/api/notifications', notificationRoutes);
 
@@ -79,6 +96,9 @@ app.get('/api/health', async (req, res) => {
 
 // 404处理
 app.use('*', notFoundHandler);
+
+// 错误追踪中间件
+app.use(errorTrackingMiddleware);
 
 // 错误处理
 app.use(errorHandler);

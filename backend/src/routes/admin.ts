@@ -8,7 +8,11 @@ import {
   unverifyUser,
   promoteUser,
   demoteUser,
-  getSystemStats
+  getSystemStats,
+  getPosts,
+  getComments,
+  moderatePost,
+  moderateComment
 } from '../controllers/adminController';
 
 const router = express.Router();
@@ -28,5 +32,11 @@ router.post('/users/:userId/demote', demoteUser);
 
 // 系统统计
 router.get('/stats', getSystemStats);
+
+// 内容管理
+router.get('/posts', getPosts);
+router.get('/comments', getComments);
+router.post('/posts/:postId/:action', moderatePost);
+router.post('/comments/:commentId/:action', moderateComment);
 
 export default router;

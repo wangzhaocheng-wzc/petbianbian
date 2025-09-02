@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>离线模式 - 宠物健康平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .offline-container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .offline-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+        }
+        
+        .offline-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        
+        .offline-message {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 32px;
+            opacity: 0.9;
+        }
+        
+        .offline-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #f97316;
+        }
+        
+        .btn-primary:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .offline-tips {
+            margin-top: 32px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: left;
+        }
+        
+        .offline-tips h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .offline-tips ul {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+        
+        .offline-tips li {
+            margin-bottom: 4px;
+        }
+        
+        @media (max-width: 480px) {
+            .offline-title {
+                font-size: 20px;
+            }
+            
+            .offline-message {
+                font-size: 14px;
+            }
+            
+            .btn {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .offline-container > * {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .offline-container > *:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+        
+        .offline-container > *:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+        
+        .offline-container > *:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            🐾
+        </div>
+        
+        <h1 class="offline-title">您当前处于离线状态</h1>
+        
+        <p class="offline-message">
+            网络连接似乎出现了问题，但您仍然可以浏览已缓存的内容。
+            请检查您的网络连接后重试。
+        </p>
+        
+        <div class="offline-actions">
+            <button class="btn btn-primary" onclick="window.location.reload()">
+                重新连接
+            </button>
+            <a href="/" class="btn btn-secondary">
+                返回首页
+            </a>
+        </div>
+        
+        <div class="offline-tips">
+            <h3>💡 离线模式提示</h3>
+            <ul>
+                <li>您可以查看之前浏览过的页面内容</li>
+                <li>已缓存的宠物信息和记录仍可查看</li>
+                <li>网络恢复后，离线时的操作将自动同步</li>
+                <li>建议连接到稳定的WiFi网络以获得最佳体验</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // 检测网络状态变化
+        window.addEventListener('online', function() {
+            // 网络恢复时自动刷新页面
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
+        
+        // 定期检查网络连接
+        setInterval(function() {
+            if (navigator.onLine) {
+                window.location.reload();
+            }
+        }, 5000);
+        
+        // 添加触摸反馈
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.95)';
+            });
+            
+            btn.addEventListener('touchend', function() {
+                this.style.transform = '';
+            });
+        });
+    </script>
+</body>
+</html>

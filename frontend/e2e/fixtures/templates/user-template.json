@@ -1,0 +1,25 @@
+{
+  "basic-user": {
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "Test123!@#"
+  },
+  "premium-user": {
+    "username": "premiumuser",
+    "email": "premium@example.com",
+    "password": "Premium123!@#",
+    "isPremium": true
+  },
+  "admin-user": {
+    "username": "admin",
+    "email": "admin@example.com",
+    "password": "Admin123!@#",
+    "role": "admin"
+  },
+  "new-user": {
+    "username": "newuser",
+    "email": "new@example.com",
+    "password": "New123!@#",
+    "isNewUser": true
+  }
+}

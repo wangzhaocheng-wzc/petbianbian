@@ -340,7 +340,7 @@ const RecordsList: React.FC<RecordsListProps> = ({
                         <Trash2 className="w-4 h-4" />
                       </button>
                       {record.isShared && (
-                        <Share2 className="w-4 h-4 text-gray-400" title="已分享" />
+                        <Share2 className="w-4 h-4 text-gray-400" />
                       )}
                     </div>
                   </td>

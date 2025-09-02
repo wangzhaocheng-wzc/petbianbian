@@ -1,0 +1,37 @@
+[
+  {
+    "name": "批量导入宠物1",
+    "type": "dog",
+    "breed": "金毛寻回犬",
+    "age": 3,
+    "weight": 25.0
+  },
+  {
+    "name": "批量导入宠物2",
+    "type": "cat",
+    "breed": "英国短毛猫",
+    "age": 2,
+    "weight": 4.5
+  },
+  {
+    "name": "批量导入宠物3",
+    "type": "dog",
+    "breed": "拉布拉多",
+    "age": 4,
+    "weight": 30.0
+  },
+  {
+    "name": "批量导入宠物4",
+    "type": "cat",
+    "breed": "波斯猫",
+    "age": 1,
+    "weight": 3.8
+  },
+  {
+    "name": "批量导入宠物5",
+    "type": "dog",
+    "breed": "德国牧羊犬",
+    "age": 5,
+    "weight": 35.0
+  }
+]

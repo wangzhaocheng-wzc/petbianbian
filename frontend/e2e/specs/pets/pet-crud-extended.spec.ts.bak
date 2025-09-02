@@ -1,0 +1,1208 @@
+import { test, expect } from '@playwright/test';
+import { PetsPage } from '../../page-objects/pets-page';
+import { AuthPage } from '../../page-objects/auth-page';
+import { TestDataManager } from '../../utils/test-data-manager';
+import { ErrorHandler } from '../../utils/error-handler';
+import { APIMocker } from '../../utils/api-mocker';
+
+test.describe('扩展宠物CRUD操作测试', () => {
+  let petsPage: PetsPage;
+  let authPage: AuthPage;
+  let testDataManager: TestDataManager;
+  let apiMocker: APIMocker;
+  let testUser: any;
+
+  test.beforeEach(async ({ page, request }) => {
+    petsPage = new PetsPage(page);
+    authPage = new AuthPage(page);
+    testDataManager = new TestDataManager(request);
+    apiMocker = new APIMocker(page);
+    
+    await testDataManager.init();
+    
+    // 创建测试用户并登录
+    testUser = await testDataManager.createTestUser({
+      username: 'petowner',
+      email: 'petowner@example.com',
+      password: 'TestPass123!'
+    });
+    
+    await authPage.login(testUser.email, testUser.password);
+  });
+
+  test.afterEach(async () => {
+    await testDataManager.cleanup();
+    await testDataManager.dispose();
+  });
+
+  test.describe('宠物信息完整性验证测试', () => {
+    test('应该验证宠物基本信息完整性', async () => {
+      const petData = {
+        name: '完整信息测试宠物',
+        type: 'dog' as const,
+        breed: '金毛寻回犬',
+        age: 36, // 3岁
+        weight: 28.5,
+        gender: 'male' as const,
+        birthdate: '2021-01-15',
+        description: '一只活泼可爱的金毛犬，喜欢玩球和游泳。性格温顺，对小朋友很友好。'
+      };
+
+      await petsPage.addPet(petData);
+
+      // 验证宠物信息完整性
+      await petsPage.verifyPetInfo(petData.name, {
+        type: '狗',
+        breed: petData.breed,
+        age: '3岁',
+        weight: '28.5kg'
+      });
+
+      // 查看详细信息
+      const details = await petsPage.viewPetDetails(petData.name);
+      expect(details.info).toContain(petData.description);
+      expect(details.info).toContain('2021-01-15');
+      expect(details.info).toContain('雄性');
+    });
+
+    test('应该验证宠物年龄计算准确性', async () => {
+      const birthDate = new Date();
+      birthDate.setFullYear(birthDate.getFullYear() - 2); // 2年前
+      birthDate.setMonth(birthDate.getMonth() - 6); // 再减6个月
+
+      const petData = {
+        name: '年龄计算测试宠物',
+        type: 'cat' as const,
+        breed: '英国短毛猫',
+        age: 30, // 2.5岁
+        weight: 4.2,
+        birthdate: birthDate.toISOString().split('T')[0]
+      };
+
+      await petsPage.addPet(petData);
+
+      // 验证年龄显示
+      await petsPage.verifyPetInfo(petData.name, {
+        age: '2岁6个月'
+      });
+    });
+
+    test('应该验证宠物体重单位转换', async () => {
+      const testCases = [
+        { weight: 0.5, expected: '500g' },
+        { weight: 1.2, expected: '1.2kg' },
+        { weight: 25.0, expected: '25kg' },
+        { weight: 45.8, expected: '45.8kg' }
+      ];
+
+      for (const testCase of testCases) {
+        const petData = {
+          name: `体重测试宠物${testCase.weight}`,
+          type: 'dog' as const,
+          breed: '测试品种',
+          age: 24,
+          weight: testCase.weight
+        };
+
+        await petsPage.addPet(petData);
+        await petsPage.verifyPetInfo(petData.name, {
+          weight: testCase.expected
+        });
+      }
+    });
+
+    test('应该验证宠物品种信息标准化', async () => {
+      const breedMappings = [
+        { input: '金毛', expected: '金毛寻回犬' },
+        { input: '拉布拉多', expected: '拉布拉多寻回犬' },
+        { input: '英短', expected: '英国短毛猫' },
+        { input: '美短', expected: '美国短毛猫' },
+        { input: '德牧', expected: '德国牧羊犬' }
+      ];
+
+      for (const mapping of breedMappings) {
+        const petData = {
+          name: `品种标准化测试${mapping.input}`,
+          type: mapping.input.includes('猫') ? 'cat' as const : 'dog' as const,
+          breed: mapping.input,
+          age: 24,
+          weight: 15.0
+        };
+
+        await petsPage.addPet(petData);
+        await petsPage.verifyPetInfo(petData.name, {
+          breed: mapping.expected
+        });
+      }
+    });
+
+    test('应该验证宠物健康状态记录', async () => {
+      const petData = {
+        name: '健康状态测试宠物',
+        type: 'dog' as const,
+        breed: '边境牧羊犬',
+        age: 48,
+        weight: 22.0,
+        healthStatus: {
+          vaccinated: true,
+          lastVaccination: '2023-06-15',
+          neutered: true,
+          allergies: ['鸡肉', '小麦'],
+          medications: ['心丝虫预防药'],
+          lastCheckup: '2023-12-01'
+        }
+      };
+
+      await petsPage.addPet(petData);
+
+      // 查看健康信息
+      const details = await petsPage.viewPetDetails(petData.name);
+      expect(details.info).toContain('已接种疫苗');
+      expect(details.info).toContain('已绝育');
+      expect(details.info).toContain('过敏原：鸡肉, 小麦');
+    });
+
+    test('应该验证宠物特殊需求记录', async () => {
+      const petData = {
+        name: '特殊需求测试宠物',
+        type: 'cat' as const,
+        breed: '波斯猫',
+        age: 60,
+        weight: 5.5,
+        specialNeeds: {
+          diet: '低敏配方',
+          exercise: '室内活动',
+          grooming: '每日梳毛',
+          medical: '定期眼部清洁',
+          behavioral: '需要安静环境'
+        }
+      };
+
+      await petsPage.addPet(petData);
+
+      const details = await petsPage.viewPetDetails(petData.name);
+      expect(details.info).toContain('特殊饮食需求');
+      expect(details.info).toContain('美容护理要求');
+      expect(details.info).toContain('行为特殊需求');
+    });
+  });
+
+  test.describe('宠物头像上传和图片处理测试', () => {
+    test('应该支持多种图片格式上传', async () => {
+      const imageFormats = [
+        { format: 'jpg', path: 'fixtures/images/pet-avatar.jpg' },
+        { format: 'png', path: 'fixtures/images/pet-avatar.png' },
+        { format: 'webp', path: 'fixtures/images/pet-avatar.webp' },
+        { format: 'gif', path: 'fixtures/images/pet-avatar.gif' }
+      ];
+
+      for (const image of imageFormats) {
+        const petData = {
+          name: `头像测试宠物${image.format}`,
+          type: 'dog' as const,
+          breed: '测试品种',
+          age: 24,
+          weight: 15.0,
+          avatarPath: image.path
+        };
+
+        await petsPage.addPet(petData);
+
+        // 验证头像上传成功
+        const petCard = await petsPage.page.locator(`[data-testid="pet-card-${petData.name}"]`);
+        const avatar = petCard.locator('[data-testid="pet-avatar"]');
+        await expect(avatar).toBeVisible();
+        
+        // 验证图片加载
+        const src = await avatar.getAttribute('src');
+        expect(src).toBeTruthy();
+        expect(src).not.toContain('placeholder');
+      }
+    });
+
+    test('应该验证图片大小限制', async () => {
+      const testCases = [
+        { size: '500KB', shouldPass: true },
+        { size: '2MB', shouldPass: true },
+        { size: '5MB', shouldPass: true },
+        { size: '11MB', shouldPass: false, error: '图片大小不能超过10MB' }
+      ];
+
+      for (const testCase of testCases) {
+        // 创建测试宠物
+        const petData = {
+          name: `图片大小测试-${testCase.size}`,
+          type: 'dog' as const,
+          breed: '测试犬',
+          age: 2,
+          weight: 10.0
+        };
+        
+        await petsPage.addPet(petData);
+        
+        const petCard = await petsPage['findPetCard'](petData.name);
+        await petCard.locator(petsPage['selectors'].editPetButton).click();
+        
+        // 根据测试用例上传不同大小的图片
+        try {
+          await petsPage.uploadPetAvatar(`frontend/e2e/fixtures/images/test-${testCase.size.toLowerCase()}.jpg`);
+          
+          if (testCase.shouldPass) {
+            // 保存更改
+            await petsPage.page.click(petsPage['selectors'].savePetButton);
+            await petsPage.page.waitForSelector(petsPage['selectors'].successMessage);
+            
+            // 验证头像已更新
+            const updatedCard = await petsPage['findPetCard'](petData.name);
+            const avatarSrc = await updatedCard.locator(petsPage['selectors'].petAvatar).getAttribute('src');
+            expect(avatarSrc).toBeTruthy();
+          } else {
+            // 应该显示错误信息
+            await expect(petsPage.page.locator('[data-testid="error-message"]')).toContainText(testCase.error);
+          }
+        } catch (error) {
+          if (!testCase.shouldPass) {
+            // 预期的错误
+            expect(error.message).toContain(testCase.error);
+          } else {
+            throw error;
+          }
+        }
+        
+        // 清理：取消编辑
+        await petsPage.page.click(petsPage['selectors'].cancelButton);
+      }
+    });
+
+    test('头像删除功能', async () => {
+      // 创建有头像的宠物
+      const petData = {
+        name: '头像删除测试',
+        type: 'cat' as const,
+        breed: '英短',
+        age: 2,
+        weight: 4.5,
+        avatarPath: 'frontend/e2e/fixtures/images/test-pet-avatar-1.jpg'
+      };
+      
+      await petsPage.addPet(petData);
+      
+      // 编辑宠物
+      const petCard = await petsPage['findPetCard'](petData.name);
+      await petCard.locator(petsPage['selectors'].editPetButton).click();
+      
+      // 删除头像
+      await petsPage.page.click('[data-testid="remove-avatar-button"]');
+      
+      // 验证头像预览消失
+      await expect(petsPage.page.locator('[data-testid="avatar-preview"]')).not.toBeVisible();
+      
+      // 保存更改
+      await petsPage.page.click(petsPage['selectors'].savePetButton);
+      await petsPage.page.waitForSelector(petsPage['selectors'].successMessage);
+      
+      // 验证使用默认头像
+      const updatedCard = await petsPage['findPetCard'](petData.name);
+      const avatarSrc = await updatedCard.locator(petsPage['selectors'].petAvatar).getAttribute('src');
+      expect(avatarSrc).toContain('default-pet-avatar');
+    });
+
+    test('图片压缩和优化', async () => {
+      await petsPage.goToPetsPage();
+      await petsPage.page.click(petsPage['selectors'].addPetButton);
+      
+      // 填写基本信息
+      await petsPage.page.fill(petsPage['selectors'].petNameInput, '压缩测试宠物');
+      await petsPage.page.selectOption(petsPage['selectors'].petTypeSelect, 'dog');
+      
+      // 上传图片
+      await petsPage.uploadPetAvatar('frontend/e2e/fixtures/images/test-pet-avatar-1.jpg');
+      
+      // 验证压缩进度显示
+      await expect(petsPage.page.locator('[data-testid="compression-progress"]')).toBeVisible();
+      
+      // 等待压缩完成
+      await petsPage.page.waitForSelector('[data-testid="compression-complete"]');
+      
+      // 验证压缩后的图片预览
+      await expect(petsPage.page.locator('[data-testid="compressed-preview"]')).toBeVisible();
+    });
+  });
+
+  test.describe('宠物数据导入导出功能测试', () => {
+    test('导出宠物数据为JSON格式', async () => {
+      // 创建多个测试宠物
+      const pets = [
+        {
+          name: '导出测试宠物1',
+          type: 'dog' as const,
+          breed: '金毛',
+          age: 3,
+          weight: 25.0
+        },
+        {
+          name: '导出测试宠物2',
+          type: 'cat' as const,
+          breed: '波斯猫',
+          age: 2,
+          weight: 4.0
+        }
+      ];
+      
+      for (const pet of pets) {
+        await petsPage.addPet(pet);
+      }
+      
+      await petsPage.goToPetsPage();
+      
+      // 点击导出按钮
+      await petsPage.page.click('[data-testid="export-pets-button"]');
+      
+      // 选择JSON格式
+      await petsPage.page.click('[data-testid="export-format-json"]');
+      
+      // 开始导出
+      const downloadPromise = petsPage.page.waitForEvent('download');
+      await petsPage.page.click('[data-testid="start-export-button"]');
+      
+      const download = await downloadPromise;
+      expect(download.suggestedFilename()).toContain('pets_export');
+      expect(download.suggestedFilename()).toContain('.json');
+      
+      // 验证导出成功提示
+      await expect(petsPage.page.locator('[data-testid="export-success"]'))
+        .toContainText('宠物数据导出成功');
+    });
+
+    test('导出宠物数据为CSV格式', async () => {
+      await petsPage.goToPetsPage();
+      
+      // 确保有宠物数据
+      const petCount = await petsPage.getPetCount();
+      if (petCount === 0) {
+        await petsPage.addPet({
+          name: 'CSV导出测试',
+          type: 'dog',
+          breed: '拉布拉多',
+          age: 4,
+          weight: 28.0
+        });
+      }
+      
+      // 导出为CSV
+      await petsPage.page.click('[data-testid="export-pets-button"]');
+      await petsPage.page.click('[data-testid="export-format-csv"]');
+      
+      const downloadPromise = petsPage.page.waitForEvent('download');
+      await petsPage.page.click('[data-testid="start-export-button"]');
+      
+      const download = await downloadPromise;
+      expect(download.suggestedFilename()).toContain('.csv');
+    });
+
+    test('从JSON文件导入宠物数据', async () => {
+      await petsPage.goToPetsPage();
+      
+      // 点击导入按钮
+      await petsPage.page.click('[data-testid="import-pets-button"]');
+      
+      // 选择导入文件
+      const fileInput = petsPage.page.locator('[data-testid="import-file-input"]');
+      await fileInput.setInputFiles('frontend/e2e/fixtures/test-pets-import.json');
+      
+      // 预览导入数据
+      await expect(petsPage.page.locator('[data-testid="import-preview"]')).toBeVisible();
+      await expect(petsPage.page.locator('[data-testid="import-count"]'))
+        .toContainText('将导入 2 只宠物');
+      
+      // 确认导入
+      await petsPage.page.click('[data-testid="confirm-import-button"]');
+      
+      // 验证导入成功
+      await expect(petsPage.page.locator('[data-testid="import-success"]'))
+        .toContainText('宠物数据导入成功');
+      
+      // 验证导入的宠物显示在列表中
+      await expect(petsPage.page.locator('[data-testid="pet-card"]')).toHaveCount(2);
+    });
+
+    test('处理导入数据验证错误', async () => {
+      await petsPage.goToPetsPage();
+      await petsPage.page.click('[data-testid="import-pets-button"]');
+      
+      // 上传包含错误数据的文件
+      const fileInput = petsPage.page.locator('[data-testid="import-file-input"]');
+      await fileInput.setInputFiles('frontend/e2e/fixtures/test-pets-invalid.json');
+      
+      // 验证错误提示
+      await expect(petsPage.page.locator('[data-testid="import-errors"]')).toBeVisible();
+      await expect(petsPage.page.locator('[data-testid="validation-error"]'))
+        .toContainText('第2行：宠物名称不能为空');
+      await expect(petsPage.page.locator('[data-testid="validation-error"]'))
+        .toContainText('第3行：体重必须是正数');
+      
+      // 验证导入按钮被禁用
+      await expect(petsPage.page.locator('[data-testid="confirm-import-button"]'))
+        .toBeDisabled();
+    });
+
+    test('批量导入时的重复名称处理', async () => {
+      // 先创建一个宠物
+      await petsPage.addPet({
+        name: '重复名称测试',
+        type: 'dog',
+        breed: '哈士奇',
+        age: 3,
+        weight: 22.0
+      });
+      
+      await petsPage.goToPetsPage();
+      await petsPage.page.click('[data-testid="import-pets-button"]');
+      
+      // 导入包含重复名称的数据
+      const fileInput = petsPage.page.locator('[data-testid="import-file-input"]');
+      await fileInput.setInputFiles('frontend/e2e/fixtures/test-pets-duplicate.json');
+      
+      // 验证重复名称警告
+      await expect(petsPage.page.locator('[data-testid="duplicate-warning"]'))
+        .toContainText('发现重复的宠物名称');
+      
+      // 选择处理方式：跳过重复项
+      await petsPage.page.click('[data-testid="skip-duplicates-radio"]');
+      await petsPage.page.click('[data-testid="confirm-import-button"]');
+      
+      // 验证导入结果
+      await expect(petsPage.page.locator('[data-testid="import-summary"]'))
+        .toContainText('成功导入 1 只宠物，跳过 1 只重复宠物');
+    });
+
+    test('导入进度显示和取消功能', async () => {
+      await petsPage.goToPetsPage();
+      await petsPage.page.click('[data-testid="import-pets-button"]');
+      
+      // 上传大批量数据文件
+      const fileInput = petsPage.page.locator('[data-testid="import-file-input"]');
+      await fileInput.setInputFiles('frontend/e2e/fixtures/test-pets-large-batch.json');
+      
+      // 开始导入
+      await petsPage.page.click('[data-testid="confirm-import-button"]');
+      
+      // 验证进度条显示
+      await expect(petsPage.page.locator('[data-testid="import-progress"]')).toBeVisible();
+      await expect(petsPage.page.locator('[data-testid="progress-percentage"]')).toBeVisible();
+      
+      // 测试取消功能
+      await petsPage.page.click('[data-testid="cancel-import-button"]');
+      
+      // 验证取消确认对话框
+      await expect(petsPage.page.locator('[data-testid="cancel-confirm-dialog"]')).toBeVisible();
+      await petsPage.page.click('[data-testid="confirm-cancel-button"]');
+      
+      // 验证导入被取消
+      await expect(petsPage.page.locator('[data-testid="import-cancelled"]'))
+        .toContainText('导入已取消');
+    });
+  });
+
+  test.describe('数据完整性和一致性测试', () => {
+    test('验证宠物数据在不同页面的一致性', async () => {
+      const petData = {
+        name: '一致性测试宠物',
+        type: 'cat' as const,
+        breed: '英国短毛猫',
+        age: 3,
+        weight: 5.2,
+        description: '一只可爱的英短猫咪'
+      };
+      
+      await petsPage.addPet(petData);
+      
+      // 在宠物列表页验证信息
+      await petsPage.verifyPetInfo(petData.name, {
+        type: '猫',
+        breed: petData.breed,
+        age: '3岁',
+        weight: '5.2kg'
+      });
+      
+      // 在宠物详情页验证信息
+      const details = await petsPage.viewPetDetails(petData.name);
+      expect(details.name).toBe(petData.name);
+      expect(details.info).toContain(petData.breed);
+      expect(details.info).toContain(petData.description);
+      
+      // 在编辑页面验证信息
+      await petsPage.closePetDetails();
+      const petCard = await petsPage['findPetCard'](petData.name);
+      await petCard.locator(petsPage['selectors'].editPetButton).click();
+      
+      // 验证表单中的数据
+      const nameValue = await petsPage.page.inputValue(petsPage['selectors'].petNameInput);
+      const breedValue = await petsPage.page.inputValue(petsPage['selectors'].petBreedInput);
+      const ageValue = await petsPage.page.inputValue(petsPage['selectors'].petAgeInput);
+      const weightValue = await petsPage.page.inputValue(petsPage['selectors'].petWeightInput);
+      
+      expect(nameValue).toBe(petData.name);
+      expect(breedValue).toBe(petData.breed);
+      expect(ageValue).toBe(petData.age.toString());
+      expect(weightValue).toBe(petData.weight.toString());
+    });
+
+    test('验证宠物删除后的数据清理', async () => {
+      const petName = '删除清理测试宠物';
+      
+      // 创建宠物
+      await petsPage.addPet({
+        name: petName,
+        type: 'dog',
+        breed: '边境牧羊犬',
+        age: 2,
+        weight: 18.0
+      });
+      
+      // 记录删除前的宠物数量
+      const countBefore = await petsPage.getPetCount();
+      
+      // 删除宠物
+      await petsPage.deletePet(petName);
+      
+      // 验证宠物数量减少
+      const countAfter = await petsPage.getPetCount();
+      expect(countAfter).toBe(countBefore - 1);
+      
+      // 验证宠物不再出现在列表中
+      await expect(async () => {
+        await petsPage['findPetCard'](petName);
+      }).rejects.toThrow('找不到名为');
+      
+      // 验证搜索结果中也不存在
+      const searchResults = await petsPage.searchPets(petName);
+      expect(searchResults.length).toBe(0);
+    });
+
+    test('验证并发操作的数据一致性', async ({ browser }) => {
+      // 创建多个浏览器上下文模拟并发用户
+      const context1 = await browser.newContext();
+      const context2 = await browser.newContext();
+      
+      const page1 = await context1.newPage();
+      const page2 = await context2.newPage();
+      
+      const petsPage1 = new PetsPage(page1);
+      const petsPage2 = new PetsPage(page2);
+      const authPage1 = new AuthPage(page1);
+      const authPage2 = new AuthPage(page2);
+      
+      // 两个用户同时登录
+      await Promise.all([
+        authPage1.login(testUser.email, testUser.password),
+        authPage2.login(testUser.email, testUser.password)
+      ]);
+      
+      // 用户1添加宠物
+      const pet1Promise = petsPage1.addPet({
+        name: '并发测试宠物1',
+        type: 'dog',
+        breed: '金毛',
+        age: 3,
+        weight: 25.0
+      });
+      
+      // 用户2同时添加宠物
+      const pet2Promise = petsPage2.addPet({
+        name: '并发测试宠物2',
+        type: 'cat',
+        breed: '波斯猫',
+        age: 2,
+        weight: 4.5
+      });
+      
+      // 等待两个操作完成
+      await Promise.all([pet1Promise, pet2Promise]);
+      
+      // 验证两个宠物都成功创建
+      await petsPage1.goToPetsPage();
+      const pets = await petsPage1.getPetList();
+      
+      const pet1Exists = pets.some(pet => pet.name.includes('并发测试宠物1'));
+      const pet2Exists = pets.some(pet => pet.name.includes('并发测试宠物2'));
+      
+      expect(pet1Exists).toBe(true);
+      expect(pet2Exists).toBe(true);
+      
+      // 清理
+      await context1.close();
+      await context2.close();
+    });
+  });
+});       const petData = {
+          name: `图片大小测试${testCase.size}`,
+          type: 'cat' as const,
+          breed: '测试品种',
+          age: 24,
+          weight: 4.0
+        };
+
+        // 模拟不同大小的图片上传
+        if (!testCase.shouldPass) {
+          await apiMocker.mockFileUploadError('图片大小超出限制');
+        }
+
+        try {
+          await petsPage.addPet({
+            ...petData,
+            avatarPath: `fixtures/images/large-${testCase.size.toLowerCase()}.jpg`
+          });
+
+          if (testCase.shouldPass) {
+            // 验证上传成功
+            await expect(petsPage.page.locator('[data-testid="pets-success"]')).toContainText('宠物添加成功');
+          } else {
+            // 不应该到达这里
+            throw new Error('Expected upload to fail');
+          }
+        } catch (error) {
+          if (!testCase.shouldPass) {
+            // 验证错误消息
+            const errorMessage = await petsPage.page.locator('[data-testid="pets-error"]').textContent();
+            expect(errorMessage).toContain(testCase.error);
+          } else {
+            throw error;
+          }
+        }
+      }
+    });
+
+    test('应该支持图片自动压缩和优化', async () => {
+      const petData = {
+        name: '图片压缩测试宠物',
+        type: 'dog' as const,
+        breed: '测试品种',
+        age: 24,
+        weight: 15.0,
+        avatarPath: 'fixtures/images/high-resolution-pet.jpg'
+      };
+
+      await petsPage.addPet(petData);
+
+      // 验证图片已被压缩
+      const petCard = await petsPage.page.locator(`[data-testid="pet-card-${petData.name}"]`);
+      const avatar = petCard.locator('[data-testid="pet-avatar"]');
+      
+      // 检查图片尺寸
+      const naturalWidth = await avatar.evaluate((img: HTMLImageElement) => img.naturalWidth);
+      const naturalHeight = await avatar.evaluate((img: HTMLImageElement) => img.naturalHeight);
+      
+      // 验证图片被压缩到合理尺寸
+      expect(naturalWidth).toBeLessThanOrEqual(800);
+      expect(naturalHeight).toBeLessThanOrEqual(800);
+    });
+
+    test('应该支持图片裁剪和缩放', async () => {
+      const petData = {
+        name: '图片裁剪测试宠物',
+        type: 'cat' as const,
+        breed: '测试品种',
+        age: 24,
+        weight: 4.0,
+        avatarPath: 'fixtures/images/rectangular-pet.jpg'
+      };
+
+      await petsPage.addPet(petData);
+
+      // 验证图片被裁剪为正方形
+      const petCard = await petsPage.page.locator(`[data-testid="pet-card-${petData.name}"]`);
+      const avatar = petCard.locator('[data-testid="pet-avatar"]');
+      
+      const width = await avatar.evaluate((img: HTMLImageElement) => img.offsetWidth);
+      const height = await avatar.evaluate((img: HTMLImageElement) => img.offsetHeight);
+      
+      // 验证图片是正方形
+      expect(Math.abs(width - height)).toBeLessThan(5); // 允许5px误差
+    });
+
+    test('应该支持图片预览和编辑', async () => {
+      await petsPage.goToPetsPage();
+      await petsPage.page.click('[data-testid="add-pet-button"]');
+
+      // 上传图片
+      const fileInput = petsPage.page.locator('[data-testid="pet-avatar-upload"]');
+      await fileInput.setInputFiles('fixtures/images/pet-avatar.jpg');
+
+      // 验证预览显示
+      const preview = petsPage.page.locator('[data-testid="avatar-preview"]');
+      await expect(preview).toBeVisible();
+
+      // 测试图片编辑功能
+      const editButton = petsPage.page.locator('[data-testid="edit-avatar"]');
+      if (await editButton.isVisible()) {
+        await editButton.click();
+
+        // 验证编辑器打开
+        const editor = petsPage.page.locator('[data-testid="image-editor"]');
+        await expect(editor).toBeVisible();
+
+        // 测试旋转功能
+        await petsPage.page.click('[data-testid="rotate-image"]');
+        
+        // 测试裁剪功能
+        await petsPage.page.click('[data-testid="crop-image"]');
+        
+        // 保存编辑
+        await petsPage.page.click('[data-testid="save-edited-image"]');
+        
+        // 验证编辑器关闭
+        await expect(editor).not.toBeVisible();
+      }
+    });
+
+    test('应该处理图片上传失败情况', async () => {
+      const errorScenarios = [
+        { scenario: '网络错误', mockError: 'network' },
+        { scenario: '服务器错误', mockError: 'server' },
+        { scenario: '存储空间不足', mockError: 'storage' },
+        { scenario: '文件格式不支持', mockError: 'format' }
+      ];
+
+      for (const scenario of errorScenarios) {
+        await petsPage.goToPetsPage();
+        await petsPage.page.click('[data-testid="add-pet-button"]');
+
+        // 模拟上传错误
+        await apiMocker.mockFileUploadError(scenario.mockError);
+
+        // 尝试上传图片
+        const fileInput = petsPage.page.locator('[data-testid="pet-avatar-upload"]');
+        await fileInput.setInputFiles('fixtures/images/pet-avatar.jpg');
+
+        // 验证错误处理
+        const errorMessage = petsPage.page.locator('[data-testid="upload-error"]');
+        await expect(errorMessage).toBeVisible();
+        await expect(errorMessage).toContainText('上传失败');
+
+        // 验证重试选项
+        const retryButton = petsPage.page.locator('[data-testid="retry-upload"]');
+        await expect(retryButton).toBeVisible();
+
+        // 取消操作
+        await petsPage.page.click('[data-testid="cancel-button"]');
+      }
+    });
+
+    test('应该支持多张图片上传', async () => {
+      const petData = {
+        name: '多图片测试宠物',
+        type: 'dog' as const,
+        breed: '测试品种',
+        age: 24,
+        weight: 15.0
+      };
+
+      await petsPage.goToPetsPage();
+      await petsPage.page.click('[data-testid="add-pet-button"]');
+
+      // 填写基本信息
+      await petsPage.page.fill('[data-testid="pet-name-input"]', petData.name);
+      await petsPage.page.selectOption('[data-testid="pet-type-select"]', petData.type);
+      await petsPage.page.fill('[data-testid="pet-breed-input"]', petData.breed);
+
+      // 上传多张图片
+      const multiFileInput = petsPage.page.locator('[data-testid="pet-gallery-upload"]');
+      if (await multiFileInput.isVisible()) {
+        await multiFileInput.setInputFiles([
+          'fixtures/images/pet-1.jpg',
+          'fixtures/images/pet-2.jpg',
+          'fixtures/images/pet-3.jpg'
+        ]);
+
+        // 验证图片预览
+        const previews = petsPage.page.locator('[data-testid="gallery-preview"] img');
+        await expect(previews).toHaveCount(3);
+
+        // 测试图片删除
+        const deleteButton = petsPage.page.locator('[data-testid="delete-gallery-image"]').first();
+        await deleteButton.click();
+        await expect(previews).toHaveCount(2);
+      }
+
+      await petsPage.page.click('[data-testid="save-pet-button"]');
+      await expect(petsPage.page.locator('[data-testid="pets-success"]')).toContainText('宠物添加成功');
+    });
+  });
+
+  test.describe('宠物数据导入导出功能测试', () => {
+    test('应该支持单个宠物数据导出', async () => {
+      // 创建测试宠物
+      const petData = {
+        name: '导出测试宠物',
+        type: 'dog' as const,
+        breed: '金毛寻回犬',
+        age: 36,
+        weight: 28.5,
+        description: '用于测试数据导出功能的宠物'
+      };
+
+      await petsPage.addPet(petData);
+
+      // 导出宠物数据
+      const petCard = await petsPage.page.locator(`[data-testid="pet-card-${petData.name}"]`);
+      await petCard.locator('[data-testid="pet-menu"]').click();
+      
+      const exportButton = petsPage.page.locator('[data-testid="export-pet"]');
+      if (await exportButton.isVisible()) {
+        // 开始下载
+        const downloadPromise = petsPage.page.waitForEvent('download');
+        await exportButton.click();
+        const download = await downloadPromise;
+
+        // 验证下载文件
+        expect(download.suggestedFilename()).toMatch(/.*\.json$/);
+        
+        // 验证文件内容
+        const path = await download.path();
+        if (path) {
+          const fs = require('fs');
+          const content = fs.readFileSync(path, 'utf8');
+          const exportedData = JSON.parse(content);
+          
+          expect(exportedData.name).toBe(petData.name);
+          expect(exportedData.type).toBe(petData.type);
+          expect(exportedData.breed).toBe(petData.breed);
+        }
+      }
+    });
+
+    test('应该支持批量宠物数据导出', async () => {
+      // 创建多个测试宠物
+      const pets = [
+        { name: '批量导出宠物1', type: 'dog' as const, breed: '拉布拉多', age: 24, weight: 25.0 },
+        { name: '批量导出宠物2', type: 'cat' as const, breed: '英短', age: 18, weight: 4.5 },
+        { name: '批量导出宠物3', type: 'dog' as const, breed: '边牧', age: 30, weight: 20.0 }
+      ];
+
+      for (const pet of pets) {
+        await petsPage.addPet(pet);
+      }
+      
+      // 批量导出
+      const batchExportButton = petsPage.page.locator('[data-testid="batch-export"]');
+      if (await batchExportButton.isVisible()) {
+        const downloadPromise = petsPage.page.waitForEvent('download');
+        await batchExportButton.click();
+        const download = await downloadPromise;
+
+        // 验证下载文件
+        expect(download.suggestedFilename()).toMatch(/pets_export_.*\.json$/);
+      }
+    });
+
+    test('应该支持宠物数据导入', async () => {
+      // 准备导入数据
+      const importData = {
+        pets: [
+          {
+            name: '导入测试宠物1',
+            type: 'dog',
+            breed: '德国牧羊犬',
+            age: 48,
+            weight: 35.0,
+            description: '从文件导入的宠物数据'
+          },
+          {
+            name: '导入测试宠物2',
+            type: 'cat',
+            breed: '暹罗猫',
+            age: 24,
+            weight: 3.8,
+            description: '另一个导入的宠物'
+          }
+        ]
+      };
+
+      // 创建临时导入文件
+      const fs = require('fs');
+      const path = require('path');
+      const tempFile = path.join(__dirname, 'temp_import.json');
+      fs.writeFileSync(tempFile, JSON.stringify(importData));
+
+      try {
+        // 执行导入
+        const importButton = petsPage.page.locator('[data-testid="import-pets"]');
+        if (await importButton.isVisible()) {
+          await importButton.click();
+
+          // 选择文件
+          const fileInput = petsPage.page.locator('[data-testid="import-file-input"]');
+          await fileInput.setInputFiles(tempFile);
+
+          // 确认导入
+          await petsPage.page.click('[data-testid="confirm-import"]');
+
+          // 验证导入成功
+          await expect(petsPage.page.locator('[data-testid="import-success"]')).toContainText('导入成功');
+
+          // 验证宠物已添加
+          for (const pet of importData.pets) {
+            await petsPage.verifyPetInfo(pet.name, {
+              type: pet.type === 'dog' ? '狗' : '猫',
+              breed: pet.breed
+            });
+          }
+        }
+      } finally {
+        // 清理临时文件
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+
+    test('应该验证导入数据格式', async () => {
+      const invalidDataFormats = [
+        { name: '无效JSON', content: '{ invalid json }', error: 'JSON格式错误' },
+        { name: '缺少必填字段', content: '{"pets": [{"name": "test"}]}', error: '缺少必填字段' },
+        { name: '数据类型错误', content: '{"pets": [{"name": 123, "type": "dog"}]}', error: '数据类型错误' },
+        { name: '空文件', content: '', error: '文件为空' }
+      ];
+
+      for (const testCase of invalidDataFormats) {
+        const fs = require('fs');
+        const path = require('path');
+        const tempFile = path.join(__dirname, `temp_${testCase.name}.json`);
+        fs.writeFileSync(tempFile, testCase.content);
+
+        try {
+          const importButton = petsPage.page.locator('[data-testid="import-pets"]');
+          if (await importButton.isVisible()) {
+            await importButton.click();
+
+            const fileInput = petsPage.page.locator('[data-testid="import-file-input"]');
+            await fileInput.setInputFiles(tempFile);
+
+            await petsPage.page.click('[data-testid="confirm-import"]');
+
+            // 验证错误消息
+            const errorMessage = petsPage.page.locator('[data-testid="import-error"]');
+            await expect(errorMessage).toContainText(testCase.error);
+          }
+        } finally {
+          if (fs.existsSync(tempFile)) {
+            fs.unlinkSync(tempFile);
+          }
+        }
+      }
+    });
+
+    test('应该支持导入预览和确认', async () => {
+      const importData = {
+        pets: [
+          { name: '预览测试宠物1', type: 'dog', breed: '柯基', age: 24, weight: 12.0 },
+          { name: '预览测试宠物2', type: 'cat', breed: '布偶', age: 18, weight: 5.5 }
+        ]
+      };
+
+      const fs = require('fs');
+      const path = require('path');
+      const tempFile = path.join(__dirname, 'temp_preview.json');
+      fs.writeFileSync(tempFile, JSON.stringify(importData));
+
+      try {
+        const importButton = petsPage.page.locator('[data-testid="import-pets"]');
+        if (await importButton.isVisible()) {
+          await importButton.click();
+
+          const fileInput = petsPage.page.locator('[data-testid="import-file-input"]');
+          await fileInput.setInputFiles(tempFile);
+
+          // 验证预览显示
+          const previewModal = petsPage.page.locator('[data-testid="import-preview"]');
+          await expect(previewModal).toBeVisible();
+
+          // 验证预览内容
+          const previewItems = petsPage.page.locator('[data-testid="preview-pet-item"]');
+          await expect(previewItems).toHaveCount(2);
+
+          // 验证可以取消选择某些项目
+          const firstCheckbox = petsPage.page.locator('[data-testid="preview-pet-checkbox"]').first();
+          await firstCheckbox.uncheck();
+
+          // 确认导入
+          await petsPage.page.click('[data-testid="confirm-import"]');
+
+          // 验证只导入了选中的项目
+          await expect(petsPage.page.locator('[data-testid="import-success"]')).toContainText('成功导入 1 只宠物');
+        }
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+
+    test('应该支持导入冲突处理', async () => {
+      // 先创建一个宠物
+      const existingPet = {
+        name: '冲突测试宠物',
+        type: 'dog' as const,
+        breed: '原始品种',
+        age: 24,
+        weight: 15.0
+      };
+
+      await petsPage.addPet(existingPet);
+
+      // 准备导入相同名称的宠物
+      const importData = {
+        pets: [
+          {
+            name: '冲突测试宠物',
+            type: 'dog',
+            breed: '更新品种',
+            age: 30,
+            weight: 18.0
+          }
+        ]
+      };
+
+      const fs = require('fs');
+      const path = require('path');
+      const tempFile = path.join(__dirname, 'temp_conflict.json');
+      fs.writeFileSync(tempFile, JSON.stringify(importData));
+
+      try {
+        const importButton = petsPage.page.locator('[data-testid="import-pets"]');
+        if (await importButton.isVisible()) {
+          await importButton.click();
+
+          const fileInput = petsPage.page.locator('[data-testid="import-file-input"]');
+          await fileInput.setInputFiles(tempFile);
+
+          // 验证冲突提示
+          const conflictDialog = petsPage.page.locator('[data-testid="import-conflict"]');
+          await expect(conflictDialog).toBeVisible();
+
+          // 选择覆盖
+          await petsPage.page.click('[data-testid="overwrite-existing"]');
+          await petsPage.page.click('[data-testid="confirm-import"]');
+
+          // 验证宠物信息已更新
+          await petsPage.verifyPetInfo('冲突测试宠物', {
+            breed: '更新品种'
+          });
+        }
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+  });
+
+  test.describe('宠物数据完整性和一致性测试', () => {
+    test('应该验证宠物数据跨页面一致性', async () => {
+      const petData = {
+        name: '一致性测试宠物',
+        type: 'dog' as const,
+        breed: '哈士奇',
+        age: 36,
+        weight: 25.0,
+        description: '用于测试数据一致性的宠物'
+      };
+
+      await petsPage.addPet(petData);
+
+      // 在列表页验证信息
+      await petsPage.verifyPetInfo(petData.name, {
+        type: '狗',
+        breed: petData.breed,
+        age: '3岁',
+        weight: '25kg'
+      });
+
+      // 在详情页验证信息
+      const details = await petsPage.viewPetDetails(petData.name);
+      expect(details.name).toBe(petData.name);
+      expect(details.info).toContain(petData.breed);
+      expect(details.info).toContain(petData.description);
+
+      // 在编辑页验证信息
+      await petsPage.closePetDetails();
+      const petCard = await petsPage.page.locator(`[data-testid="pet-card-${petData.name}"]`);
+      await petCard.locator('[data-testid="edit-pet-button"]').click();
+
+      // 验证表单中的数据
+      const nameInput = petsPage.page.locator('[data-testid="pet-name-input"]');
+      const breedInput = petsPage.page.locator('[data-testid="pet-breed-input"]');
+      const ageInput = petsPage.page.locator('[data-testid="pet-age-input"]');
+
+      expect(await nameInput.inputValue()).toBe(petData.name);
+      expect(await breedInput.inputValue()).toBe(petData.breed);
+      expect(await ageInput.inputValue()).toBe(petData.age.toString());
+    });
+
+    test('应该验证宠物数据修改后的一致性', async () => {
+      const originalData = {
+        name: '修改一致性测试宠物',
+        type: 'cat' as const,
+        breed: '英国短毛猫',
+        age: 24,
+        weight: 4.5
+      };
+
+      const updatedData = {
+        breed: '苏格兰折耳猫',
+        age: 30,
+        weight: 5.2
+      };
+
+      await petsPage.addPet(originalData);
+      await petsPage.editPet(originalData.name, updatedData);
+
+      // 验证所有位置的数据都已更新
+      await petsPage.verifyPetInfo(originalData.name, {
+        breed: updatedData.breed,
+        age: '2岁6个月',
+        weight: '5.2kg'
+      });
+
+      // 验证详情页数据
+      const details = await petsPage.viewPetDetails(originalData.name);
+      expect(details.info).toContain(updatedData.breed);
+      expect(details.info).toContain('5.2kg');
+    });
+
+    test('应该验证宠物数据删除的完整性', async () => {
+      const petData = {
+        name: '删除完整性测试宠物',
+        type: 'dog' as const,
+        breed: '比格犬',
+        age: 24,
+        weight: 15.0
+      };
+
+      await petsPage.addPet(petData);
+
+      // 验证宠物存在
+      const petCount = await petsPage.getPetCount();
+      expect(petCount).toBeGreaterThan(0);
+
+      // 删除宠物
+      await petsPage.deletePet(petData.name);
+
+      // 验证宠物已从列表中移除
+      const petCards = petsPage.page.locator(`[data-testid="pet-card-${petData.name}"]`);
+      await expect(petCards).toHaveCount(0);
+
+      // 验证总数减少
+      const newPetCount = await petsPage.getPetCount();
+      expect(newPetCount).toBe(petCount - 1);
+
+      // 尝试访问已删除宠物的详情页（如果有直接URL）
+      await petsPage.page.goto(`/pets/${petData.name.toLowerCase().replace(/\s+/g, '-')}`);
+      
+      // 应该显示404或重定向到宠物列表
+      const currentUrl = petsPage.page.url();
+      expect(currentUrl).toMatch(/\/(pets|404)/);
+    });
+  });
+});

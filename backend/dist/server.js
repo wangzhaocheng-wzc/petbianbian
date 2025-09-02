@@ -53,9 +53,16 @@ const statistics_1 = __importDefault(require("./routes/statistics"));
 const moderation_1 = __importDefault(require("./routes/moderation"));
 const cache_1 = __importDefault(require("./routes/cache"));
 const admin_1 = __importDefault(require("./routes/admin"));
+// import comparisonRoutes from './routes/comparison';
+const reports_1 = __importDefault(require("./routes/reports"));
+const monitoring_1 = __importDefault(require("./routes/monitoring"));
+const logs_1 = __importDefault(require("./routes/logs"));
 // import alertRoutes from './routes/alerts';
 // import notificationRoutes from './routes/notifications';
 const errorHandler_1 = require("./middleware/errorHandler");
+const monitoringService_1 = require("./services/monitoringService");
+const errorTrackingService_1 = require("./services/errorTrackingService");
+const requestLogger_1 = require("./middleware/requestLogger");
 const database_1 = require("./utils/database");
 const logger_1 = require("./utils/logger");
 const redis_1 = require("./config/redis");
@@ -69,6 +76,10 @@ app.use((0, cors_1.default)());
 app.use((0, morgan_1.default)('combined'));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
+// 监控中间件
+app.use(monitoringService_1.monitoringMiddleware);
+// 请求日志中间件
+app.use(requestLogger_1.requestLoggerMiddleware);
 // 静态文件
 app.use('/uploads', express_1.default.static('uploads'));
 // 路由
@@ -83,6 +94,10 @@ app.use('/api/statistics', statistics_1.default);
 app.use('/api/moderation', moderation_1.default);
 app.use('/api/cache', cache_1.default);
 app.use('/api/admin', admin_1.default);
+// app.use('/api/comparison', comparisonRoutes);
+app.use('/api/reports', reports_1.default);
+app.use('/api/monitoring', monitoring_1.default);
+app.use('/api/logs', logs_1.default);
 // app.use('/api/alerts', alertRoutes);
 // app.use('/api/notifications', notificationRoutes);
 // 健康检查
@@ -108,6 +123,8 @@ app.get('/api/health', async (req, res) => {
 });
 // 404处理
 app.use('*', errorHandler_1.notFoundHandler);
+// 错误追踪中间件
+app.use(errorTrackingService_1.errorTrackingMiddleware);
 // 错误处理
 app.use(errorHandler_1.errorHandler);
 // 启动服务器

@@ -1,0 +1,529 @@
+name: Playwright E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - smoke
+        - regression
+        - performance
+        - visual
+      browser:
+        description: 'Browser to test'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - chromium
+        - firefox
+        - webkit
+
+env:
+  NODE_VERSION: '18'
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+jobs:
+  # Test environment setup and health check
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      test-env-ready: ${{ steps.health-check.outputs.ready }}
+    
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        cd ../backend && npm ci
+
+    - name: Build backend
+      run: |
+        cd backend
+        npm run build
+
+    - name: Start backend server
+      run: |
+        cd backend
+        npm start &
+        sleep 15
+      env:
+        MONGODB_URI: mongodb://localhost:27017/pet-health-test
+        REDIS_URL: redis://localhost:6379
+        JWT_SECRET: test-jwt-secret-${{ github.run_id }}
+        PORT: 5000
+
+    - name: Health check
+      id: health-check
+      run: |
+        # Wait for backend to be ready
+        for i in {1..30}; do
+          if curl -f http://localhost:5000/api/health; then
+            echo "ready=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "ready=false" >> $GITHUB_OUTPUT
+        exit 1
+
+  # Multi-browser Playwright tests
+  playwright-tests:
+    needs: setup
+    if: needs.setup.outputs.test-env-ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1/4, 2/4, 3/4, 4/4]
+        exclude:
+          # Skip webkit on certain shards to optimize CI time
+          - browser: webkit
+            shard: 3/4
+          - browser: webkit
+            shard: 4/4
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        cd ../backend && npm ci
+
+    - name: Install Playwright browsers
+      run: |
+        cd frontend
+        npx playwright install --with-deps ${{ matrix.browser }}
+
+    - name: Build and start backend
+      run: |
+        cd backend
+        npm run build
+        npm start &
+        sleep 15
+      env:
+        MONGODB_URI: mongodb://localhost:27017/pet-health-test-${{ matrix.browser }}-${{ strategy.job-index }}
+        REDIS_URL: redis://localhost:6379
+        JWT_SECRET: test-jwt-secret-${{ github.run_id }}-${{ matrix.browser }}
+        PORT: 5000
+
+    - name: Wait for backend
+      run: |
+        for i in {1..30}; do
+          if curl -f http://localhost:5000/api/health; then
+            echo "Backend is ready"
+            break
+          fi
+          sleep 2
+        done
+
+    - name: Run Playwright tests
+      run: |
+        cd frontend
+        npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}
+      env:
+        VITE_API_URL: http://localhost:5000/api
+        PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+        CI: true
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report-${{ matrix.browser }}-${{ strategy.job-index }}
+        path: |
+          frontend/playwright-report/
+          frontend/test-results/
+        retention-days: 30
+
+    - name: Upload failure screenshots
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: failure-screenshots-${{ matrix.browser }}-${{ strategy.job-index }}
+        path: frontend/test-results/
+        retention-days: 7
+
+  # Performance tests (separate job for better resource allocation)
+  performance-tests:
+    needs: setup
+    if: needs.setup.outputs.test-env-ready == 'true' && (github.event_name == 'schedule' || github.event.inputs.test_suite == 'performance' || github.event.inputs.test_suite == 'all')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        cd ../backend && npm ci
+
+    - name: Install Playwright browsers
+      run: |
+        cd frontend
+        npx playwright install --with-deps chromium
+
+    - name: Build and start backend
+      run: |
+        cd backend
+        npm run build
+        npm start &
+        sleep 15
+      env:
+        MONGODB_URI: mongodb://localhost:27017/pet-health-perf-test
+        REDIS_URL: redis://localhost:6379
+        JWT_SECRET: test-jwt-secret-perf-${{ github.run_id }}
+        PORT: 5000
+
+    - name: Run performance tests
+      run: |
+        cd frontend
+        npm run test:e2e:performance
+      env:
+        VITE_API_URL: http://localhost:5000/api
+        PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-report
+        path: |
+          frontend/playwright-report/
+          frontend/performance-results/
+        retention-days: 30
+
+  # Visual regression tests
+  visual-tests:
+    needs: setup
+    if: needs.setup.outputs.test-env-ready == 'true' && (github.event_name == 'schedule' || github.event.inputs.test_suite == 'visual' || github.event.inputs.test_suite == 'all')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        cd ../backend && npm ci
+
+    - name: Install Playwright browsers
+      run: |
+        cd frontend
+        npx playwright install --with-deps chromium
+
+    - name: Build and start backend
+      run: |
+        cd backend
+        npm run build
+        npm start &
+        sleep 15
+      env:
+        MONGODB_URI: mongodb://localhost:27017/pet-health-visual-test
+        REDIS_URL: redis://localhost:6379
+        JWT_SECRET: test-jwt-secret-visual-${{ github.run_id }}
+        PORT: 5000
+
+    - name: Run visual regression tests
+      run: |
+        cd frontend
+        npm run test:e2e:visual
+      env:
+        VITE_API_URL: http://localhost:5000/api
+        PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+
+    - name: Upload visual test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: visual-test-report
+        path: |
+          frontend/playwright-report/
+          frontend/test-results/
+          frontend/visual-baselines/
+        retention-days: 30
+
+  # Test result aggregation and notification
+  test-results:
+    needs: [playwright-tests, performance-tests, visual-tests]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: test-artifacts
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Aggregate test results
+      run: |
+        cd frontend
+        node e2e/utils/aggregate-test-results.js ../test-artifacts
+      continue-on-error: true
+
+    - name: Generate combined report
+      run: |
+        cd frontend
+        npx playwright merge-reports ../test-artifacts/playwright-report-*
+      continue-on-error: true
+
+    - name: Upload combined report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: combined-test-report
+        path: |
+          frontend/playwright-report/
+          frontend/test-summary.json
+        retention-days: 30
+
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          try {
+            const summaryPath = path.join('frontend', 'test-summary.json');
+            if (fs.existsSync(summaryPath)) {
+              const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+              
+              const comment = `## 🎭 Playwright Test Results
+              
+              **Overall Status:** ${summary.success ? '✅ PASSED' : '❌ FAILED'}
+              
+              ### Test Summary
+              - **Total Tests:** ${summary.total}
+              - **Passed:** ${summary.passed}
+              - **Failed:** ${summary.failed}
+              - **Skipped:** ${summary.skipped}
+              - **Duration:** ${summary.duration}
+              
+              ### Browser Results
+              ${summary.browsers.map(browser => 
+                `- **${browser.name}:** ${browser.passed}/${browser.total} (${browser.success ? '✅' : '❌'})`
+              ).join('\n')}
+              
+              ${summary.failed > 0 ? `
+              ### Failed Tests
+              ${summary.failedTests.slice(0, 10).map(test => `- ${test}`).join('\n')}
+              ${summary.failedTests.length > 10 ? `\n... and ${summary.failedTests.length - 10} more` : ''}
+              ` : ''}
+              
+              [View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+          } catch (error) {
+            console.log('Could not post test results comment:', error.message);
+          }
+
+    - name: Notify on failure
+      if: failure() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `🚨 Playwright Tests Failed - ${context.ref.replace('refs/heads/', '')}`,
+            body: `
+            ## Test Failure Alert
+            
+            **Branch:** ${context.ref.replace('refs/heads/', '')}
+            **Commit:** ${context.sha.substring(0, 7)}
+            **Workflow:** ${context.workflow}
+            **Run ID:** ${context.runId}
+            
+            The Playwright test suite has failed on the ${context.ref.replace('refs/heads/', '')} branch.
+            
+            **Action Required:**
+            1. Review the [failed workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            2. Check the test artifacts and failure screenshots
+            3. Fix the failing tests or revert the problematic changes
+            4. Re-run the tests to verify the fix
+            
+            **Auto-generated by GitHub Actions**
+            `,
+            labels: ['bug', 'ci-failure', 'high-priority']
+          });
+
+  # Block deployment on test failure
+  deployment-gate:
+    needs: [playwright-tests, performance-tests, visual-tests]
+    if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    outputs:
+      tests-passed: ${{ steps.check-results.outputs.passed }}
+
+    steps:
+    - name: Check test results
+      id: check-results
+      run: |
+        if [[ "${{ needs.playwright-tests.result }}" == "success" && 
+              "${{ needs.performance-tests.result }}" != "failure" && 
+              "${{ needs.visual-tests.result }}" != "failure" ]]; then
+          echo "passed=true" >> $GITHUB_OUTPUT
+          echo "✅ All tests passed - deployment can proceed"
+        else
+          echo "passed=false" >> $GITHUB_OUTPUT
+          echo "❌ Tests failed - blocking deployment"
+          exit 1
+        fi

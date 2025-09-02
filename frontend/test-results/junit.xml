@@ -1,0 +1,118 @@
+<testsuites id="" name="" tests="28" failures="0" skipped="28" errors="0" time="1.0164669999999996">
+<testsuite name="specs\accessibility\color-contrast-visual.spec.ts" timestamp="2025-09-01T07:41:37.271Z" hostname="Desktop Chrome" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 正常文本颜色对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 按钮和交互元素对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 表单字段对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 错误和警告消息对比度" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 红绿色盲友好性检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 图表和数据可视化色盲友好性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 链接和按钮色盲友好性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 文字大小可调节性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 最小字体大小检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 行间距和字符间距检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 触摸目标大小检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 响应式文字缩放" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 高对比度模式测试 › Windows高对比度模式兼容性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 高对比度模式测试 › 暗色主题对比度" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\accessibility\color-contrast-visual.spec.ts" timestamp="2025-09-01T07:41:37.271Z" hostname="Mobile Chrome" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 正常文本颜色对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 按钮和交互元素对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 表单字段对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 错误和警告消息对比度" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 红绿色盲友好性检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 图表和数据可视化色盲友好性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 链接和按钮色盲友好性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 文字大小可调节性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 最小字体大小检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 行间距和字符间距检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 触摸目标大小检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 响应式文字缩放" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 高对比度模式测试 › Windows高对比度模式兼容性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="色彩对比和视觉辅助测试 › 高对比度模式测试 › 暗色主题对比度" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

@@ -1,6 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, Image, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, X, Image, AlertCircle, CheckCircle, Camera } from 'lucide-react';
+import { useMobile } from '../hooks/useMobile';
+import MobileCamera from './mobile/MobileCamera';
+import TouchButton from './common/TouchButton';
 
 interface FileUploadProps {
   onFileSelect: (files: File[]) => void;
@@ -38,6 +41,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
   success = false
 }) => {
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
+  const [showCamera, setShowCamera] = useState(false);
+  const { isMobile } = useMobile();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const filesWithPreview = acceptedFiles.map(file => {
@@ -54,6 +59,20 @@ const FileUpload: React.FC<FileUploadProps> = ({
       return newFiles;
     });
   }, [onFileSelect, multiple, preview]);
+
+  const handleCameraCapture = (file: File) => {
+    const fileWithPreview = file as FileWithPreview;
+    if (preview && file.type.startsWith('image/')) {
+      fileWithPreview.preview = URL.createObjectURL(file);
+    }
+
+    setSelectedFiles(prev => {
+      const newFiles = multiple ? [...prev, fileWithPreview] : [fileWithPreview];
+      onFileSelect(newFiles);
+      return newFiles;
+    });
+    setShowCamera(false);
+  };
 
   const removeFile = (index: number) => {
     setSelectedFiles(prev => {
@@ -97,14 +116,30 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className={`w-full ${className}`}>
+      {/* 移动端相机按钮 */}
+      {isMobile && accept['image/*'] && (
+        <div className="mb-4">
+          <TouchButton
+            onClick={() => setShowCamera(true)}
+            variant="outline"
+            fullWidth
+            icon={Camera}
+            disabled={disabled}
+            className="border-2 border-dashed border-gray-300 hover:border-orange-400 bg-white"
+          >
+            使用相机拍照
+          </TouchButton>
+        </div>
+      )}
+
       {/* 拖拽上传区域 */}
       <div
         {...getRootProps()}
         className={`
-          relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+          relative border-2 border-dashed rounded-lg p-4 sm:p-6 text-center cursor-pointer transition-colors min-h-[120px] sm:min-h-[140px] touch:min-h-[140px]
           ${isDragActive 
             ? 'border-orange-400 bg-orange-50' 
-            : 'border-gray-300 hover:border-orange-400 hover:bg-gray-50'
+            : 'border-gray-300 hover:border-orange-400 hover:bg-gray-50 active:bg-gray-100'
           }
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           ${error ? 'border-red-400 bg-red-50' : ''}
@@ -114,7 +149,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         <input {...getInputProps()} />
         
         {/* 上传图标和文字 */}
-        <div className="flex flex-col items-center space-y-2">
+        <div className="flex flex-col items-center space-y-2 justify-center h-full">
           {uploadProgress !== undefined ? (
             <div className="w-full max-w-xs">
               <div className="flex items-center justify-between mb-1">
@@ -131,21 +166,31 @@ const FileUpload: React.FC<FileUploadProps> = ({
           ) : (
             <>
               {error ? (
-                <AlertCircle className="w-12 h-12 text-red-400" />
+                <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-red-400" />
               ) : success ? (
-                <CheckCircle className="w-12 h-12 text-green-400" />
+                <CheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-green-400" />
               ) : (
-                <Upload className="w-12 h-12 text-gray-400" />
+                <Upload className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
               )}
               
-              <div>
-                <p className="text-lg font-medium text-gray-700">
-                  {isDragActive ? '放开以上传文件' : '拖拽文件到这里或点击选择'}
+              <div className="px-2">
+                <p className="text-base sm:text-lg font-medium text-gray-700">
+                  {isDragActive 
+                    ? '放开以上传文件' 
+                    : isMobile 
+                      ? '点击选择文件' 
+                      : '拖拽文件到这里或点击选择'
+                  }
                 </p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
                   支持 JPG、PNG、WebP、GIF 格式，最大 {formatFileSize(maxSize)}
                   {multiple && ` (最多 ${maxFiles} 个文件)`}
                 </p>
+                {isMobile && accept['image/*'] && (
+                  <p className="text-xs text-orange-600 mt-1">
+                    或使用上方相机按钮拍照
+                  </p>
+                )}
               </div>
             </>
           )}
@@ -182,10 +227,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
                   <img
                     src={file.preview}
                     alt={file.name}
-                    className="w-12 h-12 object-cover rounded"
+                    className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
                     <Image className="w-6 h-6 text-gray-400" />
                   </div>
                 )}
@@ -201,19 +246,27 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 </div>
 
                 {/* 删除按钮 */}
-                <button
-                  type="button"
+                <TouchButton
                   onClick={() => removeFile(index)}
-                  className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  variant="ghost"
+                  size="sm"
                   disabled={disabled}
+                  className="text-gray-400 hover:text-red-500 active:text-red-600 min-h-[44px] min-w-[44px]"
+                  icon={X}
                 >
-                  <X className="w-4 h-4" />
-                </button>
+                </TouchButton>
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* 移动端相机组件 */}
+      <MobileCamera
+        isOpen={showCamera}
+        onCapture={handleCameraCapture}
+        onClose={() => setShowCamera(false)}
+      />
     </div>
   );
 };

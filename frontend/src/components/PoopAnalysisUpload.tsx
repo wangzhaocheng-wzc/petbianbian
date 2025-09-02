@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Camera, AlertTriangle, CheckCircle, Loader } from 'lucide-react';
 import FileUpload from './FileUpload';
+import { MobileForm, MobileTextarea, MobileInput } from './mobile/MobileForm';
+import TouchButton from './common/TouchButton';
 
 interface PoopAnalysisUploadProps {
   petId: string;
@@ -33,6 +35,7 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
   const [error, setError] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [symptoms, setSymptoms] = useState('');
+
 
   const handleFileSelect = (files: File[]) => {
     setSelectedFiles(files);
@@ -135,16 +138,16 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">便便健康分析</h2>
-        <p className="text-gray-600">
+    <div className="max-w-2xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow-lg">
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">便便健康分析</h2>
+        <p className="text-sm sm:text-base text-gray-600">
           上传宠物便便照片，我们将使用AI技术为您分析健康状况
         </p>
       </div>
 
       {/* 文件上传区域 */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <FileUpload
           onFileSelect={handleFileSelect}
           maxFiles={1}
@@ -160,57 +163,39 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
       </div>
 
       {/* 附加信息输入 */}
-      <div className="mb-6 space-y-4">
-        <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-            备注信息 (可选)
-          </label>
-          <textarea
-            id="notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="记录宠物当天的状态、饮食等信息..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            rows={3}
-            disabled={isUploading}
-          />
-        </div>
+      <MobileForm className="mb-4 sm:mb-6">
+        <MobileTextarea
+          label="备注信息 (可选)"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="记录宠物当天的状态、饮食等信息..."
+          disabled={isUploading}
+          helperText="详细的备注有助于更准确的健康分析"
+        />
 
-        <div>
-          <label htmlFor="symptoms" className="block text-sm font-medium text-gray-700 mb-2">
-            相关症状 (可选)
-          </label>
-          <input
-            type="text"
-            id="symptoms"
-            value={symptoms}
-            onChange={(e) => setSymptoms(e.target.value)}
-            placeholder="如：食欲不振、精神萎靡等，用逗号分隔"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            disabled={isUploading}
-          />
-        </div>
-      </div>
+        <MobileInput
+          label="相关症状 (可选)"
+          type="text"
+          value={symptoms}
+          onChange={(e) => setSymptoms(e.target.value)}
+          placeholder="如：食欲不振、精神萎靡等，用逗号分隔"
+          disabled={isUploading}
+          helperText="如有其他症状请一并记录"
+        />
+      </MobileForm>
 
       {/* 上传按钮 */}
-      <div className="mb-6">
-        <button
+      <div className="mb-4 sm:mb-6">
+        <TouchButton
           onClick={handleUpload}
           disabled={selectedFiles.length === 0 || isUploading}
-          className="w-full flex items-center justify-center px-4 py-3 bg-orange-500 text-white font-medium rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          fullWidth
+          size="lg"
+          loading={isUploading}
+          icon={isUploading ? Loader : Camera}
         >
-          {isUploading ? (
-            <>
-              <Loader className="w-5 h-5 mr-2 animate-spin" />
-              分析中...
-            </>
-          ) : (
-            <>
-              <Camera className="w-5 h-5 mr-2" />
-              开始分析
-            </>
-          )}
-        </button>
+          {isUploading ? '分析中...' : '开始分析'}
+        </TouchButton>
       </div>
 
       {/* 分析结果 */}

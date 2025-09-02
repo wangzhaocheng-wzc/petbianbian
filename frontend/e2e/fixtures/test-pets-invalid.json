@@ -1,0 +1,23 @@
+[
+  {
+    "name": "有效宠物",
+    "type": "dog",
+    "breed": "金毛",
+    "age": 3,
+    "weight": 25.0
+  },
+  {
+    "name": "",
+    "type": "cat",
+    "breed": "波斯猫",
+    "age": 2,
+    "weight": 4.5
+  },
+  {
+    "name": "无效体重宠物",
+    "type": "dog",
+    "breed": "哈士奇",
+    "age": 4,
+    "weight": -5.0
+  }
+]

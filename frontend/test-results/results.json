@@ -1,0 +1,710 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\86137\\Desktop\\xm\\pet\\frontend\\playwright.config.ts",
+    "rootDir": "C:/Users/86137/Desktop/xm/pet/frontend/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "C:\\Users\\86137\\Desktop\\xm\\pet\\frontend\\e2e\\utils\\global-setup.ts",
+    "globalTeardown": "C:\\Users\\86137\\Desktop\\xm\\pet\\frontend\\e2e\\utils\\global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "test-results/html-report",
+          "open": "always"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/junit.xml"
+        }
+      ],
+      [
+        "line",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Users/86137/Desktop/xm/pet/frontend/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {},
+        "id": "Desktop Chrome",
+        "name": "Desktop Chrome",
+        "testDir": "C:/Users/86137/Desktop/xm/pet/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/86137/Desktop/xm/pet/frontend/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 3,
+        "metadata": {},
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "C:/Users/86137/Desktop/xm/pet/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 45000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "stdout": "pipe",
+      "stderr": "pipe"
+    }
+  },
+  "suites": [
+    {
+      "title": "specs\\accessibility\\color-contrast-visual.spec.ts",
+      "file": "specs/accessibility/color-contrast-visual.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "色彩对比和视觉辅助测试",
+          "file": "specs/accessibility/color-contrast-visual.spec.ts",
+          "line": 6,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "颜色对比度测试",
+              "file": "specs/accessibility/color-contrast-visual.spec.ts",
+              "line": 52,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "正常文本颜色对比度检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-bfda9b36885292289d81",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 53,
+                  "column": 5
+                },
+                {
+                  "title": "按钮和交互元素对比度检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-f3afd2d9ac61970e52d6",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 124,
+                  "column": 5
+                },
+                {
+                  "title": "表单字段对比度检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-0e9cb733eb447f6f4f0c",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 155,
+                  "column": 5
+                },
+                {
+                  "title": "错误和警告消息对比度",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-244cc99bde19c13b2e88",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 185,
+                  "column": 5
+                },
+                {
+                  "title": "正常文本颜色对比度检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-569bceb7abf8b8fcf55f",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 53,
+                  "column": 5
+                },
+                {
+                  "title": "按钮和交互元素对比度检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-d9e8b349b7ad12a6b3e7",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 124,
+                  "column": 5
+                },
+                {
+                  "title": "表单字段对比度检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-f123832b1bce92979e15",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 155,
+                  "column": 5
+                },
+                {
+                  "title": "错误和警告消息对比度",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-e2bcab4ecf97a47f6869",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 185,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "色盲友好设计测试",
+              "file": "specs/accessibility/color-contrast-visual.spec.ts",
+              "line": 222,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "红绿色盲友好性检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-ba525f58139d3b8fc572",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 223,
+                  "column": 5
+                },
+                {
+                  "title": "图表和数据可视化色盲友好性",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-ef5047907c1171f1fabc",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 282,
+                  "column": 5
+                },
+                {
+                  "title": "链接和按钮色盲友好性",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-584c01a7dd6bb7bd84a5",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 316,
+                  "column": 5
+                },
+                {
+                  "title": "红绿色盲友好性检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-7f94804aa7b914e5b883",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 223,
+                  "column": 5
+                },
+                {
+                  "title": "图表和数据可视化色盲友好性",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-d2d89eb11ae0bcc06f81",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 282,
+                  "column": 5
+                },
+                {
+                  "title": "链接和按钮色盲友好性",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-752b1fd8016cf8fa2d57",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 316,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "文字大小和间距测试",
+              "file": "specs/accessibility/color-contrast-visual.spec.ts",
+              "line": 352,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "文字大小可调节性",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-b16a3f62f8d2a57174aa",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 353,
+                  "column": 5
+                },
+                {
+                  "title": "最小字体大小检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-4602b4cb721ca579017d",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 396,
+                  "column": 5
+                },
+                {
+                  "title": "行间距和字符间距检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-2dba8fc0b0a2decad905",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 414,
+                  "column": 5
+                },
+                {
+                  "title": "触摸目标大小检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-2699025dda75b7077e76",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 447,
+                  "column": 5
+                },
+                {
+                  "title": "响应式文字缩放",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-4c4cde5dbad4f796ae57",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 470,
+                  "column": 5
+                },
+                {
+                  "title": "文字大小可调节性",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-449a03df11ba15f31659",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 353,
+                  "column": 5
+                },
+                {
+                  "title": "最小字体大小检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-e42d9c29b90a1cacf713",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 396,
+                  "column": 5
+                },
+                {
+                  "title": "行间距和字符间距检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-af49b8ef393b54a7c72e",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 414,
+                  "column": 5
+                },
+                {
+                  "title": "触摸目标大小检查",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-3e63bac1a64a3625c72c",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 447,
+                  "column": 5
+                },
+                {
+                  "title": "响应式文字缩放",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-d135177873329561b04c",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 470,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "高对比度模式测试",
+              "file": "specs/accessibility/color-contrast-visual.spec.ts",
+              "line": 500,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "Windows高对比度模式兼容性",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-73f1ef8ed60cfe632109",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 501,
+                  "column": 5
+                },
+                {
+                  "title": "暗色主题对比度",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Desktop Chrome",
+                      "projectName": "Desktop Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-d45ee667b24cb2fc51a8",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 568,
+                  "column": 5
+                },
+                {
+                  "title": "Windows高对比度模式兼容性",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-64ff42d2406b40d9a226",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 501,
+                  "column": 5
+                },
+                {
+                  "title": "暗色主题对比度",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 45000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "108c46d2fae2e991d8ec-bdaa637896b1df240464",
+                  "file": "specs/accessibility/color-contrast-visual.spec.ts",
+                  "line": 568,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-09-01T07:41:36.287Z",
+    "duration": 1016.4669999999996,
+    "expected": 0,
+    "skipped": 28,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

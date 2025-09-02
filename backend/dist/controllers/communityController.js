@@ -7,7 +7,8 @@ exports.deleteComment = exports.toggleLikeComment = exports.createComment = expo
 const mongoose_1 = __importDefault(require("mongoose"));
 const CommunityPost_1 = __importDefault(require("../models/CommunityPost"));
 const Comment_1 = __importDefault(require("../models/Comment"));
-const moderationService_1 = require("../services/moderationService");
+const moderationService_1 = __importDefault(require("../services/moderationService"));
+const moderationService = new moderationService_1.default();
 // 获取帖子列表
 const getPosts = async (req, res) => {
     try {
@@ -196,15 +197,11 @@ const createPost = async (req, res) => {
             });
         }
         // 内容审核
-        const moderationResult = await moderationService_1.moderationService.analyzeContent({
+        const moderationResult = await moderationService.analyzeContent({
             content: content.trim(),
             type: 'post',
             userId: new mongoose_1.default.Types.ObjectId(userId),
-            metadata: {
-                title: title.trim(),
-                tags: Array.isArray(tags) ? tags.map((tag) => tag.trim()).filter(Boolean) : [],
-                images: Array.isArray(images) ? images : []
-            }
+            metadata: { title: title.trim() }
         });
         // 根据审核结果决定状态
         let moderationStatus = 'approved';
@@ -565,7 +562,7 @@ const createComment = async (req, res) => {
             }
         }
         // 内容审核
-        const moderationResult = await moderationService_1.moderationService.analyzeContent({
+        const moderationResult = await moderationService.analyzeContent({
             content: content.trim(),
             type: 'comment',
             userId: new mongoose_1.default.Types.ObjectId(userId)

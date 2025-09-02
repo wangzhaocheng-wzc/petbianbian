@@ -20,5 +20,10 @@ router.post('/users/:userId/promote', adminController_1.promoteUser);
 router.post('/users/:userId/demote', adminController_1.demoteUser);
 // 系统统计
 router.get('/stats', adminController_1.getSystemStats);
+// 内容管理
+router.get('/posts', adminController_1.getPosts);
+router.get('/comments', adminController_1.getComments);
+router.post('/posts/:postId/:action', adminController_1.moderatePost);
+router.post('/comments/:commentId/:action', adminController_1.moderateComment);
 exports.default = router;
 //# sourceMappingURL=admin.js.map

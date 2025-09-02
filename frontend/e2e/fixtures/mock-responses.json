@@ -1,0 +1,603 @@
+{
+  "auth": {
+    "login": {
+      "success": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "message": "登录成功",
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_token",
+          "user": {
+            "id": "user_123",
+            "username": "testuser",
+            "email": "test@example.com",
+            "profile": {
+              "firstName": "Test",
+              "lastName": "User",
+              "avatar": "/uploads/avatars/default.jpg"
+            },
+            "createdAt": "2024-01-01T00:00:00Z"
+          }
+        }
+      },
+      "failure": {
+        "status": 401,
+        "body": {
+          "success": false,
+          "message": "用户名或密码错误",
+          "code": "INVALID_CREDENTIALS"
+        }
+      },
+      "accountLocked": {
+        "status": 423,
+        "body": {
+          "success": false,
+          "message": "账户已被锁定，请稍后再试",
+          "code": "ACCOUNT_LOCKED",
+          "lockUntil": "2024-01-01T01:00:00Z"
+        }
+      }
+    },
+    "register": {
+      "success": {
+        "status": 201,
+        "body": {
+          "success": true,
+          "message": "注册成功",
+          "user": {
+            "id": "user_new_123",
+            "username": "newuser",
+            "email": "newuser@example.com",
+            "profile": {
+              "firstName": "",
+              "lastName": "",
+              "avatar": "/uploads/avatars/default.jpg"
+            },
+            "createdAt": "2024-01-01T00:00:00Z"
+          }
+        }
+      },
+      "emailExists": {
+        "status": 409,
+        "body": {
+          "success": false,
+          "message": "邮箱已存在",
+          "code": "EMAIL_EXISTS"
+        }
+      },
+      "usernameExists": {
+        "status": 409,
+        "body": {
+          "success": false,
+          "message": "用户名已存在",
+          "code": "USERNAME_EXISTS"
+        }
+      },
+      "validationError": {
+        "status": 400,
+        "body": {
+          "success": false,
+          "message": "输入数据验证失败",
+          "code": "VALIDATION_ERROR",
+          "errors": [
+            {
+              "field": "email",
+              "message": "请输入有效的邮箱地址"
+            },
+            {
+              "field": "password",
+              "message": "密码必须至少8个字符"
+            }
+          ]
+        }
+      }
+    },
+    "logout": {
+      "success": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "message": "退出登录成功"
+        }
+      }
+    },
+    "refreshToken": {
+      "success": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new_mock_token",
+          "expiresIn": 3600
+        }
+      },
+      "expired": {
+        "status": 401,
+        "body": {
+          "success": false,
+          "message": "刷新令牌已过期",
+          "code": "REFRESH_TOKEN_EXPIRED"
+        }
+      }
+    }
+  },
+  "pets": {
+    "list": {
+      "success": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "pets": [
+            {
+              "id": "pet_1",
+              "name": "Buddy",
+              "type": "dog",
+              "breed": "Golden Retriever",
+              "age": 3,
+              "weight": 25.5,
+              "gender": "male",
+              "avatar": "/uploads/pets/buddy.jpg",
+              "description": "A friendly golden retriever",
+              "createdAt": "2024-01-01T00:00:00Z",
+              "updatedAt": "2024-01-01T00:00:00Z"
+            },
+            {
+              "id": "pet_2",
+              "name": "Whiskers",
+              "type": "cat",
+              "breed": "Persian",
+              "age": 2,
+              "weight": 4.2,
+              "gender": "female",
+              "avatar": "/uploads/pets/whiskers.jpg",
+              "description": "A beautiful Persian cat",
+              "createdAt": "2024-01-01T00:00:00Z",
+              "updatedAt": "2024-01-01T00:00:00Z"
+            }
+          ],
+          "total": 2
+        }
+      },
+      "empty": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "pets": [],
+          "total": 0
+        }
+      }
+    },
+    "create": {
+      "success": {
+        "status": 201,
+        "body": {
+          "success": true,
+          "message": "宠物添加成功",
+          "pet": {
+            "id": "pet_new_123",
+            "name": "Max",
+            "type": "dog",
+            "breed": "German Shepherd",
+            "age": 2,
+            "weight": 20.0,
+            "gender": "male",
+            "avatar": "/uploads/pets/default_dog.jpg",
+            "description": "",
+            "createdAt": "2024-01-01T00:00:00Z",
+            "updatedAt": "2024-01-01T00:00:00Z"
+          }
+        }
+      },
+      "validationError": {
+        "status": 400,
+        "body": {
+          "success": false,
+          "message": "宠物信息验证失败",
+          "code": "VALIDATION_ERROR",
+          "errors": [
+            {
+              "field": "name",
+              "message": "宠物名称不能为空"
+            },
+            {
+              "field": "weight",
+              "message": "体重必须是正数"
+            }
+          ]
+        }
+      }
+    },
+    "update": {
+      "success": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "message": "宠物信息更新成功",
+          "pet": {
+            "id": "pet_1",
+            "name": "Buddy Updated",
+            "type": "dog",
+            "breed": "Golden Retriever",
+            "age": 4,
+            "weight": 26.0,
+            "gender": "male",
+            "avatar": "/uploads/pets/buddy.jpg",
+            "description": "Updated description",
+            "createdAt": "2024-01-01T00:00:00Z",
+            "updatedAt": "2024-01-02T00:00:00Z"
+          }
+        }
+      },
+      "notFound": {
+        "status": 404,
+        "body": {
+          "success": false,
+          "message": "宠物不存在",
+          "code": "PET_NOT_FOUND"
+        }
+      }
+    },
+    "delete": {
+      "success": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "message": "宠物删除成功"
+        }
+      },
+      "notFound": {
+        "status": 404,
+        "body": {
+          "success": false,
+          "message": "宠物不存在",
+          "code": "PET_NOT_FOUND"
+        }
+      }
+    }
+  },
+  "analysis": {
+    "analyze": {
+      "healthy": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "result": {
+            "id": "analysis_123",
+            "healthStatus": "healthy",
+            "confidence": 0.95,
+            "details": {
+              "shape": "normal",
+              "color": "brown",
+              "consistency": "firm",
+              "size": "medium"
+            },
+            "recommendations": [
+              "您的宠物便便状态良好",
+              "继续保持当前的饮食习惯",
+              "建议定期检查宠物健康状况"
+            ],
+            "analysisTime": "2024-01-01T00:00:00Z"
+          }
+        }
+      },
+      "warning": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "result": {
+            "id": "analysis_124",
+            "healthStatus": "warning",
+            "confidence": 0.87,
+            "details": {
+              "shape": "loose",
+              "color": "light_brown",
+              "consistency": "soft",
+              "size": "medium"
+            },
+            "recommendations": [
+              "便便稍微偏软，需要注意",
+              "建议调整饮食，减少油腻食物",
+              "如果持续3天以上，请咨询兽医"
+            ],
+            "analysisTime": "2024-01-01T00:00:00Z"
+          }
+        }
+      },
+      "concerning": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "result": {
+            "id": "analysis_125",
+            "healthStatus": "concerning",
+            "confidence": 0.92,
+            "details": {
+              "shape": "watery",
+              "color": "yellow",
+              "consistency": "liquid",
+              "size": "large"
+            },
+            "recommendations": [
+              "便便状态异常，建议立即就医",
+              "可能存在消化系统问题",
+              "请记录宠物的其他症状"
+            ],
+            "analysisTime": "2024-01-01T00:00:00Z"
+          }
+        }
+      },
+      "processingError": {
+        "status": 500,
+        "body": {
+          "success": false,
+          "message": "图片分析失败，请重试",
+          "code": "ANALYSIS_PROCESSING_ERROR"
+        }
+      },
+      "invalidImage": {
+        "status": 400,
+        "body": {
+          "success": false,
+          "message": "无效的图片格式或图片损坏",
+          "code": "INVALID_IMAGE"
+        }
+      },
+      "imageTooLarge": {
+        "status": 413,
+        "body": {
+          "success": false,
+          "message": "图片文件过大，请选择小于10MB的图片",
+          "code": "IMAGE_TOO_LARGE"
+        }
+      }
+    },
+    "history": {
+      "success": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "records": [
+            {
+              "id": "record_1",
+              "petId": "pet_1",
+              "petName": "Buddy",
+              "imageUrl": "/uploads/analysis/image_1.jpg",
+              "result": {
+                "healthStatus": "healthy",
+                "confidence": 0.95,
+                "details": {
+                  "shape": "normal",
+                  "color": "brown",
+                  "consistency": "firm"
+                }
+              },
+              "notes": "今天的便便看起来很正常",
+              "createdAt": "2024-01-01T00:00:00Z"
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 10,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "saveRecord": {
+      "success": {
+        "status": 201,
+        "body": {
+          "success": true,
+          "message": "分析记录保存成功",
+          "record": {
+            "id": "record_new_123",
+            "petId": "pet_1",
+            "imageUrl": "/uploads/analysis/image_new.jpg",
+            "result": {
+              "healthStatus": "healthy",
+              "confidence": 0.95
+            },
+            "notes": "用户添加的备注",
+            "createdAt": "2024-01-01T00:00:00Z"
+          }
+        }
+      }
+    }
+  },
+  "community": {
+    "posts": {
+      "success": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "posts": [
+            {
+              "id": "post_1",
+              "title": "我家金毛的健康分享",
+              "content": "最近用这个应用分析了我家Buddy的便便，结果显示很健康！",
+              "author": {
+                "id": "user_1",
+                "username": "petlover123",
+                "avatar": "/uploads/avatars/user1.jpg"
+              },
+              "pet": {
+                "id": "pet_1",
+                "name": "Buddy",
+                "type": "dog"
+              },
+              "images": ["/uploads/posts/post1_image1.jpg"],
+              "tags": ["健康分享", "金毛", "经验"],
+              "stats": {
+                "likes": 15,
+                "comments": 8,
+                "shares": 3
+              },
+              "createdAt": "2024-01-01T00:00:00Z",
+              "updatedAt": "2024-01-01T00:00:00Z"
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 10,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "createPost": {
+      "success": {
+        "status": 201,
+        "body": {
+          "success": true,
+          "message": "帖子发布成功",
+          "post": {
+            "id": "post_new_123",
+            "title": "新帖子标题",
+            "content": "帖子内容",
+            "author": {
+              "id": "user_1",
+              "username": "testuser"
+            },
+            "images": [],
+            "tags": [],
+            "stats": {
+              "likes": 0,
+              "comments": 0,
+              "shares": 0
+            },
+            "createdAt": "2024-01-01T00:00:00Z"
+          }
+        }
+      }
+    },
+    "comments": {
+      "success": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "comments": [
+            {
+              "id": "comment_1",
+              "postId": "post_1",
+              "content": "很有用的分享，谢谢！",
+              "author": {
+                "id": "user_2",
+                "username": "dogowner",
+                "avatar": "/uploads/avatars/user2.jpg"
+              },
+              "likes": 3,
+              "createdAt": "2024-01-01T01:00:00Z"
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "totalPages": 1
+          }
+        }
+      }
+    }
+  },
+  "upload": {
+    "success": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "文件上传成功",
+        "file": {
+          "id": "file_123",
+          "filename": "uploaded_image.jpg",
+          "originalName": "my_image.jpg",
+          "url": "/uploads/images/uploaded_image.jpg",
+          "size": 1024000,
+          "mimeType": "image/jpeg",
+          "uploadedAt": "2024-01-01T00:00:00Z"
+        }
+      }
+    },
+    "fileTooLarge": {
+      "status": 413,
+      "body": {
+        "success": false,
+        "message": "文件过大，请选择小于10MB的文件",
+        "code": "FILE_TOO_LARGE"
+      }
+    },
+    "invalidFileType": {
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "不支持的文件类型，请上传JPG、PNG或GIF格式的图片",
+        "code": "INVALID_FILE_TYPE"
+      }
+    }
+  },
+  "errors": {
+    "unauthorized": {
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "未授权访问，请先登录",
+        "code": "UNAUTHORIZED"
+      }
+    },
+    "forbidden": {
+      "status": 403,
+      "body": {
+        "success": false,
+        "message": "权限不足",
+        "code": "FORBIDDEN"
+      }
+    },
+    "notFound": {
+      "status": 404,
+      "body": {
+        "success": false,
+        "message": "请求的资源不存在",
+        "code": "NOT_FOUND"
+      }
+    },
+    "serverError": {
+      "status": 500,
+      "body": {
+        "success": false,
+        "message": "服务器内部错误，请稍后重试",
+        "code": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "serviceUnavailable": {
+      "status": 503,
+      "body": {
+        "success": false,
+        "message": "服务暂时不可用，请稍后重试",
+        "code": "SERVICE_UNAVAILABLE"
+      }
+    },
+    "rateLimitExceeded": {
+      "status": 429,
+      "body": {
+        "success": false,
+        "message": "请求过于频繁，请稍后再试",
+        "code": "RATE_LIMIT_EXCEEDED",
+        "retryAfter": 60
+      }
+    }
+  },
+  "networkConditions": {
+    "slow3G": {
+      "downloadThroughput": 512000,
+      "uploadThroughput": 512000,
+      "latency": 400
+    },
+    "fast3G": {
+      "downloadThroughput": 1677721,
+      "uploadThroughput": 768000,
+      "latency": 150
+    },
+    "offline": {
+      "offline": true
+    }
+  }
+}

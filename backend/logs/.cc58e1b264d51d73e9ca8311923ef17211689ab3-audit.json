@@ -1,0 +1,25 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 90
+    },
+    "auditLog": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\.cc58e1b264d51d73e9ca8311923ef17211689ab3-audit.json",
+    "files": [
+        {
+            "date": 1756289921710,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\security-2025-08-27.log",
+            "hash": "7d1feef6fdafee7a9f570b5a104fcb8c612586058d38bb992dfd2fc6dd85104e"
+        },
+        {
+            "date": 1756344360092,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\security-2025-08-28.log",
+            "hash": "2526c2343caa2ce8f5697d7552ce89bb9976cc75863d3b31264fe44df89f8f7b"
+        },
+        {
+            "date": 1756633690899,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\security-2025-08-31.log",
+            "hash": "d58673ee3c8574a4f00408296a8d218e8cadfa4112e0b4337e30610e45455ac9"
+        }
+    ],
+    "hashType": "sha256"
+}

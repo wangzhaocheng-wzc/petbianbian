@@ -355,3 +355,243 @@ export const getSystemStats = async (req: Request, res: Response) => {
     });
   }
 };
+
+// 获取帖子列表（管理员）
+export const getPosts = async (req: Request, res: Response) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      search = '',
+      status = '',
+      moderationStatus = '',
+      category = ''
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    // 构建查询条件
+    const query: any = {};
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    if (status) {
+      query.status = status;
+    }
+
+    if (moderationStatus) {
+      query.moderationStatus = moderationStatus;
+    }
+
+    if (category) {
+      query.category = category;
+    }
+
+    // 获取帖子列表
+    const posts = await CommunityPost.find(query)
+      .populate('userId', 'username avatar')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    // 获取总数
+    const total = await CommunityPost.countDocuments(query);
+    const totalPages = Math.ceil(total / limitNum);
+
+    res.json({
+      success: true,
+      data: {
+        posts,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages
+        }
+      }
+    });
+  } catch (error) {
+    console.error('获取帖子列表失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取帖子列表失败'
+    });
+  }
+};
+
+// 获取评论列表（管理员）
+export const getComments = async (req: Request, res: Response) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      search = '',
+      moderationStatus = ''
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    // 构建查询条件
+    const query: any = {};
+
+    if (search) {
+      query.content = { $regex: search, $options: 'i' };
+    }
+
+    if (moderationStatus) {
+      query.moderationStatus = moderationStatus;
+    }
+
+    // 获取评论列表
+    const comments = await Comment.find(query)
+      .populate('userId', 'username avatar')
+      .populate('postId', 'title')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    // 获取总数
+    const total = await Comment.countDocuments(query);
+    const totalPages = Math.ceil(total / limitNum);
+
+    res.json({
+      success: true,
+      data: {
+        comments,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages
+        }
+      }
+    });
+  } catch (error) {
+    console.error('获取评论列表失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取评论列表失败'
+    });
+  }
+};
+
+// 审核帖子
+export const moderatePost = async (req: Request, res: Response) => {
+  try {
+    const { postId } = req.params;
+    const { action } = req.params; // approve, reject, delete
+
+    let updateData: any = {};
+
+    switch (action) {
+      case 'approve':
+        updateData = { moderationStatus: 'approved' };
+        break;
+      case 'reject':
+        updateData = { moderationStatus: 'rejected' };
+        break;
+      case 'delete':
+        await CommunityPost.findByIdAndDelete(postId);
+        return res.json({
+          success: true,
+          message: '帖子已删除'
+        });
+      default:
+        return res.status(400).json({
+          success: false,
+          message: '无效的操作'
+        });
+    }
+
+    const post = await CommunityPost.findByIdAndUpdate(
+      postId,
+      updateData,
+      { new: true }
+    );
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: '帖子不存在'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: post,
+      message: `帖子已${action === 'approve' ? '通过' : '拒绝'}`
+    });
+  } catch (error) {
+    console.error('审核帖子失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '审核帖子失败'
+    });
+  }
+};
+
+// 审核评论
+export const moderateComment = async (req: Request, res: Response) => {
+  try {
+    const { commentId } = req.params;
+    const { action } = req.params; // approve, reject, delete
+
+    let updateData: any = {};
+
+    switch (action) {
+      case 'approve':
+        updateData = { moderationStatus: 'approved' };
+        break;
+      case 'reject':
+        updateData = { moderationStatus: 'rejected' };
+        break;
+      case 'delete':
+        await Comment.findByIdAndDelete(commentId);
+        return res.json({
+          success: true,
+          message: '评论已删除'
+        });
+      default:
+        return res.status(400).json({
+          success: false,
+          message: '无效的操作'
+        });
+    }
+
+    const comment = await Comment.findByIdAndUpdate(
+      commentId,
+      updateData,
+      { new: true }
+    );
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: '评论不存在'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: comment,
+      message: `评论已${action === 'approve' ? '通过' : '拒绝'}`
+    });
+  } catch (error) {
+    console.error('审核评论失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '审核评论失败'
+    });
+  }
+};

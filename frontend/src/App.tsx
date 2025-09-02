@@ -4,6 +4,9 @@ import { AuthProvider } from './hooks/useAuth'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import LoadingSpinner from './components/common/LoadingSpinner'
+import PWAInstallPrompt from './components/PWAInstallPrompt'
+import OfflineIndicator from './components/OfflineIndicator'
+import PWAUpdateNotification from './components/PWAUpdateNotification'
 
 // 懒加载页面组件
 const Home = lazy(() => import('./pages/Home'))
@@ -15,6 +18,7 @@ const Community = lazy(() => import('./pages/Community'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Pets = lazy(() => import('./pages/Pets'))
 const Statistics = lazy(() => import('./pages/Statistics'))
+const PetComparison = lazy(() => import('./pages/PetComparison'))
 const Debug = lazy(() => import('./pages/Debug'))
 const Admin = lazy(() => import('./pages/Admin'))
 
@@ -60,6 +64,14 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/comparison" 
+              element={
+                <ProtectedRoute>
+                  <PetComparison />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/community" element={<Community />} />
             <Route 
               path="/profile" 
@@ -80,6 +92,11 @@ function App() {
           </Routes>
         </Suspense>
       </Layout>
+      
+      {/* PWA Components */}
+      <OfflineIndicator />
+      <PWAInstallPrompt />
+      <PWAUpdateNotification />
     </AuthProvider>
   )
 }

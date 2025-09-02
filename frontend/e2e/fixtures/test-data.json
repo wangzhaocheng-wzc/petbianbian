@@ -1,0 +1,338 @@
+{
+  "users": [
+    {
+      "id": "test_user_1",
+      "username": "testuser1",
+      "email": "testuser1@example.com",
+      "password": "TestPassword123!",
+      "profile": {
+        "firstName": "Test",
+        "lastName": "User",
+        "avatar": "/fixtures/images/avatar1.jpg"
+      }
+    },
+    {
+      "id": "test_user_2",
+      "username": "petlover2023",
+      "email": "petlover@example.com",
+      "password": "SecurePass456!",
+      "profile": {
+        "firstName": "Pet",
+        "lastName": "Lover",
+        "avatar": "/fixtures/images/avatar2.jpg"
+      }
+    },
+    {
+      "id": "test_user_3",
+      "username": "dogowner",
+      "email": "dogowner@example.com",
+      "password": "DogLover789!",
+      "profile": {
+        "firstName": "Dog",
+        "lastName": "Owner",
+        "avatar": "/fixtures/images/avatar3.jpg"
+      }
+    }
+  ],
+  "pets": [
+    {
+      "id": "test_pet_1",
+      "name": "Buddy",
+      "type": "dog",
+      "breed": "Golden Retriever",
+      "age": 3,
+      "weight": 25.5,
+      "gender": "male",
+      "ownerId": "test_user_1",
+      "avatar": "/fixtures/images/dog1.jpg",
+      "description": "A friendly and energetic golden retriever who loves to play fetch."
+    },
+    {
+      "id": "test_pet_2",
+      "name": "Whiskers",
+      "type": "cat",
+      "breed": "Persian",
+      "age": 2,
+      "weight": 4.2,
+      "gender": "female",
+      "ownerId": "test_user_1",
+      "avatar": "/fixtures/images/cat1.jpg",
+      "description": "A beautiful Persian cat with long, fluffy fur."
+    },
+    {
+      "id": "test_pet_3",
+      "name": "Max",
+      "type": "dog",
+      "breed": "German Shepherd",
+      "age": 5,
+      "weight": 32.0,
+      "gender": "male",
+      "ownerId": "test_user_2",
+      "avatar": "/fixtures/images/dog2.jpg",
+      "description": "A loyal and intelligent German Shepherd, great with kids."
+    },
+    {
+      "id": "test_pet_4",
+      "name": "Luna",
+      "type": "cat",
+      "breed": "Siamese",
+      "age": 1,
+      "weight": 3.8,
+      "gender": "female",
+      "ownerId": "test_user_2",
+      "avatar": "/fixtures/images/cat2.jpg",
+      "description": "A playful Siamese kitten with beautiful blue eyes."
+    },
+    {
+      "id": "test_pet_5",
+      "name": "Charlie",
+      "type": "dog",
+      "breed": "Labrador",
+      "age": 4,
+      "weight": 28.3,
+      "gender": "male",
+      "ownerId": "test_user_3",
+      "avatar": "/fixtures/images/dog3.jpg",
+      "description": "A chocolate Labrador who loves swimming and retrieving."
+    }
+  ],
+  "analysisRecords": [
+    {
+      "id": "analysis_1",
+      "petId": "test_pet_1",
+      "imageUrl": "/fixtures/images/poop_healthy_1.jpg",
+      "result": {
+        "healthStatus": "healthy",
+        "confidence": 0.95,
+        "shape": "normal",
+        "color": "brown",
+        "consistency": "firm",
+        "recommendations": [
+          "您的宠物便便状态良好",
+          "继续保持当前的饮食习惯",
+          "建议定期检查宠物健康状况"
+        ]
+      },
+      "notes": "今天的便便看起来很正常，颜色和形状都很好。",
+      "createdAt": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": "analysis_2",
+      "petId": "test_pet_1",
+      "imageUrl": "/fixtures/images/poop_warning_1.jpg",
+      "result": {
+        "healthStatus": "warning",
+        "confidence": 0.87,
+        "shape": "loose",
+        "color": "light_brown",
+        "consistency": "soft",
+        "recommendations": [
+          "便便稍微偏软，需要注意",
+          "建议调整饮食，减少油腻食物",
+          "如果持续3天以上，请咨询兽医"
+        ]
+      },
+      "notes": "便便比平时软一些，可能是昨天吃了新的零食导致的。",
+      "createdAt": "2024-01-16T09:15:00Z"
+    },
+    {
+      "id": "analysis_3",
+      "petId": "test_pet_3",
+      "imageUrl": "/fixtures/images/poop_concerning_1.jpg",
+      "result": {
+        "healthStatus": "concerning",
+        "confidence": 0.92,
+        "shape": "watery",
+        "color": "yellow",
+        "consistency": "liquid",
+        "recommendations": [
+          "便便状态异常，建议立即就医",
+          "可能存在消化系统问题",
+          "请记录宠物的其他症状"
+        ]
+      },
+      "notes": "便便呈水样，颜色异常，需要马上带去看兽医。",
+      "createdAt": "2024-01-17T14:45:00Z"
+    }
+  ],
+  "communityPosts": [
+    {
+      "id": "post_1",
+      "title": "我家金毛的健康分享",
+      "content": "最近用这个应用分析了我家Buddy的便便，结果显示很健康！分享一些我的养宠经验...",
+      "authorId": "test_user_1",
+      "petId": "test_pet_1",
+      "images": ["/fixtures/images/community_post_1.jpg"],
+      "tags": ["健康分享", "金毛", "经验"],
+      "likes": 15,
+      "comments": 8,
+      "createdAt": "2024-01-18T16:20:00Z"
+    },
+    {
+      "id": "post_2",
+      "title": "新手养猫求助",
+      "content": "刚领养了一只波斯猫，有什么需要注意的吗？特别是饮食方面...",
+      "authorId": "test_user_1",
+      "petId": "test_pet_2",
+      "images": ["/fixtures/images/community_post_2.jpg"],
+      "tags": ["新手", "波斯猫", "求助"],
+      "likes": 23,
+      "comments": 12,
+      "createdAt": "2024-01-19T11:30:00Z"
+    },
+    {
+      "id": "post_3",
+      "title": "德牧训练心得",
+      "content": "分享一下我训练Max的经验，从小狗到现在5岁的成长历程...",
+      "authorId": "test_user_2",
+      "petId": "test_pet_3",
+      "images": ["/fixtures/images/community_post_3.jpg"],
+      "tags": ["德牧", "训练", "经验分享"],
+      "likes": 31,
+      "comments": 18,
+      "createdAt": "2024-01-20T13:45:00Z"
+    }
+  ],
+  "comments": [
+    {
+      "id": "comment_1",
+      "postId": "post_1",
+      "authorId": "test_user_2",
+      "content": "你家Buddy真的很健康呢！我家Max也是金毛的表亲，德牧。",
+      "likes": 3,
+      "createdAt": "2024-01-18T17:15:00Z"
+    },
+    {
+      "id": "comment_2",
+      "postId": "post_1",
+      "authorId": "test_user_3",
+      "content": "这个应用真的很好用，我也在用！",
+      "likes": 2,
+      "createdAt": "2024-01-18T18:30:00Z"
+    },
+    {
+      "id": "comment_3",
+      "postId": "post_2",
+      "authorId": "test_user_2",
+      "content": "波斯猫需要特别注意毛发护理，建议每天梳毛。",
+      "likes": 5,
+      "createdAt": "2024-01-19T12:00:00Z"
+    }
+  ],
+  "testScenarios": {
+    "loginSuccess": {
+      "email": "testuser1@example.com",
+      "password": "TestPassword123!",
+      "expectedResult": "successful_login"
+    },
+    "loginFailure": {
+      "email": "wrong@example.com",
+      "password": "wrongpassword",
+      "expectedResult": "login_error"
+    },
+    "registerSuccess": {
+      "username": "newuser123",
+      "email": "newuser@example.com",
+      "password": "NewPassword123!",
+      "confirmPassword": "NewPassword123!",
+      "expectedResult": "successful_registration"
+    },
+    "registerFailure": {
+      "username": "testuser1",
+      "email": "testuser1@example.com",
+      "password": "TestPassword123!",
+      "confirmPassword": "TestPassword123!",
+      "expectedResult": "email_already_exists"
+    },
+    "addPetSuccess": {
+      "name": "NewPet",
+      "type": "dog",
+      "breed": "Beagle",
+      "age": 2,
+      "weight": 15.0,
+      "expectedResult": "pet_added_successfully"
+    },
+    "analysisSuccess": {
+      "imageFile": "/fixtures/images/poop_test_1.jpg",
+      "petId": "test_pet_1",
+      "expectedResult": "analysis_completed"
+    }
+  },
+  "mockApiResponses": {
+    "loginSuccess": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "token": "mock_jwt_token_12345",
+        "user": {
+          "id": "test_user_1",
+          "username": "testuser1",
+          "email": "testuser1@example.com"
+        }
+      }
+    },
+    "loginFailure": {
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "用户名或密码错误"
+      }
+    },
+    "analysisSuccess": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "result": {
+          "healthStatus": "healthy",
+          "confidence": 0.95,
+          "recommendations": [
+            "您的宠物便便状态良好",
+            "继续保持当前的饮食习惯"
+          ]
+        }
+      }
+    },
+    "analysisFailure": {
+      "status": 500,
+      "body": {
+        "success": false,
+        "message": "分析失败，请重试"
+      }
+    },
+    "petListSuccess": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "pets": [
+          {
+            "id": "test_pet_1",
+            "name": "Buddy",
+            "type": "dog",
+            "breed": "Golden Retriever"
+          }
+        ]
+      }
+    }
+  },
+  "validationRules": {
+    "email": {
+      "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+      "errorMessage": "请输入有效的邮箱地址"
+    },
+    "password": {
+      "minLength": 8,
+      "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]",
+      "errorMessage": "密码必须包含大小写字母、数字和特殊字符"
+    },
+    "petName": {
+      "minLength": 1,
+      "maxLength": 50,
+      "errorMessage": "宠物名称长度必须在1-50个字符之间"
+    },
+    "petWeight": {
+      "min": 0.1,
+      "max": 200,
+      "errorMessage": "宠物体重必须在0.1-200公斤之间"
+    }
+  }
+}

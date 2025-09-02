@@ -3,7 +3,10 @@ import { Search, Filter, Plus, RefreshCw } from 'lucide-react';
 import { PostCard } from './PostCard';
 import { useCommunity } from '../hooks/useCommunity';
 import { useAuth } from '../hooks/useAuth';
+import { useMobile } from '../hooks/useMobile';
 import { CommunityPost, PostsListRequest } from '../../../shared/types';
+import PullToRefresh from './mobile/PullToRefresh';
+import TouchButton from './common/TouchButton';
 
 interface PostListProps {
   onCreatePost?: () => void;
@@ -19,6 +22,7 @@ export const PostList: React.FC<PostListProps> = ({
   className = ''
 }) => {
   const { user } = useAuth();
+  const { isMobile } = useMobile();
   const {
     posts,
     loading,
@@ -140,6 +144,11 @@ export const PostList: React.FC<PostListProps> = ({
     }
   };
 
+  // 处理下拉刷新
+  const handleRefresh = async () => {
+    await loadPosts({ page: 1 });
+  };
+
   // 渲染分页
   const renderPagination = () => {
     if (pagination.total <= 1) return null;
@@ -191,7 +200,7 @@ export const PostList: React.FC<PostListProps> = ({
   return (
     <div className={className}>
       {/* 头部操作栏 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4 sm:mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           {/* 搜索框 */}
           <div className="flex-1 max-w-md">
@@ -202,12 +211,12 @@ export const PostList: React.FC<PostListProps> = ({
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="搜索帖子..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full pl-10 pr-16 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 touch:text-base"
               />
-              <Search size={20} className="absolute left-3 top-2.5 text-gray-400" />
+              <Search size={20} className="absolute left-3 top-3.5 text-gray-400" />
               <button
                 onClick={handleSearch}
-                className="absolute right-2 top-1.5 px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700"
+                className="absolute right-2 top-2 px-3 py-1.5 bg-orange-600 text-white text-sm rounded hover:bg-orange-700 active:bg-orange-800"
               >
                 搜索
               </button>
@@ -215,36 +224,37 @@ export const PostList: React.FC<PostListProps> = ({
           </div>
 
           {/* 操作按钮 */}
-          <div className="flex items-center space-x-3">
-            <button
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <TouchButton
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center px-3 py-2 text-sm border rounded-lg ${
-                showFilters
-                  ? 'bg-orange-50 text-orange-600 border-orange-200'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
+              variant={showFilters ? 'primary' : 'outline'}
+              size="md"
+              icon={Filter}
             >
-              <Filter size={16} className="mr-2" />
-              筛选
-            </button>
+              <span className="hidden xs:inline">筛选</span>
+            </TouchButton>
 
-            <button
+            <TouchButton
               onClick={() => loadPosts({ page: 1 })}
               disabled={loading}
-              className="flex items-center px-3 py-2 text-sm bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              variant="outline"
+              size="md"
+              icon={RefreshCw}
+              loading={loading}
             >
-              <RefreshCw size={16} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
-              刷新
-            </button>
+              <span className="hidden xs:inline">刷新</span>
+            </TouchButton>
 
             {user && onCreatePost && (
-              <button
+              <TouchButton
                 onClick={onCreatePost}
-                className="flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700"
+                variant="primary"
+                size="md"
+                icon={Plus}
               >
-                <Plus size={16} className="mr-2" />
-                发布帖子
-              </button>
+                <span className="hidden xs:inline">发布帖子</span>
+                <span className="xs:hidden">发布</span>
+              </TouchButton>
             )}
           </div>
         </div>
@@ -313,41 +323,81 @@ export const PostList: React.FC<PostListProps> = ({
       )}
 
       {/* 帖子列表 */}
-      <div className="space-y-4">
-        {loading && posts.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="animate-spin w-8 h-8 border-2 border-orange-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-gray-500">加载中...</p>
-          </div>
-        ) : posts.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">暂无帖子</p>
-            {user && onCreatePost && (
-              <button
-                onClick={onCreatePost}
-                className="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700"
-              >
-                <Plus size={16} className="mr-2" />
-                发布第一个帖子
-              </button>
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh} disabled={loading}>
+          <div className="space-y-4">
+            {loading && posts.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="animate-spin w-8 h-8 border-2 border-orange-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-gray-500">加载中...</p>
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 mb-4">暂无帖子</p>
+                {user && onCreatePost && (
+                  <TouchButton
+                    onClick={onCreatePost}
+                    variant="primary"
+                    icon={Plus}
+                  >
+                    发布第一个帖子
+                  </TouchButton>
+                )}
+              </div>
+            ) : (
+              posts.map(post => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  currentUserId={user?.id}
+                  onLike={handleLike}
+                  onComment={handleComment}
+                  onShare={handleShare}
+                  onEdit={onEditPost}
+                  onDelete={handleDelete}
+                  onClick={onViewPost}
+                />
+              ))
             )}
           </div>
-        ) : (
-          posts.map(post => (
-            <PostCard
-              key={post.id}
-              post={post}
-              currentUserId={user?.id}
-              onLike={handleLike}
-              onComment={handleComment}
-              onShare={handleShare}
-              onEdit={onEditPost}
-              onDelete={handleDelete}
-              onClick={onViewPost}
-            />
-          ))
-        )}
-      </div>
+        </PullToRefresh>
+      ) : (
+        <div className="space-y-4">
+          {loading && posts.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 border-2 border-orange-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-500">加载中...</p>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">暂无帖子</p>
+              {user && onCreatePost && (
+                <TouchButton
+                  onClick={onCreatePost}
+                  variant="primary"
+                  icon={Plus}
+                >
+                  发布第一个帖子
+                </TouchButton>
+              )}
+            </div>
+          ) : (
+            posts.map(post => (
+              <PostCard
+                key={post.id}
+                post={post}
+                currentUserId={user?.id}
+                onLike={handleLike}
+                onComment={handleComment}
+                onShare={handleShare}
+                onEdit={onEditPost}
+                onDelete={handleDelete}
+                onClick={onViewPost}
+              />
+            ))
+          )}
+        </div>
+      )}
 
       {/* 分页 */}
       {renderPagination()}

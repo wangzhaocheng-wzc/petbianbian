@@ -1,0 +1,139 @@
+{
+  "name": "宠物健康监测社区平台",
+  "short_name": "宠物健康",
+  "description": "专业的宠物健康监测和社区交流平台，通过AI分析帮助您了解宠物健康状况",
+  "theme_color": "#f97316",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "start_url": "/",
+  "id": "/",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["health", "lifestyle", "social"],
+  "icons": [
+    {
+      "src": "pwa-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "pwa-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-mobile-1.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "宠物健康分析界面"
+    },
+    {
+      "src": "screenshot-mobile-2.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "社区交流界面"
+    },
+    {
+      "src": "screenshot-desktop-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "桌面端主界面"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "便便分析",
+      "short_name": "分析",
+      "description": "快速进行宠物便便健康分析",
+      "url": "/analysis",
+      "icons": [
+        {
+          "src": "shortcut-analysis.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "健康记录",
+      "short_name": "记录",
+      "description": "查看宠物健康记录和统计",
+      "url": "/records",
+      "icons": [
+        {
+          "src": "shortcut-records.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "宠物社区",
+      "short_name": "社区",
+      "description": "与其他宠物主人交流分享",
+      "url": "/community",
+      "icons": [
+        {
+          "src": "shortcut-community.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "capture_links": "existing-client-navigate"
+}

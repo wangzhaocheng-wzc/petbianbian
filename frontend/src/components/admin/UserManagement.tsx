@@ -1,42 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User, Search, Shield, Ban, CheckCircle, XCircle, Eye, FileText, Calendar, Phone, MapPin } from 'lucide-react';
-import api from '../../services/api';
+import adminService, { UserData, UserListResponse } from '../../services/adminService';
 import moderationService, { UserViolationStats } from '../../services/moderationService';
 
-interface UserData {
-  _id: string;
-  username: string;
-  email: string;
-  avatar?: string;
-  role: 'user' | 'admin' | 'moderator';
-  profile: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    location?: string;
-    bio?: string;
-  };
-  stats: {
-    totalAnalysis: number;
-    totalPosts: number;
-    reputation: number;
-  };
-  isActive: boolean;
-  isVerified: boolean;
-  lastLoginAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
-interface UserListResponse {
-  users: UserData[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<UserData[]>([]);
@@ -66,15 +33,7 @@ const UserManagement: React.FC = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          queryParams.append(key, value.toString());
-        }
-      });
-
-      const response = await api.get(`/admin/users?${queryParams}`);
-      const data: UserListResponse = response.data.data;
+      const data = await adminService.getUsers(filters);
       setUsers(data.users || []);
       setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 0 });
     } catch (error) {
@@ -87,7 +46,28 @@ const UserManagement: React.FC = () => {
   const handleUserAction = async (userId: string, action: 'activate' | 'deactivate' | 'verify' | 'unverify' | 'promote' | 'demote') => {
     try {
       setProcessing(true);
-      await api.post(`/admin/users/${userId}/${action}`);
+      
+      switch (action) {
+        case 'activate':
+          await adminService.activateUser(userId);
+          break;
+        case 'deactivate':
+          await adminService.deactivateUser(userId);
+          break;
+        case 'verify':
+          await adminService.verifyUser(userId);
+          break;
+        case 'unverify':
+          await adminService.unverifyUser(userId);
+          break;
+        case 'promote':
+          await adminService.promoteUser(userId);
+          break;
+        case 'demote':
+          await adminService.demoteUser(userId);
+          break;
+      }
+      
       await loadUsers();
       if (selectedUser && selectedUser._id === userId) {
         const updatedUser = users.find(u => u._id === userId);

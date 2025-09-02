@@ -1,0 +1,45 @@
+# Node modules
+node_modules
+
+# Development files
+src/**/*.test.ts
+src/**/*.test.tsx
+src/**/*.spec.ts
+src/**/*.spec.tsx
+
+# Build tools
+vite.config.ts
+tsconfig.json
+tsconfig.node.json
+
+# Linting
+.eslintrc.cjs
+.prettierrc
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage
+coverage
+
+# Build output (will be created during build)
+dist
+
+# Test files
+e2e/
+playwright.config.ts

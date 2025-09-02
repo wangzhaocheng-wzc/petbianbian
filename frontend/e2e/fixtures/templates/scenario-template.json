@@ -1,0 +1,158 @@
+{
+  "user-registration-flow": {
+    "description": "用户注册完整流程测试场景",
+    "users": [
+      {
+        "username": "newuser1",
+        "email": "newuser1@test.com",
+        "password": "Test123!@#",
+        "expectedResult": "success"
+      },
+      {
+        "username": "newuser2",
+        "email": "existing@test.com",
+        "password": "Test123!@#",
+        "expectedResult": "email_exists_error"
+      },
+      {
+        "username": "existinguser",
+        "email": "newuser3@test.com",
+        "password": "Test123!@#",
+        "expectedResult": "username_exists_error"
+      }
+    ]
+  },
+  "pet-management-flow": {
+    "description": "宠物管理完整流程测试场景",
+    "user": {
+      "username": "petowner",
+      "email": "petowner@test.com",
+      "password": "Test123!@#"
+    },
+    "pets": [
+      {
+        "name": "小白",
+        "type": "dog",
+        "breed": "金毛",
+        "age": 2,
+        "weight": 25.5
+      },
+      {
+        "name": "小黑",
+        "type": "cat",
+        "breed": "英短",
+        "age": 1,
+        "weight": 3.8
+      }
+    ]
+  },
+  "analysis-workflow": {
+    "description": "便便分析完整工作流程",
+    "user": {
+      "username": "analyst",
+      "email": "analyst@test.com",
+      "password": "Test123!@#"
+    },
+    "pet": {
+      "name": "测试宠物",
+      "type": "dog",
+      "breed": "拉布拉多",
+      "age": 3,
+      "weight": 28.0
+    },
+    "analysisData": [
+      {
+        "imageFile": "healthy-poop.jpg",
+        "expectedResult": "healthy",
+        "notes": "正常便便测试"
+      },
+      {
+        "imageFile": "warning-poop.jpg",
+        "expectedResult": "warning",
+        "notes": "异常便便测试"
+      }
+    ]
+  },
+  "community-interaction": {
+    "description": "社区互动功能测试场景",
+    "users": [
+      {
+        "username": "poster",
+        "email": "poster@test.com",
+        "password": "Test123!@#",
+        "role": "author"
+      },
+      {
+        "username": "commenter",
+        "email": "commenter@test.com",
+        "password": "Test123!@#",
+        "role": "commenter"
+      },
+      {
+        "username": "moderator",
+        "email": "moderator@test.com",
+        "password": "Test123!@#",
+        "role": "moderator"
+      }
+    ],
+    "posts": [
+      {
+        "title": "我家狗狗的健康分享",
+        "content": "今天带狗狗去体检，一切正常！",
+        "tags": ["健康", "分享"],
+        "images": ["dog-health.jpg"]
+      },
+      {
+        "title": "求助：猫咪不吃饭怎么办？",
+        "content": "我家猫咪最近食欲不振，有经验的朋友帮忙看看",
+        "tags": ["求助", "饮食"],
+        "images": []
+      }
+    ]
+  },
+  "error-handling-scenarios": {
+    "description": "错误处理场景测试数据",
+    "networkErrors": [
+      {
+        "type": "timeout",
+        "endpoint": "/api/analysis",
+        "expectedBehavior": "show_retry_option"
+      },
+      {
+        "type": "server_error",
+        "endpoint": "/api/pets",
+        "statusCode": 500,
+        "expectedBehavior": "show_error_message"
+      }
+    ],
+    "validationErrors": [
+      {
+        "field": "email",
+        "invalidValue": "invalid-email",
+        "expectedError": "请输入有效的邮箱地址"
+      },
+      {
+        "field": "password",
+        "invalidValue": "123",
+        "expectedError": "密码长度至少8位"
+      }
+    ]
+  },
+  "performance-testing": {
+    "description": "性能测试场景数据",
+    "loadTestData": {
+      "concurrentUsers": 10,
+      "testDuration": "5m",
+      "endpoints": [
+        "/api/pets",
+        "/api/analysis",
+        "/api/community/posts"
+      ]
+    },
+    "largeDataSets": {
+      "pets": 100,
+      "posts": 500,
+      "analyses": 200
+    }
+  }
+}

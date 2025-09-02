@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pet-health-mongo
+  namespace: pet-health
+spec:
+  serviceName: pet-health-mongo
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pet-health-mongo
+  template:
+    metadata:
+      labels:
+        app: pet-health-mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:6.0
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pet-health-secrets
+              key: MONGO_ROOT_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pet-health-secrets
+              key: MONGO_ROOT_PASSWORD
+        - name: MONGO_INITDB_DATABASE
+          value: "pet-health"
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+        - name: mongo-init
+          mountPath: /docker-entrypoint-initdb.d
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: mongo-init
+        configMap:
+          name: mongo-init-script
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pet-health-mongo
+  namespace: pet-health
+spec:
+  selector:
+    app: pet-health-mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
+  clusterIP: None
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init-script
+  namespace: pet-health
+data:
+  mongo-init.js: |
+    db = db.getSiblingDB('pet-health');
+    
+    db.createCollection('users');
+    db.createCollection('pets');
+    db.createCollection('pooprecords');
+    db.createCollection('communityposts');
+    db.createCollection('comments');
+    
+    db.users.createIndex({ "email": 1 }, { unique: true });
+    db.users.createIndex({ "username": 1 }, { unique: true });
+    db.pets.createIndex({ "ownerId": 1 });
+    db.pooprecords.createIndex({ "petId": 1 });
+    db.pooprecords.createIndex({ "userId": 1 });
+    db.pooprecords.createIndex({ "timestamp": -1 });
+    db.communityposts.createIndex({ "userId": 1 });
+    db.communityposts.createIndex({ "createdAt": -1 });
+    db.communityposts.createIndex({ "category": 1 });
+    db.communityposts.createIndex({ "tags": 1 });
+    db.comments.createIndex({ "postId": 1 });
+    db.comments.createIndex({ "userId": 1 });
+    
+    print('Database initialized successfully');

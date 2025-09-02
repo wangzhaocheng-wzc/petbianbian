@@ -51,9 +51,9 @@ export const createReport = async (req: AuthRequest, res: Response) => {
     // 验证目标是否存在
     let targetExists = false;
     if (targetType === 'post') {
-      targetExists = await CommunityPost.exists({ _id: targetId });
+      targetExists = !!(await CommunityPost.exists({ _id: targetId }));
     } else {
-      targetExists = await Comment.exists({ _id: targetId });
+      targetExists = !!(await Comment.exists({ _id: targetId }));
     }
 
     if (!targetExists) {
@@ -407,7 +407,52 @@ export const getModerationStats = async (req: Request, res: Response) => {
   try {
     const { timeRange = 'week' } = req.query;
     
-    const stats = await moderationService.getModerationStats(timeRange as 'day' | 'week' | 'month');
+    // 获取基础统计数据
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const [
+      pendingPosts,
+      pendingComments,
+      pendingReports,
+      rejectedPosts,
+      rejectedComments,
+      resolvedReports,
+      recentPosts,
+      recentComments,
+      recentReports
+    ] = await Promise.all([
+      CommunityPost.countDocuments({ moderationStatus: 'pending' }),
+      Comment.countDocuments({ moderationStatus: 'pending' }),
+      ContentReport.countDocuments({ status: 'pending' }),
+      CommunityPost.countDocuments({ moderationStatus: 'rejected' }),
+      Comment.countDocuments({ moderationStatus: 'rejected' }),
+      ContentReport.countDocuments({ status: 'resolved' }),
+      CommunityPost.countDocuments({ createdAt: { $gte: sevenDaysAgo } }),
+      Comment.countDocuments({ createdAt: { $gte: sevenDaysAgo } }),
+      ContentReport.countDocuments({ createdAt: { $gte: sevenDaysAgo } })
+    ]);
+
+    const stats = {
+      pending: {
+        posts: pendingPosts,
+        comments: pendingComments,
+        reports: pendingReports,
+        total: pendingPosts + pendingComments + pendingReports
+      },
+      processed: {
+        rejectedPosts,
+        rejectedComments,
+        resolvedReports,
+        total: rejectedPosts + rejectedComments + resolvedReports
+      },
+      recentActivity: {
+        posts: recentPosts,
+        comments: recentComments,
+        reports: recentReports,
+        total: recentPosts + recentComments + recentReports
+      }
+    };
 
     res.json({
       success: true,
@@ -418,6 +463,234 @@ export const getModerationStats = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: '获取审核统计失败'
+    });
+  }
+};
+
+// 获取待审核内容
+export const getPendingContent = async (req: AuthRequest, res: Response) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [posts, comments, reports] = await Promise.all([
+      CommunityPost.find({ moderationStatus: 'pending' })
+        .populate('userId', 'username avatar')
+        .sort({ createdAt: -1 })
+        .limit(limitNum)
+        .skip(skip)
+        .lean(),
+      
+      Comment.find({ moderationStatus: 'pending' })
+        .populate('userId', 'username avatar')
+        .populate('postId', 'title')
+        .sort({ createdAt: -1 })
+        .limit(limitNum)
+        .skip(skip)
+        .lean(),
+      
+      ContentReport.find({ status: 'pending' })
+        .populate('reporterId', 'username avatar')
+        .sort({ createdAt: -1 })
+        .limit(limitNum)
+        .skip(skip)
+        .lean()
+    ]);
+
+    const [totalPosts, totalComments, totalReports] = await Promise.all([
+      CommunityPost.countDocuments({ moderationStatus: 'pending' }),
+      Comment.countDocuments({ moderationStatus: 'pending' }),
+      ContentReport.countDocuments({ status: 'pending' })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        posts,
+        comments,
+        reports,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: [totalPosts, totalComments, totalReports]
+        }
+      }
+    });
+  } catch (error) {
+    console.error('获取待审核内容失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取待审核内容失败'
+    });
+  }
+};
+
+// 审核决定
+export const moderateDecision = async (req: AuthRequest, res: Response) => {
+  try {
+    const { type, id, decision, notes } = req.body;
+    const reviewerId = req.user!.userId;
+
+    if (!['post', 'comment', 'report'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: '无效的内容类型'
+      });
+    }
+
+    if (!['approve', 'reject'].includes(decision)) {
+      return res.status(400).json({
+        success: false,
+        message: '无效的审核决定'
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: '无效的内容ID'
+      });
+    }
+
+    let result;
+    if (type === 'post') {
+      result = await CommunityPost.findByIdAndUpdate(id, {
+        moderationStatus: decision === 'approve' ? 'approved' : 'rejected'
+      }, { new: true });
+    } else if (type === 'comment') {
+      result = await Comment.findByIdAndUpdate(id, {
+        moderationStatus: decision === 'approve' ? 'approved' : 'rejected'
+      }, { new: true });
+    } else if (type === 'report') {
+      result = await ContentReport.findByIdAndUpdate(id, {
+        status: decision === 'approve' ? 'resolved' : 'dismissed',
+        reviewerId: new mongoose.Types.ObjectId(reviewerId),
+        reviewNotes: notes
+      }, { new: true });
+    }
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: '内容不存在'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result,
+      message: `内容已${decision === 'approve' ? '通过' : '拒绝'}`
+    });
+  } catch (error) {
+    console.error('审核决定失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '审核决定失败'
+    });
+  }
+};
+
+// 批量审核
+export const batchModerate = async (req: AuthRequest, res: Response) => {
+  try {
+    const { items } = req.body;
+    const reviewerId = req.user!.userId;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: '无效的批量操作数据'
+      });
+    }
+
+    const results = [];
+
+    for (const item of items) {
+      try {
+        const { type, id, decision } = item;
+
+        if (!['post', 'comment'].includes(type) || !['approve', 'reject'].includes(decision)) {
+          results.push({ id, success: false, error: '无效的参数' });
+          continue;
+        }
+
+        let result;
+        if (type === 'post') {
+          result = await CommunityPost.findByIdAndUpdate(id, {
+            moderationStatus: decision === 'approve' ? 'approved' : 'rejected'
+          });
+        } else {
+          result = await Comment.findByIdAndUpdate(id, {
+            moderationStatus: decision === 'approve' ? 'approved' : 'rejected'
+          });
+        }
+
+        results.push({ id, success: !!result });
+      } catch (error) {
+        results.push({ id: item.id, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: results,
+      message: `批量审核完成，成功处理 ${results.filter(r => r.success).length} 项`
+    });
+  } catch (error) {
+    console.error('批量审核失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '批量审核失败'
+    });
+  }
+};
+
+// 获取用户违规统计
+export const getUserViolationStats = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: '无效的用户ID'
+      });
+    }
+
+    const [rejectedPosts, rejectedComments, reports] = await Promise.all([
+      CommunityPost.countDocuments({
+        userId: new mongoose.Types.ObjectId(userId),
+        moderationStatus: 'rejected'
+      }),
+      Comment.countDocuments({
+        userId: new mongoose.Types.ObjectId(userId),
+        moderationStatus: 'rejected'
+      }),
+      ContentReport.countDocuments({
+        targetType: 'user',
+        targetId: new mongoose.Types.ObjectId(userId),
+        status: { $in: ['pending', 'resolved'] }
+      })
+    ]);
+
+    const stats = {
+      rejectedPosts,
+      rejectedComments,
+      reports,
+      totalViolations: rejectedPosts + rejectedComments + reports
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('获取用户违规统计失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取用户违规统计失败'
     });
   }
 };

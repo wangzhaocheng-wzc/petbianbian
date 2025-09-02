@@ -1,0 +1,16 @@
+[
+  {
+    "name": "重复名称测试",
+    "type": "cat",
+    "breed": "暹罗猫",
+    "age": 1,
+    "weight": 3.5
+  },
+  {
+    "name": "新宠物名称",
+    "type": "dog",
+    "breed": "比格犬",
+    "age": 2,
+    "weight": 12.0
+  }
+]

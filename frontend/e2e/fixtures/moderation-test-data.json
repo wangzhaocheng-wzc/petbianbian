@@ -1,0 +1,105 @@
+{
+  "sensitiveContent": {
+    "textSamples": {
+      "inappropriate": [
+        "这是一些不当言论内容",
+        "包含敏感词汇的文本",
+        "垃圾广告内容测试"
+      ],
+      "normal": [
+        "我的宠物今天很健康",
+        "分享一些养宠心得",
+        "求助宠物健康问题"
+      ]
+    },
+    "imagePaths": {
+      "inappropriate": [
+        "test-images/inappropriate-content.jpg",
+        "test-images/violent-content.jpg"
+      ],
+      "normal": [
+        "test-images/healthy-pet.jpg",
+        "test-images/pet-food.jpg"
+      ]
+    }
+  },
+  "reportReasons": [
+    {
+      "id": "spam",
+      "name": "垃圾信息",
+      "description": "发布垃圾广告或重复内容"
+    },
+    {
+      "id": "inappropriate",
+      "name": "不当内容",
+      "description": "包含不当或敏感内容"
+    },
+    {
+      "id": "harassment",
+      "name": "骚扰行为",
+      "description": "恶意骚扰其他用户"
+    },
+    {
+      "id": "fake",
+      "name": "虚假信息",
+      "description": "发布虚假或误导性信息"
+    }
+  ],
+  "banTypes": [
+    {
+      "type": "temporary",
+      "duration": "24h",
+      "reason": "违反社区规定"
+    },
+    {
+      "type": "temporary", 
+      "duration": "7d",
+      "reason": "重复违规行为"
+    },
+    {
+      "type": "permanent",
+      "reason": "严重违规，永久封禁"
+    }
+  ],
+  "testUsers": {
+    "normalUser": {
+      "username": "normal_user_test",
+      "email": "normal@test.com",
+      "password": "Test123456"
+    },
+    "violatingUser": {
+      "username": "violating_user_test",
+      "email": "violating@test.com", 
+      "password": "Test123456"
+    },
+    "moderator": {
+      "username": "moderator_test",
+      "email": "moderator@test.com",
+      "password": "Test123456",
+      "role": "moderator"
+    },
+    "admin": {
+      "username": "admin_test",
+      "email": "admin@test.com",
+      "password": "Test123456",
+      "role": "admin"
+    }
+  },
+  "testPosts": {
+    "normalPost": {
+      "title": "我的宠物健康分享",
+      "content": "今天带宠物去体检，一切都很正常，分享一些心得给大家。",
+      "tags": ["健康", "分享"]
+    },
+    "spamPost": {
+      "title": "超低价宠物用品！！！",
+      "content": "点击链接购买，超低价格，限时优惠！！！联系微信：xxxxx",
+      "tags": ["广告", "促销"]
+    },
+    "inappropriatePost": {
+      "title": "不当内容测试",
+      "content": "这里包含一些不当的内容用于测试过滤功能",
+      "tags": ["测试"]
+    }
+  }
+}
