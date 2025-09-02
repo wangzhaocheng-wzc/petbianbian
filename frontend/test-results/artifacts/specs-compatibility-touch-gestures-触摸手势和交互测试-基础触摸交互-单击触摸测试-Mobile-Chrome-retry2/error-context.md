@@ -1,0 +1,79 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "🐾 宠物健康助手" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - button "关闭菜单" [active] [ref=e10] [cursor=pointer]:
+          - img [ref=e11] [cursor=pointer]
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]: 菜单
+          - button "关闭菜单" [ref=e19] [cursor=pointer]:
+            - img [ref=e20] [cursor=pointer]
+        - generic [ref=e24]:
+          - link "首页" [ref=e25] [cursor=pointer]:
+            - /url: /
+            - img [ref=e26] [cursor=pointer]
+            - generic [ref=e29] [cursor=pointer]: 首页
+          - link "宠物社区" [ref=e30] [cursor=pointer]:
+            - /url: /community
+            - img [ref=e31] [cursor=pointer]
+            - generic [ref=e36] [cursor=pointer]: 宠物社区
+        - generic [ref=e38]:
+          - link "登录" [ref=e39] [cursor=pointer]:
+            - /url: /login
+          - link "注册" [ref=e40] [cursor=pointer]:
+            - /url: /register
+  - main [ref=e41]:
+    - generic [ref=e42]:
+      - generic [ref=e43]:
+        - heading "🐾 关爱宠物健康，从便便开始" [level=1] [ref=e44]
+        - paragraph [ref=e45]: 通过AI智能分析，帮助您更好地了解宠物的健康状况
+        - link "开始分析" [ref=e46] [cursor=pointer]:
+          - /url: /analysis
+          - img [ref=e47] [cursor=pointer]
+          - text: 开始分析
+      - generic [ref=e50]:
+        - link "便便健康分析 上传宠物便便照片，AI智能分析健康状况" [ref=e51] [cursor=pointer]:
+          - /url: /analysis
+          - img [ref=e53] [cursor=pointer]
+          - heading "便便健康分析" [level=3] [ref=e56] [cursor=pointer]
+          - paragraph [ref=e57] [cursor=pointer]: 上传宠物便便照片，AI智能分析健康状况
+        - link "健康记录追踪 记录和统计宠物排便情况，追踪健康趋势" [ref=e58] [cursor=pointer]:
+          - /url: /records
+          - img [ref=e60] [cursor=pointer]
+          - heading "健康记录追踪" [level=3] [ref=e62] [cursor=pointer]
+          - paragraph [ref=e63] [cursor=pointer]: 记录和统计宠物排便情况，追踪健康趋势
+        - link "宠物社区 与其他养宠人士分享经验，交流心得" [ref=e64] [cursor=pointer]:
+          - /url: /community
+          - img [ref=e66] [cursor=pointer]
+          - heading "宠物社区" [level=3] [ref=e71] [cursor=pointer]
+          - paragraph [ref=e72] [cursor=pointer]: 与其他养宠人士分享经验，交流心得
+      - generic [ref=e74]:
+        - generic [ref=e75]:
+          - generic [ref=e76]: 1000+
+          - generic [ref=e77]: 分析次数
+        - generic [ref=e78]:
+          - generic [ref=e79]: 500+
+          - generic [ref=e80]: 注册用户
+        - generic [ref=e81]:
+          - generic [ref=e82]: 95%
+          - generic [ref=e83]: 准确率
+        - generic [ref=e84]:
+          - generic [ref=e85]: 24/7
+          - generic [ref=e86]: 在线服务
+  - navigation [ref=e87]:
+    - generic [ref=e88]:
+      - link "首页" [ref=e89] [cursor=pointer]:
+        - /url: /
+        - img [ref=e91] [cursor=pointer]
+        - generic [ref=e94] [cursor=pointer]: 首页
+      - link "社区" [ref=e96] [cursor=pointer]:
+        - /url: /community
+        - img [ref=e98] [cursor=pointer]
+        - generic [ref=e103] [cursor=pointer]: 社区
+```
