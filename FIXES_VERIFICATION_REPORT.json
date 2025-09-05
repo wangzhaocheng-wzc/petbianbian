@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-09-05T01:50:16.345Z",
+  "fixes": {
+    "petManagementAPI": true,
+    "frontendConfig": false,
+    "viteConfig": true
+  },
+  "summary": {
+    "totalFixes": 3,
+    "successfulFixes": 2,
+    "allFixed": false
+  },
+  "recommendations": [
+    "需要检查前端服务启动配置"
+  ]
+}

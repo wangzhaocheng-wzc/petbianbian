@@ -8,6 +8,9 @@ const redisClient = createClient({
   },
 });
 
+// Skip Redis if URL is not configured
+const isRedisEnabled = process.env.REDIS_URL && process.env.REDIS_URL.trim() !== '';
+
 // Error handling
 redisClient.on('error', (err) => {
   console.error('Redis Client Error:', err);
@@ -28,6 +31,12 @@ redisClient.on('end', () => {
 // Connect to Redis
 export const connectRedis = async (): Promise<void> => {
   try {
+    // Skip Redis connection if REDIS_URL is not set or empty
+    if (!isRedisEnabled) {
+      console.log('Redis URL not configured, skipping Redis connection');
+      return;
+    }
+    
     if (!redisClient.isOpen) {
       await redisClient.connect();
     }

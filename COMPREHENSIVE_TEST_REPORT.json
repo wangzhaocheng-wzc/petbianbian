@@ -1,0 +1,94 @@
+{
+  "timestamp": "2025-09-05T01:50:31.194Z",
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "duration": "1003ms",
+    "successRate": "100.0%"
+  },
+  "results": [
+    {
+      "test": "系统健康检查",
+      "passed": true,
+      "timestamp": "2025-09-05T01:50:30.243Z",
+      "details": {
+        "status": 200,
+        "data": {
+          "status": "OK",
+          "timestamp": "2025-09-05T01:50:30.238Z",
+          "database": "connected",
+          "cache": "disconnected"
+        }
+      }
+    },
+    {
+      "test": "用户注册",
+      "passed": true,
+      "timestamp": "2025-09-05T01:50:30.556Z",
+      "details": {
+        "status": 201,
+        "userId": "68ba41e68c957cffeba46f02"
+      }
+    },
+    {
+      "test": "用户登录",
+      "passed": true,
+      "timestamp": "2025-09-05T01:50:30.915Z",
+      "details": {
+        "status": 200,
+        "hasToken": true
+      }
+    },
+    {
+      "test": "宠物管理",
+      "passed": true,
+      "timestamp": "2025-09-05T01:50:30.944Z",
+      "details": {
+        "createStatus": 201,
+        "listStatus": 200,
+        "petId": "68ba41e68c957cffeba46f07"
+      }
+    },
+    {
+      "test": "社区功能",
+      "passed": true,
+      "timestamp": "2025-09-05T01:50:31.006Z",
+      "details": {
+        "createStatus": 201,
+        "listStatus": 200,
+        "likeSuccess": true,
+        "postId": "68ba41e68c957cffeba46f0b"
+      }
+    },
+    {
+      "test": "API性能测试",
+      "passed": true,
+      "timestamp": "2025-09-05T01:50:31.119Z",
+      "details": {
+        "testCount": 20,
+        "avgTime": "5.55ms",
+        "maxTime": "37ms",
+        "minTime": "2ms"
+      }
+    },
+    {
+      "test": "数据一致性测试",
+      "passed": true,
+      "timestamp": "2025-09-05T01:50:31.157Z",
+      "details": {
+        "userStatus": 200,
+        "petsStatus": 200,
+        "postsStatus": 200
+      }
+    },
+    {
+      "test": "错误处理测试",
+      "passed": true,
+      "timestamp": "2025-09-05T01:50:31.164Z",
+      "details": {
+        "description": "测试无效认证和不存在端点的错误处理"
+      }
+    }
+  ]
+}

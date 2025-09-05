@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-09-05T01:53:44.089Z",
+  "systemStatus": {
+    "backend": true,
+    "frontend": false,
+    "e2eTest": true
+  },
+  "frontendDetails": {
+    "detectedPort": "none",
+    "pagesAccessible": false
+  },
+  "deployment": {
+    "backendReady": true,
+    "frontendReady": false,
+    "fullSystemReady": false
+  },
+  "recommendations": [
+    "前端服务需要启动或配置调整"
+  ]
+}

@@ -19,7 +19,7 @@ const testConfig = {
   ],
   
   // 浏览器配置
-  browsers: ['chromium', 'firefox', 'webkit'],
+  browsers: ['Desktop Chrome', 'Desktop Firefox', 'Mobile Chrome'],
   
   // 测试环境配置
   environments: {

@@ -1,118 +1,1600 @@
-<testsuites id="" name="" tests="28" failures="0" skipped="28" errors="0" time="1.0164669999999996">
-<testsuite name="specs\accessibility\color-contrast-visual.spec.ts" timestamp="2025-09-01T07:41:37.271Z" hostname="Desktop Chrome" tests="14" failures="0" skipped="14" time="0" errors="0">
-<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 正常文本颜色对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testsuites id="" name="" tests="14" failures="14" skipped="0" errors="0" time="2905.313537">
+<testsuite name="auth.spec.ts" timestamp="2025-09-02T11:33:17.105Z" hostname="Desktop Chrome" tests="7" failures="7" skipped="0" time="843.23" errors="0">
+<testcase name="用户认证流程 › 用户注册流程" classname="auth.spec.ts" time="121.23">
+<failure message="auth.spec.ts:18:3 用户注册流程" type="FAILURE">
+<![CDATA[  [Desktop Chrome] › auth.spec.ts:18:3 › 用户认证流程 › 用户注册流程 ───────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Desktop-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Desktop-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Desktop-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Desktop-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Desktop-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Desktop-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-err>
+<![CDATA[
+Warning: attachment artifacts\auth-用户认证流程-用户注册流程-Desktop-Chrome\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户注册流程-Desktop-Chrome-retry1\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户注册流程-Desktop-Chrome-retry2\trace.zip is missing]]>
+</system-err>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 按钮和交互元素对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 用户登录流程" classname="auth.spec.ts" time="122.549">
+<failure message="auth.spec.ts:43:3 用户登录流程" type="FAILURE">
+<![CDATA[  [Desktop Chrome] › auth.spec.ts:43:3 › 用户认证流程 › 用户登录流程 ───────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Desktop-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Desktop-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Desktop-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Desktop-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Desktop-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Desktop-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-err>
+<![CDATA[
+Warning: attachment artifacts\auth-用户认证流程-用户登录流程-Desktop-Chrome\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户登录流程-Desktop-Chrome-retry1\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户登录流程-Desktop-Chrome-retry2\trace.zip is missing]]>
+</system-err>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 表单字段对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 登录验证失败" classname="auth.spec.ts" time="112.295">
+<failure message="auth.spec.ts:62:3 登录验证失败" type="FAILURE">
+<![CDATA[  [Desktop Chrome] › auth.spec.ts:62:3 › 用户认证流程 › 登录验证失败 ───────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="email-input"]')
+
+
+      65 |     
+      66 |     // 使用错误的凭据
+    > 67 |     await page.fill('[data-testid="email-input"]', 'wrong@example.com');
+         |                ^
+      68 |     await page.fill('[data-testid="password-input"]', 'wrongpassword');
+      69 |     
+      70 |     await page.click('[data-testid="login-submit"]');
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:67:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry1\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry1\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-err>
+<![CDATA[
+Warning: attachment artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry1\test-failed-1.png is missing
+Warning: attachment artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry1\video.webm is missing
+Warning: attachment artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry1\error-context.md is missing
+Warning: attachment artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry1\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-登录验证失败-Desktop-Chrome-retry2\trace.zip is missing]]>
+</system-err>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 错误和警告消息对比度" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 用户登出流程" classname="auth.spec.ts" time="122.261">
+<failure message="auth.spec.ts:76:3 用户登出流程" type="FAILURE">
+<![CDATA[  [Desktop Chrome] › auth.spec.ts:76:3 › 用户认证流程 › 用户登出流程 ───────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Desktop-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Desktop-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Desktop-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Desktop-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Desktop-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Desktop-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-err>
+<![CDATA[
+Warning: attachment artifacts\auth-用户认证流程-用户登出流程-Desktop-Chrome\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户登出流程-Desktop-Chrome-retry1\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户登出流程-Desktop-Chrome-retry2\trace.zip is missing]]>
+</system-err>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 红绿色盲友好性检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 表单验证" classname="auth.spec.ts" time="122.062">
+<failure message="auth.spec.ts:97:3 表单验证" type="FAILURE">
+<![CDATA[  [Desktop Chrome] › auth.spec.ts:97:3 › 用户认证流程 › 表单验证 ─────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Desktop-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-表单验证-Desktop-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Desktop-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-表单验证-Desktop-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Desktop-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-表单验证-Desktop-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-err>
+<![CDATA[
+Warning: attachment artifacts\auth-用户认证流程-表单验证-Desktop-Chrome\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-表单验证-Desktop-Chrome-retry1\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-表单验证-Desktop-Chrome-retry2\trace.zip is missing]]>
+</system-err>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 图表和数据可视化色盲友好性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 密码强度验证" classname="auth.spec.ts" time="121.774">
+<failure message="auth.spec.ts:109:3 密码强度验证" type="FAILURE">
+<![CDATA[  [Desktop Chrome] › auth.spec.ts:109:3 › 用户认证流程 › 密码强度验证 ──────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Desktop-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Desktop-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Desktop-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Desktop-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Desktop-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Desktop-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-err>
+<![CDATA[
+Warning: attachment artifacts\auth-用户认证流程-密码强度验证-Desktop-Chrome\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-密码强度验证-Desktop-Chrome-retry1\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-密码强度验证-Desktop-Chrome-retry2\trace.zip is missing]]>
+</system-err>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 链接和按钮色盲友好性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 文字大小可调节性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 最小字体大小检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 行间距和字符间距检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 触摸目标大小检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 响应式文字缩放" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 高对比度模式测试 › Windows高对比度模式兼容性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 高对比度模式测试 › 暗色主题对比度" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 邮箱格式验证" classname="auth.spec.ts" time="121.059">
+<failure message="auth.spec.ts:120:3 邮箱格式验证" type="FAILURE">
+<![CDATA[  [Desktop Chrome] › auth.spec.ts:120:3 › 用户认证流程 › 邮箱格式验证 ──────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Desktop-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Desktop-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Desktop-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Desktop-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 30000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Desktop-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Desktop-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-err>
+<![CDATA[
+Warning: attachment artifacts\auth-用户认证流程-邮箱格式验证-Desktop-Chrome\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-邮箱格式验证-Desktop-Chrome-retry1\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-邮箱格式验证-Desktop-Chrome-retry2\trace.zip is missing]]>
+</system-err>
 </testcase>
 </testsuite>
-<testsuite name="specs\accessibility\color-contrast-visual.spec.ts" timestamp="2025-09-01T07:41:37.271Z" hostname="Mobile Chrome" tests="14" failures="0" skipped="14" time="0" errors="0">
-<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 正常文本颜色对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testsuite name="auth.spec.ts" timestamp="2025-09-02T11:33:17.105Z" hostname="Mobile Chrome" tests="7" failures="7" skipped="0" time="655.17" errors="0">
+<testcase name="用户认证流程 › 用户注册流程" classname="auth.spec.ts" time="180.553">
+<failure message="auth.spec.ts:18:3 用户注册流程" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › auth.spec.ts:18:3 › 用户认证流程 › 用户注册流程 ────────────────────────────────────────────
+
+    Test timeout of 45000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 45000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 45000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 45000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 45000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 45000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 45000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 45000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome-retry3\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome-retry3\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-err>
+<![CDATA[
+Warning: attachment artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome-retry1\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome-retry2\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户注册流程-Mobile-Chrome-retry3\trace.zip is missing]]>
+</system-err>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 按钮和交互元素对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 用户登录流程" classname="auth.spec.ts" time="149.16">
+<failure message="auth.spec.ts:43:3 用户登录流程" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › auth.spec.ts:43:3 › 用户认证流程 › 用户登录流程 ────────────────────────────────────────────
+
+    Test timeout of 45000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 45000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 45000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 45000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 45000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: apiRequestContext._wrapApiCall: ENOENT: no such file or directory, open 'C:\Users\86137\Desktop\xm\pet\frontend\test-results\artifacts\.playwright-artifacts-27\traces\d748ac400d08b85935ef-f6060fe3b0a3815c5f4c-retry2.trace'
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    Error: ENOENT: no such file or directory, open 'C:\Users\86137\Desktop\xm\pet\frontend\test-results\artifacts\.playwright-artifacts-27\76f75ad7315df6a5080eea56417f966d.zip'
+
+    Test timeout of 45000ms exceeded.
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry3\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry3\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry3\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry3\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry3\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry3\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry3\trace.zip]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[
+Warning: attachment artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome\trace.zip is missing
+Warning: attachment artifacts\auth-用户认证流程-用户登录流程-Mobile-Chrome-retry1\trace.zip is missing]]>
+</system-err>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 表单字段对比度检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 登录验证失败" classname="auth.spec.ts" time="118.573">
+<failure message="auth.spec.ts:62:3 登录验证失败" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › auth.spec.ts:62:3 › 用户认证流程 › 登录验证失败 ────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 45000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry1\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry2\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry2\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Test timeout of 45000ms exceeded while running "beforeEach" hook.
+
+      11 |
+      12 | test.describe('用户认证流程', () => {
+    > 13 |   test.beforeEach(async ({ page }) => {
+         |        ^
+      14 |     // 访问首页
+      15 |     await page.goto('/');
+      16 |   });
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:13:8
+
+    Error: browserContext.newPage: Test timeout of 45000ms exceeded.
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry3\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry3\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry1\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry1\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry2\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry2\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry2\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-登录验证失败-Mobile-Chrome-retry3\trace.zip]]
+]]>
+</system-out>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 颜色对比度测试 › 错误和警告消息对比度" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 用户登出流程" classname="auth.spec.ts" time="63.968">
+<failure message="auth.spec.ts:76:3 用户登出流程" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › auth.spec.ts:76:3 › 用户认证流程 › 用户登出流程 ────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry1\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry2\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry2\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry3\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry3\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry3\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry3\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry1\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry1\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry2\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry2\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry2\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry3\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry3\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-用户登出流程-Mobile-Chrome-retry3\trace.zip]]
+]]>
+</system-out>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 红绿色盲友好性检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 表单验证" classname="auth.spec.ts" time="27.891">
+<failure message="auth.spec.ts:97:3 表单验证" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › auth.spec.ts:97:3 › 用户认证流程 › 表单验证 ──────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry1\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry2\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry2\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry3\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry3\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry3\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry3\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry1\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry1\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry2\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry2\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry2\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry3\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry3\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-表单验证-Mobile-Chrome-retry3\trace.zip]]
+]]>
+</system-out>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 图表和数据可视化色盲友好性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 密码强度验证" classname="auth.spec.ts" time="43.845">
+<failure message="auth.spec.ts:109:3 密码强度验证" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › auth.spec.ts:109:3 › 用户认证流程 › 密码强度验证 ───────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry1\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry2\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry2\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry3\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry3\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry3\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry3\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry1\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry1\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry2\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry2\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry2\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry3\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry3\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-密码强度验证-Mobile-Chrome-retry3\trace.zip]]
+]]>
+</system-out>
 </testcase>
-<testcase name="色彩对比和视觉辅助测试 › 色盲友好设计测试 › 链接和按钮色盲友好性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 文字大小可调节性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 最小字体大小检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 行间距和字符间距检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 触摸目标大小检查" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 文字大小和间距测试 › 响应式文字缩放" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 高对比度模式测试 › Windows高对比度模式兼容性" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
-</testcase>
-<testcase name="色彩对比和视觉辅助测试 › 高对比度模式测试 › 暗色主题对比度" classname="specs\accessibility\color-contrast-visual.spec.ts" time="0">
-<skipped>
-</skipped>
+<testcase name="用户认证流程 › 邮箱格式验证" classname="auth.spec.ts" time="71.18">
+<failure message="auth.spec.ts:120:3 邮箱格式验证" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › auth.spec.ts:120:3 › 用户认证流程 › 邮箱格式验证 ───────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry1\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry2\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry2\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry2\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry2\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #3 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/
+    Call log:
+      - navigating to "http://localhost:3000/", waiting until "load"
+
+
+      13 |   test.beforeEach(async ({ page }) => {
+      14 |     // 访问首页
+    > 15 |     await page.goto('/');
+         |                ^
+      16 |   });
+      17 |
+      18 |   test('用户注册流程', async ({ page }) => {
+        at C:\Users\86137\Desktop\xm\pet\frontend\e2e\auth.spec.ts:15:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry3\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry3\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry3\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\test-results\artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry3\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry1\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry1\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry2\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry2\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry2\trace.zip]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry3\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry3\video.webm]]
+
+[[ATTACHMENT|artifacts\auth-用户认证流程-邮箱格式验证-Mobile-Chrome-retry3\trace.zip]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>

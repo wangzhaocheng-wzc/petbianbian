@@ -12,7 +12,8 @@ async function testAdminInterface() {
     const adminData = {
       username: 'admin',
       email: 'admin@test.com',
-      password: 'admin123'
+      password: 'admin123',
+      confirmPassword: 'admin123'
     };
 
     let adminToken;

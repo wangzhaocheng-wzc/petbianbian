@@ -24,10 +24,10 @@ test.describe('便便分析 - 扩展图片上传测试', () => {
 
   // 测试图片路径
   const testImages = {
-    validJpeg: path.join(__dirname, '../../fixtures/images/test-pet-avatar-1.jpg'),
-    validPng: path.join(__dirname, '../../fixtures/images/test-pet-avatar-2.jpg'),
-    largeImage: path.join(__dirname, '../../fixtures/images/large-test-image.jpg'),
-    invalidFormat: path.join(__dirname, '../../fixtures/images/invalid-format.txt'),
+    validJpeg: path.join(process.cwd(), 'e2e/fixtures/images/test-pet-avatar-1.jpg'),
+    validPng: path.join(process.cwd(), 'e2e/fixtures/images/test-pet-avatar-2.jpg'),
+    largeImage: path.join(process.cwd(), 'e2e/fixtures/images/large-test-image.jpg'),
+    invalidFormat: path.join(process.cwd(), 'e2e/fixtures/images/invalid-format.txt'),
     // 动态创建的测试图片
     smallImage: '',
     mediumImage: '',
