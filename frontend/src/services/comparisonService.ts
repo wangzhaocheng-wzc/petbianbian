@@ -97,7 +97,7 @@ class ComparisonService {
    */
   async getPetsForComparison(): Promise<PetForComparison[]> {
     try {
-      const response = await api.get('/comparison/pets');
+      const response = await api.get('/pets');
       return response.data.data.pets;
     } catch (error) {
       console.error('获取宠物列表失败:', error);

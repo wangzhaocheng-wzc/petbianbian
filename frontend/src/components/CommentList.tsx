@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Send } from 'lucide-react';
 import { Comment } from '../../../shared/types';
 import { CommentItem } from './CommentItem';
@@ -34,6 +35,7 @@ export const CommentList: React.FC<CommentListProps> = ({
   onReportComment,
   className = ''
 }) => {
+  const navigate = useNavigate();
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [replyTo, setReplyTo] = useState<{ id: string; username: string } | null>(null);
@@ -139,7 +141,7 @@ export const CommentList: React.FC<CommentListProps> = ({
           <div className="mb-6 p-4 bg-gray-50 rounded-lg text-center">
             <p className="text-gray-600 mb-2">登录后可以发表评论</p>
             <button 
-              onClick={() => window.location.href = '/login'}
+              onClick={() => navigate('/login')}
               className="text-orange-600 hover:text-orange-700 font-medium"
             >
               立即登录

@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { PostList } from '../components/PostList';
 import { PostEditor } from '../components/PostEditor';
 import { PostDetail } from '../components/PostDetail';
+import { PostPreview } from '../components/PostPreview';
 import { usePets } from '../hooks/usePets';
 import { useCommunity } from '../hooks/useCommunity';
 import { useAuth } from '../hooks/useAuth';
 import { CommunityPost, CreatePostRequest, UpdatePostRequest } from '../../../shared/types';
 
-type ViewMode = 'list' | 'create' | 'edit' | 'detail';
+type ViewMode = 'list' | 'create' | 'edit' | 'detail' | 'preview';
 
 const Community: React.FC = () => {
   const { user } = useAuth();
@@ -17,6 +18,8 @@ const Community: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<CreatePostRequest | UpdatePostRequest | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // 处理创建帖子
   const handleCreatePost = () => {
@@ -42,6 +45,7 @@ const Community: React.FC = () => {
 
   // 处理保存帖子
   const handleSavePost = async (data: CreatePostRequest | UpdatePostRequest) => {
+    setIsPublishing(true);
     try {
       if (selectedPost) {
         // 更新帖子
@@ -52,9 +56,12 @@ const Community: React.FC = () => {
       }
       setViewMode('list');
       setSelectedPost(null);
+      setPreviewData(null);
     } catch (error) {
       // 错误已在hook中处理
       throw error;
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -63,12 +70,25 @@ const Community: React.FC = () => {
     setViewMode('list');
     setSelectedPost(null);
     setSelectedPostId(null);
+    setPreviewData(null);
   };
 
   // 处理预览
   const handlePreview = (data: CreatePostRequest | UpdatePostRequest) => {
-    // TODO: 实现预览功能
-    console.log('预览帖子:', data);
+    setPreviewData(data);
+    setViewMode('preview');
+  };
+
+  // 处理从预览返回编辑
+  const handleBackToEdit = () => {
+    setViewMode(selectedPost ? 'edit' : 'create');
+  };
+
+  // 处理从预览直接发布
+  const handlePublishFromPreview = async () => {
+    if (previewData) {
+      await handleSavePost(previewData);
+    }
   };
 
   return (
@@ -106,10 +126,21 @@ const Community: React.FC = () => {
         )}
 
         {viewMode === 'detail' && selectedPostId && (
-          <PostDetail
-            postId={selectedPostId}
-            onBack={handleCancel}
-            onEdit={handleEditPost}
+          <div className="max-w-4xl mx-auto">
+            <PostDetail
+              postId={selectedPostId}
+              onBack={handleCancel}
+            />
+          </div>
+        )}
+
+        {viewMode === 'preview' && previewData && (
+          <PostPreview
+            data={previewData}
+            onClose={handleCancel}
+            onEdit={handleBackToEdit}
+            onPublish={handlePublishFromPreview}
+            isPublishing={isPublishing}
           />
         )}
       </div>

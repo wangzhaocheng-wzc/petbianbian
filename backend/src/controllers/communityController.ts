@@ -178,7 +178,7 @@ export const getPost = async (req: Request, res: Response) => {
 // 创建新帖子
 export const createPost = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, content, petId, images = [], tags = [], category = 'general' } = req.body;
+    const { title, content, petId, images = [], tags = [], category = 'general', isAnonymous = false } = req.body;
     const userId = req.user!.userId;
 
     // 验证必填字段
@@ -258,6 +258,7 @@ export const createPost = async (req: AuthRequest, res: Response) => {
       tags: Array.isArray(tags) ? tags.map((tag: string) => tag.trim()).filter(Boolean) : [],
       category,
       status,
+      isAnonymous: Boolean(isAnonymous), // 是否匿名发布
       interactions: {
         likes: [],
         views: 0,
@@ -301,7 +302,7 @@ export const createPost = async (req: AuthRequest, res: Response) => {
 export const updatePost = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, content, images, tags, category } = req.body;
+    const { title, content, images, tags, category, isAnonymous } = req.body;
     const userId = req.user!.userId;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -365,6 +366,10 @@ export const updatePost = async (req: AuthRequest, res: Response) => {
         });
       }
       post.category = category;
+    }
+
+    if (isAnonymous !== undefined) {
+      post.isAnonymous = Boolean(isAnonymous);
     }
 
     await post.save();

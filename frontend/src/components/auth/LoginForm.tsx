@@ -129,6 +129,10 @@ export default function LoginForm() {
                     minLength: {
                       value: 6,
                       message: '密码至少需要6个字符'
+                    },
+                    pattern: {
+                      value: /^(?=.*[a-zA-Z])(?=.*\d)/,
+                      message: '密码必须包含至少一个字母和一个数字'
                     }
                   })}
                   type={showPassword ? 'text' : 'password'}

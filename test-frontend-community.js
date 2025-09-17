@@ -1,16 +1,15 @@
 const puppeteer = require('puppeteer');
 
-async function testCommunityFrontend() {
-  console.log('🚀 开始测试前端社区功能...\n');
+async function testCommunityFeatures() {
+  console.log('🧪 开始测试前端社区发布和预览功能...\n');
 
-  let browser;
+  const browser = await puppeteer.launch({ 
+    headless: false,
+    defaultViewport: null,
+    args: ['--start-maximized']
+  });
+  
   try {
-    browser = await puppeteer.launch({ 
-      headless: false, 
-      defaultViewport: null,
-      args: ['--start-maximized']
-    });
-    
     const page = await browser.newPage();
     
     // 1. 访问社区页面

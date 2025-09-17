@@ -3,8 +3,11 @@ import { Pet, CreatePetRequest, UpdatePetRequest, PetResponse, PetsListResponse 
 
 export const petService = {
   // 获取用户的宠物列表
-  getPets: async (): Promise<PetsListResponse> => {
-    return apiClient.get<{ pets: Pet[]; total: number }>('/pets');
+  getPets: async (isInitialLoad = false): Promise<PetsListResponse> => {
+    const config = isInitialLoad ? {
+      headers: { 'X-Init-Request': 'true' }
+    } : {};
+    return apiClient.get<{ pets: Pet[]; total: number }>('/pets', config);
   },
 
   // 获取特定宠物信息

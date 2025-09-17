@@ -28,7 +28,8 @@ export const PostEditor: React.FC<PostEditorProps> = ({
     petId: post?.petId || '',
     category: post?.category || 'general' as const,
     tags: post?.tags || [],
-    images: post?.images || []
+    images: post?.images || [],
+    isAnonymous: post?.isAnonymous || false // 是否匿名发布
   });
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState<string[]>([]);
@@ -233,6 +234,20 @@ export const PostEditor: React.FC<PostEditorProps> = ({
               </select>
             </div>
           )}
+        </div>
+
+        {/* 匿名发布选项 */}
+        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+          <input
+            type="checkbox"
+            id="anonymous-publish"
+            checked={formData.isAnonymous}
+            onChange={(e) => setFormData(prev => ({ ...prev, isAnonymous: e.target.checked }))}
+            className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
+          />
+          <label htmlFor="anonymous-publish" className="text-sm text-gray-700">
+            匿名发布（不显示用户名，默认显示为"匿名用户"）
+          </label>
         </div>
 
         {/* 内容编辑器 */}

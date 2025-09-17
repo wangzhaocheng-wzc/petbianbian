@@ -8,11 +8,11 @@ export const usePets = () => {
   const [error, setError] = useState<string | null>(null);
 
   // 获取宠物列表
-  const fetchPets = async () => {
+  const fetchPets = async (isInitialLoad = false) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await petService.getPets();
+      const response = await petService.getPets(isInitialLoad);
       if (response.success && response.data) {
         setPets(response.data.pets);
       } else {
@@ -92,7 +92,7 @@ export const usePets = () => {
 
   // 初始化时获取宠物列表
   useEffect(() => {
-    fetchPets();
+    fetchPets(true); // 标记为初始化加载
   }, []);
 
   return {

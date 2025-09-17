@@ -97,8 +97,8 @@ export default function RegisterForm() {
                   {...register('username', {
                     required: '请输入用户名',
                     minLength: {
-                      value: 3,
-                      message: '用户名至少需要3个字符'
+                      value: 2,
+                      message: '用户名至少需要2个字符'
                     },
                     maxLength: {
                       value: 20,

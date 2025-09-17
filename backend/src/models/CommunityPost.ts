@@ -9,6 +9,7 @@ export interface ICommunityPost extends Document {
   tags: string[];
   category: 'health' | 'help' | 'experience' | 'general';
   status: 'published' | 'draft' | 'archived';
+  isAnonymous: boolean; // 是否匿名发布
   interactions: {
     likes: mongoose.Types.ObjectId[];
     views: number;
@@ -69,6 +70,11 @@ const CommunityPostSchema = new Schema<ICommunityPost>({
     type: String,
     enum: ['published', 'draft', 'archived'],
     default: 'published',
+    index: true
+  },
+  isAnonymous: {
+    type: Boolean,
+    default: false,
     index: true
   },
   interactions: {

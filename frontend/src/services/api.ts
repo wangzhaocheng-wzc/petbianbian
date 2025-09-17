@@ -33,9 +33,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // 如果是401错误且不是刷新令牌请求
+    // 如果是401错误且不是重试请求
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      
+      // 检查是否是页面初始化请求，避免在页面加载时触发登出
+      const isInitRequest = originalRequest.headers?.['X-Init-Request'] === 'true';
       
       const refreshToken = tokenManager.getRefreshToken();
       if (refreshToken) {
@@ -51,14 +54,21 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return api(originalRequest);
         } catch (refreshError) {
-          // 刷新失败，清除令牌并跳转到登录页
+          // 刷新失败，清除令牌
           tokenManager.clearTokens();
-          window.location.href = '/login';
+          // 只有在非初始化请求时才触发登出事件
+          if (!isInitRequest) {
+            window.dispatchEvent(new CustomEvent('auth-logout'));
+          }
           return Promise.reject(refreshError);
         }
       } else {
-        // 没有刷新令牌，跳转到登录页
-        window.location.href = '/login';
+        // 没有刷新令牌，清除访问令牌
+        tokenManager.clearTokens();
+        // 只有在非初始化请求时才触发登出事件
+        if (!isInitRequest) {
+          window.dispatchEvent(new CustomEvent('auth-logout'));
+        }
       }
     }
     

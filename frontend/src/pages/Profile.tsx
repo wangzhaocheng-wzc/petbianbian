@@ -2,13 +2,38 @@ import { useState } from 'react'
 import { PlusCircle, Edit3 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { usePets } from '../hooks/usePets'
+import PetForm from '../components/PetForm'
+import { Pet } from '../../../shared/types'
 
 
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('pets')
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingPet, setEditingPet] = useState<Pet | null>(null)
   const { user, isLoading: authLoading } = useAuth()
-  const { pets, loading: petsLoading } = usePets()
+  const { pets, loading: petsLoading, createPet, updatePet } = usePets()
+
+  // 处理添加宠物
+  const handleAddPet = () => {
+    setEditingPet(null)
+    setIsFormOpen(true)
+  }
+
+  // 处理表单提交
+  const handleFormSubmit = async (data: any) => {
+    if (editingPet) {
+      return await updatePet(editingPet.id, data)
+    } else {
+      return await createPet(data)
+    }
+  }
+
+  // 处理表单关闭
+  const handleCloseForm = () => {
+    setIsFormOpen(false)
+    setEditingPet(null)
+  }
 
   // 如果用户信息还在加载中
   if (authLoading) {
@@ -103,7 +128,10 @@ export default function Profile() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-medium text-gray-900">我的宠物</h2>
-                <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                <button 
+                  onClick={handleAddPet}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
+                >
                   <PlusCircle className="w-4 h-4 mr-2" />
                   添加宠物
                 </button>
@@ -117,7 +145,10 @@ export default function Profile() {
               ) : pets.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-600 mb-4">您还没有添加宠物</p>
-                  <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                  <button 
+                    onClick={handleAddPet}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
+                  >
                     <PlusCircle className="w-4 h-4 mr-2" />
                     添加第一只宠物
                   </button>
@@ -211,6 +242,15 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {/* 宠物表单模态框 */}
+      <PetForm
+        pet={editingPet}
+        isOpen={isFormOpen}
+        onClose={handleCloseForm}
+        onSubmit={handleFormSubmit}
+        loading={petsLoading}
+      />
     </div>
   )
 }

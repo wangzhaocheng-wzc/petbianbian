@@ -1,51 +1,45 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Home, Camera, BarChart3, Users, User, Heart, GitCompare } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
 import { useSwipeGesture } from '../../hooks/useMobile'
+import { useAuth } from '../../hooks/useAuth'
 
 interface NavigationItem {
   name: string
   href: string
   icon: React.ComponentType<{ className?: string }>
-  requireAuth: boolean
   badge?: number
+  requireAuth?: boolean
 }
 
 export default function MobileNavigation() {
   const location = useLocation()
-  const { isAuthenticated } = useAuth()
   const [isVisible, setIsVisible] = useState(true)
+  const { isAuthenticated } = useAuth()
 
   const navigation: NavigationItem[] = [
-    { name: '首页', href: '/', icon: Home, requireAuth: false },
+    { name: '首页', href: '/', icon: Home },
     { name: '分析', href: '/analysis', icon: Camera, requireAuth: true },
     { name: '宠物', href: '/pets', icon: Heart, requireAuth: true },
     { name: '记录', href: '/records', icon: BarChart3, requireAuth: true },
     { name: '对比', href: '/comparison', icon: GitCompare, requireAuth: true },
+    { name: '社区', href: '/community', icon: Users, requireAuth: true },
+    { name: '我的', href: '/profile', icon: User, requireAuth: true },
   ]
 
-  // 根据认证状态过滤导航项
+  // 过滤导航项：未认证用户只能看到首页
   const filteredNavigation = navigation.filter(item => 
     !item.requireAuth || isAuthenticated
   )
 
-  // 添加社区到未认证用户的导航，或个人中心到已认证用户的导航
-  if (!isAuthenticated && filteredNavigation.length < 5) {
-    filteredNavigation.push({
-      name: '社区',
-      href: '/community',
-      icon: Users,
-      requireAuth: false
-    })
-  } else if (isAuthenticated && filteredNavigation.length < 5) {
-    filteredNavigation.push({
-      name: '我的',
-      href: '/profile',
-      icon: User,
-      requireAuth: true
-    })
-  }
+  // 如果没有认证，添加登录按钮到导航中
+  const displayNavigation: NavigationItem[] = isAuthenticated 
+    ? filteredNavigation.slice(0, 5)
+    : [
+        ...filteredNavigation,
+        { name: '登录', href: '/login', icon: User },
+        { name: '注册', href: '/register', icon: User }
+      ].slice(0, 5)
 
   // 手势控制导航栏显示/隐藏
   useSwipeGesture(
@@ -65,7 +59,7 @@ export default function MobileNavigation() {
       `}
     >
       <div className="flex items-center justify-around px-2 py-2">
-        {filteredNavigation.map((item) => {
+        {displayNavigation.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.href
           

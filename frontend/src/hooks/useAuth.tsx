@@ -46,38 +46,33 @@ axios.interceptors.response.use(
       return Promise.reject(error)
     }
     
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 只在访问需要认证的API时处理401错误
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url?.includes('/api/')) {
       originalRequest._retry = true
       
       const refreshToken = localStorage.getItem('refreshToken')
       if (refreshToken) {
         try {
-          console.log('尝试刷新token...')
           const response = await axios.post('/auth/refresh', {
             refreshToken
           })
           
           const { accessToken } = response.data.data.tokens
           localStorage.setItem('accessToken', accessToken)
-          console.log('Token刷新成功')
           
           // 重试原始请求
           originalRequest.headers.Authorization = `Bearer ${accessToken}`
           return axios(originalRequest)
-        } catch (refreshError) {
-          console.log('Token刷新失败:', refreshError)
-          // 刷新令牌失败，清除所有令牌
+        } catch (refreshError: any) {
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
-          // 触发认证状态更新
-          window.dispatchEvent(new Event('auth-logout'))
-          return Promise.reject(error)
+          window.dispatchEvent(new CustomEvent('auth-logout'))
+          return Promise.reject(refreshError)
         }
       } else {
-        console.log('没有refresh token')
-        // 没有刷新令牌，清除访问令牌
         localStorage.removeItem('accessToken')
-        window.dispatchEvent(new Event('auth-logout'))
+        window.dispatchEvent(new CustomEvent('auth-logout'))
+        return Promise.reject(error)
       }
     }
     
@@ -95,20 +90,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('accessToken')
-      console.log('初始化认证，token存在:', !!token)
+      const refreshToken = localStorage.getItem('refreshToken')
       
-      if (token) {
+      if (token && refreshToken) {
         try {
-          console.log('尝试获取用户信息...')
           const response = await axios.get('/auth/me')
-          console.log('用户信息获取成功:', response.data.data.user)
           setUser(response.data.data.user)
         } catch (error: any) {
-          console.log('获取用户信息失败:', error.response?.status, error.response?.data?.message)
-          // 令牌无效，清除本地存储
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-          setUser(null)
+          if (error.response?.status === 401 || error.response?.status === 403) {
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+            setUser(null)
+          }
         }
       }
       setIsLoading(false)
@@ -116,8 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 监听认证状态变化事件
     const handleAuthLogout = () => {
-      console.log('收到认证登出事件')
       setUser(null)
+      setIsLoading(false)
     }
 
     window.addEventListener('auth-logout', handleAuthLogout)
@@ -184,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
-    window.location.href = '/'
+    window.dispatchEvent(new CustomEvent('auth-logout'))
   }
 
   const refreshToken = async (): Promise<boolean> => {

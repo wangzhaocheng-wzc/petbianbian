@@ -1,8 +1,8 @@
 import { ReactNode, useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Camera, BarChart3, Users, User, LogOut, Menu, X, Heart, TrendingUp, Shield, GitCompare } from 'lucide-react'
-import { useAuth } from '../hooks/useAuth'
+import { Home, Camera, BarChart3, Users, User, Menu, X, Heart, TrendingUp, Shield, GitCompare, LogOut } from 'lucide-react'
 import { useMobile } from '../hooks/useMobile'
+import { useAuth } from '../hooks/useAuth'
 import MobileNavigation from './mobile/MobileNavigation'
 
 interface LayoutProps {
@@ -11,9 +11,26 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
-  const { user, isAuthenticated, logout } = useAuth()
   const { isMobile } = useMobile()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { user, isAuthenticated, logout } = useAuth()
+
+  const navigation = [
+    { name: '首页', href: '/', icon: Home },
+    { name: '便便分析', href: '/analysis', icon: Camera, requireAuth: true },
+    { name: '我的宠物', href: '/pets', icon: Heart, requireAuth: true },
+    { name: '健康记录', href: '/records', icon: BarChart3, requireAuth: true },
+    { name: '数据统计', href: '/statistics', icon: TrendingUp, requireAuth: true },
+    { name: '宠物对比', href: '/comparison', icon: GitCompare, requireAuth: true },
+    { name: '宠物社区', href: '/community', icon: Users, requireAuth: true },
+    { name: '个人中心', href: '/profile', icon: User, requireAuth: true },
+    { name: '管理后台', href: '/admin', icon: Shield, requireAuth: true },
+  ]
+
+  // 过滤导航项：未认证用户只能看到首页
+  const filteredNavigation = navigation.filter(item => 
+    !item.requireAuth || isAuthenticated
+  )
 
   // 移动端菜单打开时禁止背景滚动
   useEffect(() => {
@@ -27,37 +44,6 @@ export default function Layout({ children }: LayoutProps) {
       document.body.style.overflow = 'unset'
     }
   }, [isMobileMenuOpen, isMobile])
-
-  const navigation = [
-    { name: '首页', href: '/', icon: Home, requireAuth: false },
-    { name: '便便分析', href: '/analysis', icon: Camera, requireAuth: true },
-    { name: '我的宠物', href: '/pets', icon: Heart, requireAuth: true },
-    { name: '健康记录', href: '/records', icon: BarChart3, requireAuth: true },
-    { name: '数据统计', href: '/statistics', icon: TrendingUp, requireAuth: true },
-    { name: '宠物对比', href: '/comparison', icon: GitCompare, requireAuth: true },
-    { name: '宠物社区', href: '/community', icon: Users, requireAuth: false },
-    { name: '个人中心', href: '/profile', icon: User, requireAuth: true },
-    { name: '管理后台', href: '/admin', icon: Shield, requireAuth: true, requireRole: 'admin' },
-  ]
-
-  // 根据认证状态和角色过滤导航项
-  const filteredNavigation = navigation.filter(item => {
-    // 如果不需要认证，直接显示
-    if (!item.requireAuth) return true
-    
-    // 如果需要认证但用户未登录，不显示
-    if (!isAuthenticated) return false
-    
-    // 如果需要特定角色但用户角色不匹配，不显示
-    if (item.requireRole && user?.role !== item.requireRole) return false
-    
-    return true
-  })
-
-  const handleLogout = () => {
-    logout()
-    setIsMobileMenuOpen(false)
-  }
 
   return (
     <div className="min-h-screen-safe bg-gray-50">
@@ -95,16 +81,14 @@ export default function Layout({ children }: LayoutProps) {
                   </Link>
                 )
               })}
-
-              {/* User Menu */}
+              
+              {/* 用户菜单 */}
               {isAuthenticated ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-700">
-                    欢迎，{user?.username}
-                  </span>
+                  <span className="text-sm text-gray-700">{user?.username}</span>
                   <button
-                    onClick={handleLogout}
-                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-gray-500 hover:text-gray-700"
+                    onClick={logout}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 hover:text-red-600"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     退出
@@ -114,13 +98,13 @@ export default function Layout({ children }: LayoutProps) {
                 <div className="flex items-center space-x-4">
                   <Link
                     to="/login"
-                    className="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
+                    className="text-sm font-medium text-gray-500 hover:text-gray-700"
                   >
                     登录
                   </Link>
                   <Link
                     to="/register"
-                    className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md"
                   >
                     注册
                   </Link>
@@ -191,51 +175,47 @@ export default function Layout({ children }: LayoutProps) {
                         )
                       })}
                     </div>
-                  </div>
-
-                  {/* User Section */}
-                  <div className="border-t border-gray-200 p-4 pb-safe-bottom">
-                    {isAuthenticated ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-primary-600" />
+                    
+                    {/* 移动端用户菜单 */}
+                    <div className="mt-6 pt-6 border-t border-gray-200 px-2">
+                      {isAuthenticated ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center px-3 py-2 text-sm text-gray-700">
+                            <User className="w-5 h-5 mr-3 flex-shrink-0" />
+                            <span className="truncate">{user?.username}</span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 truncate">
-                              {user?.username}
-                            </div>
-                            <div className="text-xs text-gray-500 truncate">
-                              {user?.email}
-                            </div>
-                          </div>
+                          <button
+                            onClick={() => {
+                              logout()
+                              setIsMobileMenuOpen(false)
+                            }}
+                            className="flex items-center w-full px-3 py-3 text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <LogOut className="w-5 h-5 mr-3 flex-shrink-0" />
+                            <span>退出登录</span>
+                          </button>
                         </div>
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center w-full px-3 py-3 text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <LogOut className="w-5 h-5 mr-3" />
-                          退出登录
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Link
-                          to="/login"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="block w-full px-4 py-3 text-center text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                        >
-                          登录
-                        </Link>
-                        <Link
-                          to="/register"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="block w-full px-4 py-3 text-center text-base font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
-                        >
-                          注册
-                        </Link>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="space-y-1">
+                          <Link
+                            to="/login"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center px-3 py-3 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                          >
+                            <User className="w-5 h-5 mr-3 flex-shrink-0" />
+                            <span>登录</span>
+                          </Link>
+                          <Link
+                            to="/register"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center px-3 py-3 text-base font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
+                          >
+                            <User className="w-5 h-5 mr-3 flex-shrink-0" />
+                            <span>注册</span>
+                          </Link>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

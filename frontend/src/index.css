@@ -1,9 +1,7 @@
+@import './styles/mobile.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Mobile-specific styles */
-@import './styles/mobile.css';
 
 /* 自定义基础样式 */
 @layer base {

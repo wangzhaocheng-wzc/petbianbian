@@ -163,6 +163,7 @@ export interface CommunityPost {
   tags: string[];
   category: 'health' | 'help' | 'experience' | 'general';
   status: 'published' | 'draft' | 'archived';
+  isAnonymous: boolean; // 新增：是否匿名发布
   interactions: {
     likes: string[];
     views: number;
@@ -313,6 +314,7 @@ export interface CreatePostRequest {
   images?: string[];
   tags?: string[];
   category?: 'health' | 'help' | 'experience' | 'general';
+  isAnonymous?: boolean; // 新增：是否匿名发布，默认为false
 }
 
 export interface UpdatePostRequest {
@@ -321,6 +323,7 @@ export interface UpdatePostRequest {
   images?: string[];
   tags?: string[];
   category?: 'health' | 'help' | 'experience' | 'general';
+  isAnonymous?: boolean; // 新增：是否匿名发布
 }
 
 export interface PostsListRequest {

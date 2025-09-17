@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, BarChart3, Plus, FileText } from 'lucide-react';
 import RecordsList from '../components/RecordsList';
 import RecordDetail from '../components/RecordDetail';
@@ -13,6 +14,7 @@ import { usePets } from '../hooks/usePets';
 
 const Records: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'list' | 'stats' | 'reports'>('list');
   const [selectedRecord, setSelectedRecord] = useState<HealthRecord | null>(null);
   const [showRecordDetail, setShowRecordDetail] = useState(false);
@@ -21,7 +23,7 @@ const Records: React.FC = () => {
   const [reportData, setReportData] = useState<HealthReportData | null>(null);
 
   // 获取宠物列表
-  const { pets } = usePets();
+  const { pets, loading: petsLoading, error: petsError, clearError: clearPetsError } = usePets();
 
   // 使用记录管理Hook
   const {
@@ -134,7 +136,7 @@ const Records: React.FC = () => {
               <p className="mt-2 text-gray-600">查看和管理宠物的健康分析记录</p>
             </div>
             <button
-              onClick={() => window.location.href = '/analysis'}
+              onClick={() => navigate('/analysis')}
               className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
             >
               <Plus className="w-4 h-4" />
@@ -144,13 +146,14 @@ const Records: React.FC = () => {
         </div>
 
         {/* 错误提示 */}
-        {(recordsError || statsError) && (
+        {(recordsError || statsError || petsError) && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-600">
-              {recordsError || statsError}
+              {petsError || recordsError || statsError}
             </p>
             <button
               onClick={() => {
+                clearPetsError();
                 setRecordsError(null);
                 setStatsError(null);
               }}
@@ -306,7 +309,7 @@ const Records: React.FC = () => {
                   请先添加宠物信息才能生成健康报告
                 </p>
                 <button
-                  onClick={() => window.location.href = '/pets'}
+                  onClick={() => navigate('/pets')}
                   className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
                 >
                   添加宠物

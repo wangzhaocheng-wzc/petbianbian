@@ -30,16 +30,54 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 响应拦截器 - 处理错误
+// 响应拦截器 - 处理错误和token刷新
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token过期或无效，清除本地存储并重定向到登录页
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      window.location.href = '/login';
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // 避免在刷新token的请求上重试
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      return Promise.reject(error);
     }
+    
+    // 只在访问需要认证的API时处理401错误
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        try {
+          console.log('Community service: 尝试刷新token...');
+          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+            refreshToken
+          });
+          
+          const newAccessToken = response.data.data.accessToken;
+          localStorage.setItem('accessToken', newAccessToken);
+          
+          // 重试原请求
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+        } catch (refreshError: any) {
+          console.log('Community service: Token刷新失败:', refreshError);
+          // 只有在刷新token失败时才清除认证状态
+          if (refreshError.response?.status === 401 || refreshError.response?.status === 403) {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            // 不在这里触发登出事件，由主要的认证服务处理
+          }
+          return Promise.reject(refreshError);
+        }
+      } else {
+        console.log('Community service: 没有refresh token');
+        // 没有refresh token时，清除访问token
+        localStorage.removeItem('accessToken');
+        // 不在这里触发登出事件，由主要的认证服务处理
+        return Promise.reject(error);
+      }
+    }
+    
     return Promise.reject(error);
   }
 );

@@ -124,7 +124,7 @@ const PoopAnalysis: React.FC = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <TouchButton
-                onClick={() => navigate(-1)}
+                onClick={() => navigate('/')}
                 variant="ghost"
                 size="sm"
                 icon={ArrowLeft}

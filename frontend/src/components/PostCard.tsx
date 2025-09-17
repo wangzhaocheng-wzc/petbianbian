@@ -114,7 +114,11 @@ export const PostCard: React.FC<PostCardProps> = ({
           <div className="flex items-center space-x-3">
             {/* 用户头像 */}
             <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-              {post.user?.avatar ? (
+              {post.isAnonymous ? (
+                <span className="text-orange-600 font-medium">
+                  ?
+                </span>
+              ) : post.user?.avatar ? (
                 <img
                   src={post.user.avatar}
                   alt={post.user.username}
@@ -130,9 +134,9 @@ export const PostCard: React.FC<PostCardProps> = ({
             <div className="flex-1">
               <div className="flex items-center space-x-2">
                 <h4 className="font-medium text-gray-900">
-                  {post.user?.username || '匿名用户'}
+                  {post.isAnonymous ? '匿名用户' : (post.user?.username || '匿名用户')}
                 </h4>
-                {post.user?.stats?.reputation && post.user.stats.reputation > 0 && (
+                {!post.isAnonymous && post.user?.stats?.reputation && post.user.stats.reputation > 0 && (
                   <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
                     声望 {post.user.stats.reputation}
                   </span>
