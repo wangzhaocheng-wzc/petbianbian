@@ -180,7 +180,11 @@ export const PostDetail: React.FC<PostDetailProps> = ({
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                {post.user?.avatar ? (
+                {post.isAnonymous ? (
+                  <span className="text-orange-600 font-medium text-lg">
+                    ?
+                  </span>
+                ) : post.user?.avatar ? (
                   <img
                     src={post.user.avatar}
                     alt={post.user.username}
@@ -195,7 +199,7 @@ export const PostDetail: React.FC<PostDetailProps> = ({
               
               <div>
                 <h4 className="font-medium text-gray-900">
-                  {post.user?.username || '匿名用户'}
+                  {post.isAnonymous ? '匿名用户' : (post.user?.username || '匿名用户')}
                 </h4>
                 <p className="text-sm text-gray-500">
                   {formatDistanceToNow(new Date(post.createdAt), { 
