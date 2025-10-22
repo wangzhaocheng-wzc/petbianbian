@@ -3,25 +3,15 @@ import { Camera, AlertTriangle, CheckCircle, Loader } from 'lucide-react';
 import FileUpload from './FileUpload';
 import { MobileForm, MobileTextarea, MobileInput } from './mobile/MobileForm';
 import TouchButton from './common/TouchButton';
+import { AnalysisService } from '../services/analysisService';
+import { PoopRecord } from '../../../shared/types';
 
 interface PoopAnalysisUploadProps {
   petId: string;
-  onAnalysisComplete?: (result: any) => void;
+  onAnalysisComplete?: (result: PoopRecord) => void;
   onError?: (error: string) => void;
 }
 
-interface AnalysisResult {
-  id: string;
-  imageUrl: string;
-  analysis: {
-    shape: string;
-    healthStatus: 'healthy' | 'warning' | 'concerning';
-    confidence: number;
-    details: string;
-    recommendations: string[];
-  };
-  timestamp: Date;
-}
 
 const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
   petId,
@@ -31,16 +21,19 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<PoopRecord | null>(null);
   const [error, setError] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [symptoms, setSymptoms] = useState('');
 
 
   const handleFileSelect = (files: File[]) => {
-    setSelectedFiles(files);
-    setError('');
-    setAnalysisResult(null);
+    // 使用 setTimeout 避免在渲染期间更新状态
+    setTimeout(() => {
+      setSelectedFiles(files);
+      setError('');
+      setAnalysisResult(null);
+    }, 0);
   };
 
   const handleUpload = async () => {
@@ -76,30 +69,27 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
         });
       }, 200);
 
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/analysis/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
+      // 使用 AnalysisService 进行上传
+      const result = await AnalysisService.uploadForAnalysis(
+        selectedFiles[0],
+        petId,
+        notes,
+        symptoms
+      );
 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      const data = await response.json();
-
-      if (data.success) {
-        setAnalysisResult(data.data);
-        onAnalysisComplete?.(data.data);
+      if (result.success && result.data) {
+        setAnalysisResult(result.data);
+        onAnalysisComplete?.(result.data);
         
         // 清空表单
         setSelectedFiles([]);
         setNotes('');
         setSymptoms('');
       } else {
-        throw new Error(data.message || '分析失败');
+        throw new Error(result.message || '分析失败');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '上传失败，请稍后重试';

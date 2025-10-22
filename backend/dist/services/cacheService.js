@@ -20,13 +20,14 @@ class CacheService {
      */
     async set(key, value, ttl) {
         try {
-            if (!redis_1.default.isOpen) {
+            const client = redis_1.default;
+            if (!client || !client.isOpen) {
                 console.warn('Redis client not connected, skipping cache set');
                 return false;
             }
             const serializedValue = JSON.stringify(value);
             const expiration = ttl || this.defaultTTL;
-            await redis_1.default.setEx(key, expiration, serializedValue);
+            await client.setEx(key, expiration, serializedValue);
             return true;
         }
         catch (error) {
@@ -39,11 +40,12 @@ class CacheService {
      */
     async get(key) {
         try {
-            if (!redis_1.default.isOpen) {
+            const client = redis_1.default;
+            if (!client || !client.isOpen) {
                 console.warn('Redis client not connected, skipping cache get');
                 return null;
             }
-            const value = await redis_1.default.get(key);
+            const value = await client.get(key);
             if (!value) {
                 return null;
             }
@@ -59,11 +61,12 @@ class CacheService {
      */
     async del(key) {
         try {
-            if (!redis_1.default.isOpen) {
+            const client = redis_1.default;
+            if (!client || !client.isOpen) {
                 console.warn('Redis client not connected, skipping cache delete');
                 return false;
             }
-            const result = await redis_1.default.del(key);
+            const result = await client.del(key);
             return result > 0;
         }
         catch (error) {
@@ -76,15 +79,16 @@ class CacheService {
      */
     async delPattern(pattern) {
         try {
-            if (!redis_1.default.isOpen) {
+            const client = redis_1.default;
+            if (!client || !client.isOpen) {
                 console.warn('Redis client not connected, skipping cache pattern delete');
                 return 0;
             }
-            const keys = await redis_1.default.keys(pattern);
+            const keys = await client.keys(pattern);
             if (keys.length === 0) {
                 return 0;
             }
-            const result = await redis_1.default.del(keys);
+            const result = await client.del(keys);
             return result;
         }
         catch (error) {
@@ -97,10 +101,11 @@ class CacheService {
      */
     async exists(key) {
         try {
-            if (!redis_1.default.isOpen) {
+            const client = redis_1.default;
+            if (!client || !client.isOpen) {
                 return false;
             }
-            const result = await redis_1.default.exists(key);
+            const result = await client.exists(key);
             return result === 1;
         }
         catch (error) {
@@ -113,10 +118,11 @@ class CacheService {
      */
     async expire(key, ttl) {
         try {
-            if (!redis_1.default.isOpen) {
+            const client = redis_1.default;
+            if (!client || !client.isOpen) {
                 return false;
             }
-            const result = await redis_1.default.expire(key, ttl);
+            const result = await client.expire(key, ttl);
             return result === 1;
         }
         catch (error) {
@@ -129,12 +135,13 @@ class CacheService {
      */
     async getStats() {
         try {
-            if (!redis_1.default.isOpen) {
+            const client = redis_1.default;
+            if (!client || !client.isOpen) {
                 return null;
             }
-            const info = await redis_1.default.info('memory');
+            const info = await client.info('memory');
             return {
-                connected: redis_1.default.isOpen,
+                connected: client.isOpen,
                 memory: info,
             };
         }
@@ -148,10 +155,11 @@ class CacheService {
      */
     async clear() {
         try {
-            if (!redis_1.default.isOpen) {
+            const client = redis_1.default;
+            if (!client || !client.isOpen) {
                 return false;
             }
-            await redis_1.default.flushAll();
+            await client.flushAll();
             return true;
         }
         catch (error) {

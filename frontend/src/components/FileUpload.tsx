@@ -45,33 +45,47 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const { isMobile } = useMobile();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log('FileUpload: 文件被选择', acceptedFiles);
+    
     const filesWithPreview = acceptedFiles.map(file => {
       const fileWithPreview = file as FileWithPreview;
       if (preview && file.type.startsWith('image/')) {
         fileWithPreview.preview = URL.createObjectURL(file);
+        console.log('FileUpload: 生成预览URL', fileWithPreview.preview, 'for file:', file.name);
       }
       return fileWithPreview;
     });
 
-    setSelectedFiles(prev => {
-      const newFiles = multiple ? [...prev, ...filesWithPreview] : filesWithPreview;
-      onFileSelect(newFiles);
-      return newFiles;
-    });
+    // 使用 setTimeout 避免在渲染期间更新状态
+    setTimeout(() => {
+      setSelectedFiles(prev => {
+        const newFiles = multiple ? [...prev, ...filesWithPreview] : filesWithPreview;
+        console.log('FileUpload: 更新选中文件', newFiles);
+        onFileSelect(newFiles);
+        return newFiles;
+      });
+    }, 0);
   }, [onFileSelect, multiple, preview]);
 
   const handleCameraCapture = (file: File) => {
+    console.log('FileUpload: 相机捕获文件', file);
+    
     const fileWithPreview = file as FileWithPreview;
     if (preview && file.type.startsWith('image/')) {
       fileWithPreview.preview = URL.createObjectURL(file);
+      console.log('FileUpload: 生成相机预览URL', fileWithPreview.preview);
     }
 
-    setSelectedFiles(prev => {
-      const newFiles = multiple ? [...prev, fileWithPreview] : [fileWithPreview];
-      onFileSelect(newFiles);
-      return newFiles;
-    });
-    setShowCamera(false);
+    // 使用 setTimeout 避免在渲染期间更新状态
+    setTimeout(() => {
+      setSelectedFiles(prev => {
+        const newFiles = multiple ? [...prev, fileWithPreview] : [fileWithPreview];
+        console.log('FileUpload: 更新相机文件', newFiles);
+        onFileSelect(newFiles);
+        return newFiles;
+      });
+      setShowCamera(false);
+    }, 0);
   };
 
   const removeFile = (index: number) => {
@@ -228,6 +242,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
                     src={file.preview}
                     alt={file.name}
                     className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded flex-shrink-0"
+                    onLoad={() => console.log('FileUpload: 图片加载成功', file.preview)}
+                    onError={(e) => console.error('FileUpload: 图片加载失败', file.preview, e)}
                   />
                 ) : (
                   <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">

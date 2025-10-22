@@ -138,6 +138,20 @@ const PetCard: React.FC<PetCardProps> = ({ pet, onEdit, onDelete }) => {
         </div>
       )}
 
+      {/* 记录信息 */}
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex justify-between items-center text-sm">
+          <div className="text-gray-600">
+            记录数量: <span className="text-orange-500 font-medium">{pet.recordCount || 0}</span>
+          </div>
+          {pet.lastRecordDate && (
+            <div className="text-gray-600">
+              最近记录: <span className="text-gray-900">{new Date(pet.lastRecordDate).toLocaleDateString('zh-CN')}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* 创建时间 */}
       <div className="mt-4 text-xs text-gray-400">
         添加于 {new Date(pet.createdAt).toLocaleDateString('zh-CN')}

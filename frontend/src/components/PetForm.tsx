@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Pet, CreatePetRequest, UpdatePetRequest } from '../../../shared/types';
 import { X, Plus, Minus } from 'lucide-react';
+import { API_BASE_URL } from '../utils/constants';
+// 移除未使用的 validateFile 导入
 
 interface PetFormProps {
   pet?: Pet | null;
@@ -19,6 +21,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
     age: undefined,
     weight: undefined,
     description: '',
+    avatar: undefined,
     medicalHistory: {
       allergies: [],
       medications: [],
@@ -27,6 +30,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // 当pet变化时更新表单数据
   useEffect(() => {
@@ -39,6 +43,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
         age: pet.age,
         weight: pet.weight,
         description: pet.description || '',
+        avatar: pet.avatar,
         medicalHistory: pet.medicalHistory || {
           allergies: [],
           medications: [],
@@ -54,6 +59,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
         age: undefined,
         weight: undefined,
         description: '',
+        avatar: undefined,
         medicalHistory: {
           allergies: [],
           medications: [],
@@ -156,6 +162,40 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
     }));
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        setUploadingAvatar(true);
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch(`${API_BASE_URL}/upload/avatar`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('ACCESS_TOKEN')}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.url) {
+            handleInputChange('avatar', data.data.url);
+          } else {
+            setErrors(prev => ({ ...prev, avatar: data.message || '头像上传失败' }));
+          }
+        } else {
+          setErrors(prev => ({ ...prev, avatar: '头像上传失败' }));
+        }
+      } catch (error) {
+        setErrors(prev => ({ ...prev, avatar: '头像上传失败' }));
+      } finally {
+        setUploadingAvatar(false);
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -176,6 +216,51 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
 
         {/* 表单内容 */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* 头像上传 */}
+          <div className="flex flex-col items-center space-y-4">
+            <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center relative">
+              {formData.avatar ? (
+                <img
+                  src={formData.avatar}
+                  alt="宠物头像"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-gray-400 text-4xl">
+                  {formData.type === 'dog' ? '🐕' : formData.type === 'cat' ? '🐱' : '🐾'}
+                </div>
+              )}
+              {uploadingAvatar && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                </div>
+              )}
+            </div>
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+                id="avatar-upload"
+                disabled={uploadingAvatar}
+              />
+              <label
+                htmlFor="avatar-upload"
+                className={`cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
+                  uploadingAvatar
+                    ? 'bg-gray-100 text-gray-500'
+                    : 'text-gray-700 bg-white hover:bg-gray-50'
+                }`}
+              >
+                {uploadingAvatar ? '上传中...' : '上传头像'}
+              </label>
+              {errors.avatar && (
+                <p className="mt-1 text-sm text-red-500">{errors.avatar}</p>
+              )}
+            </div>
+          </div>
+
           {/* 基本信息 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -256,7 +341,6 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
               <label className="block text-sm font-medium text-gray-700 mb-2">体重（kg）</label>
               <input
                 type="number"
-                step="0.1"
                 value={formData.weight || ''}
                 onChange={(e) => handleInputChange('weight', e.target.value ? parseFloat(e.target.value) : undefined)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
@@ -265,6 +349,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
                 placeholder="请输入体重"
                 min="0"
                 max="200"
+                step="0.1"
               />
               {errors.weight && <p className="mt-1 text-sm text-red-500">{errors.weight}</p>}
             </div>
@@ -276,11 +361,11 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
             <textarea
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              rows={3}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
                 errors.description ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="请输入宠物描述"
+              rows={3}
             />
             {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
           </div>
@@ -296,7 +381,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
                 <button
                   type="button"
                   onClick={() => addMedicalHistoryItem('allergies')}
-                  className="flex items-center text-sm text-orange-600 hover:text-orange-700"
+                  className="inline-flex items-center text-sm text-orange-600 hover:text-orange-700"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   添加
@@ -321,7 +406,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
                 </div>
               ))}
             </div>
-
+            
             {/* 用药史 */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -329,7 +414,7 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
                 <button
                   type="button"
                   onClick={() => addMedicalHistoryItem('medications')}
-                  className="flex items-center text-sm text-orange-600 hover:text-orange-700"
+                  className="inline-flex items-center text-sm text-orange-600 hover:text-orange-700"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   添加
@@ -354,15 +439,15 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
                 </div>
               ))}
             </div>
-
-            {/* 疾病史 */}
+            
+            {/* 病史 */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">疾病史</label>
+                <label className="block text-sm font-medium text-gray-700">病史</label>
                 <button
                   type="button"
                   onClick={() => addMedicalHistoryItem('conditions')}
-                  className="flex items-center text-sm text-orange-600 hover:text-orange-700"
+                  className="inline-flex items-center text-sm text-orange-600 hover:text-orange-700"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   添加

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { ModerationPage } from '../../page-objects/moderation-page';
 import { AuthPage } from '../../page-objects/auth-page';
 import { CommunityPage } from '../../page-objects/community-page';
-import testData from '../../fixtures/moderation-test-data.json';
+import testData from '../../fixtures/moderation-test-data.json' with { type: 'json' };
 
 test.describe('举报处理功能测试', () => {
   let moderationPage: ModerationPage;

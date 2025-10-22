@@ -1,9 +1,20 @@
 import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
 import { validateUserRegistration, validateUserLogin } from '../middleware/validation';
 import { authenticateToken } from '../middleware/auth';
 import { APP_CONFIG } from '../config/constants';
+import { revokeToken } from '../services/pgSyncService';
+import {
+  createUser,
+  emailExists,
+  usernameExists,
+  getUserAuthByEmail,
+  getUserById,
+  comparePassword,
+  updateLastLoginById,
+  recordRefreshTokenById,
+} from '../services/pgUserService';
+import { getPostgresStatus } from '../config/postgres';
 
 const router = Router();
 
@@ -21,125 +32,105 @@ const generateTokens = (userId: string, email: string) => {
   const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
   const refreshToken = jwt.sign({ ...payload, type: 'refresh' }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN } as jwt.SignOptions);
   
-  return { accessToken, refreshToken };
+  return { access_token: accessToken, refresh_token: refreshToken };
 };
 
 // 用户注册
 router.post('/register', validateUserRegistration, async (req: Request, res: Response) => {
   try {
     const { username, email, password } = req.body;
+    const pgStatus = await getPostgresStatus();
 
-    // 检查用户名是否已存在
-    const existingUserByUsername = await User.findOne({ username });
-    if (existingUserByUsername) {
-      return res.status(400).json({
-        success: false,
-        message: '用户名已存在',
-        errors: [{ field: 'username', message: '该用户名已被使用' }]
-      });
-    }
-
-    // 检查邮箱是否已存在
-    const existingUserByEmail = await User.findOne({ email });
-    if (existingUserByEmail) {
-      return res.status(400).json({
-        success: false,
-        message: '邮箱已存在',
-        errors: [{ field: 'email', message: '该邮箱已被注册' }]
-      });
-    }
-
-    // 创建新用户
-    const newUser = new User({
-      username,
-      email,
-      password, // 密码会在User模型的pre('save')中间件中自动加密
-      profile: {
-        firstName: '',
-        lastName: '',
-        phone: '',
-        location: '',
-        bio: ''
-      },
-      preferences: {
-        notifications: true,
-        emailUpdates: true,
-        language: 'zh-CN'
-      },
-      stats: {
-        totalAnalysis: 0,
-        totalPosts: 0,
-        reputation: 0
-      },
-      isActive: true,
-      isVerified: false
-    });
-
-    // 保存用户到数据库
-    const savedUser = await newUser.save();
-
-    // 生成JWT令牌
-    const { accessToken, refreshToken } = generateTokens(savedUser._id.toString(), savedUser.email);
-
-    // 返回成功响应（不包含密码）
-    const userResponse = {
-      id: savedUser._id,
-      username: savedUser.username,
-      email: savedUser.email,
-      avatar: savedUser.avatar,
-      profile: savedUser.profile,
-      preferences: savedUser.preferences,
-      stats: savedUser.stats,
-      isActive: savedUser.isActive,
-      isVerified: savedUser.isVerified,
-      createdAt: savedUser.createdAt,
-      updatedAt: savedUser.updatedAt
-    };
-
-    res.status(201).json({
-      success: true,
-      message: '用户注册成功',
-      data: {
-        user: userResponse,
-        tokens: {
-          accessToken,
-          refreshToken
-        }
+    if (pgStatus === 'connected') {
+      // 使用现有的PG实现
+      if (await usernameExists(username)) {
+        return res.status(400).json({
+          success: false,
+          message: '用户名已存在',
+          errors: [{ field: 'username', message: '该用户名已被使用' }]
+        });
       }
-    });
+      if (await emailExists(email)) {
+        return res.status(400).json({
+          success: false,
+          message: '邮箱已存在',
+          errors: [{ field: 'email', message: '该邮箱已被注册' }]
+        });
+      }
 
+      const userAgg = await createUser({ username, email, password });
+      const { access_token, refresh_token } = generateTokens(userAgg.id, userAgg.email);
+      const refreshExp = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+      await recordRefreshTokenById(userAgg.id, refresh_token, refreshExp);
+
+      const userResponse = {
+        id: userAgg.id,
+        username: userAgg.username,
+        email: userAgg.email,
+        avatar: userAgg.avatar,
+        profile: userAgg.profile,
+        preferences: userAgg.preferences,
+        stats: userAgg.stats,
+        isActive: userAgg.isActive,
+        isVerified: userAgg.isVerified,
+        createdAt: userAgg.createdAt,
+        updatedAt: userAgg.updatedAt
+      };
+
+      return res.status(201).json({
+        success: true,
+        message: '用户注册成功',
+        data: { user: userResponse, tokens: { access_token, refresh_token } }
+      });
+    } else {
+      // Mongo 后备实现
+      const User = (await import('../models/User')).default;
+
+      const usernameTaken = await User.exists({ username });
+      if (usernameTaken) {
+        return res.status(400).json({
+          success: false,
+          message: '用户名已存在',
+          errors: [{ field: 'username', message: '该用户名已被使用' }]
+        });
+      }
+      const emailTaken = await User.exists({ email });
+      if (emailTaken) {
+        return res.status(400).json({
+          success: false,
+          message: '邮箱已存在',
+          errors: [{ field: 'email', message: '该邮箱已被注册' }]
+        });
+      }
+
+      const userDoc = new User({ username, email, password });
+      await userDoc.save();
+
+      const { access_token, refresh_token } = generateTokens(userDoc.id, userDoc.email);
+
+      const userResponse = {
+        id: userDoc.id,
+        username: userDoc.username,
+        email: userDoc.email,
+        avatar: userDoc.avatar ?? null,
+        profile: userDoc.profile ?? {},
+        preferences: userDoc.preferences ?? { notifications: true, emailUpdates: true, language: 'zh-CN' },
+        stats: userDoc.stats ?? { totalAnalysis: 0, totalPosts: 0, reputation: 0 },
+        isActive: userDoc.isActive,
+        isVerified: userDoc.isVerified,
+        createdAt: userDoc.createdAt,
+        updatedAt: userDoc.updatedAt
+      };
+
+      return res.status(201).json({
+        success: true,
+        message: '用户注册成功（Mongo后备）',
+        data: { user: userResponse, tokens: { access_token, refresh_token } }
+      });
+    }
   } catch (error: any) {
     console.error('用户注册错误:', error);
-
-    // 处理MongoDB重复键错误
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-      const message = field === 'email' ? '邮箱已存在' : '用户名已存在';
-      return res.status(400).json({
-        success: false,
-        message,
-        errors: [{ field, message: `该${field === 'email' ? '邮箱' : '用户名'}已被使用` }]
-      });
-    }
-
-    // 处理Mongoose验证错误
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err: any) => ({
-        field: err.path,
-        message: err.message
-      }));
-      return res.status(400).json({
-        success: false,
-        message: '数据验证失败',
-        errors
-      });
-    }
-
-    // 其他服务器错误
-    res.status(500).json({
-      success: false,
-      message: '服务器内部错误，请稍后重试'
-    });
+    return res.status(500).json({ success: false, message: '服务器内部错误，请稍后重试' });
   }
 });
 
@@ -147,78 +138,106 @@ router.post('/register', validateUserRegistration, async (req: Request, res: Res
 router.post('/login', validateUserLogin, async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    const pgStatus = await getPostgresStatus();
 
-    // 查找用户
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: '邮箱或密码错误',
-        errors: [{ field: 'email', message: '用户不存在' }]
-      });
-    }
-
-    // 检查用户是否激活
-    if (!user.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: '账户已被禁用，请联系管理员',
-        errors: [{ field: 'account', message: '账户状态异常' }]
-      });
-    }
-
-    // 验证密码
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: '邮箱或密码错误',
-        errors: [{ field: 'password', message: '密码不正确' }]
-      });
-    }
-
-    // 更新最后登录时间
-    user.lastLoginAt = new Date();
-    await user.save();
-
-    // 生成JWT令牌
-    const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.email);
-
-    // 返回成功响应（不包含密码）
-    const userResponse = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      avatar: user.avatar,
-      profile: user.profile,
-      preferences: user.preferences,
-      stats: user.stats,
-      isActive: user.isActive,
-      isVerified: user.isVerified,
-      lastLoginAt: user.lastLoginAt,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    };
-
-    res.json({
-      success: true,
-      message: '登录成功',
-      data: {
-        user: userResponse,
-        tokens: {
-          accessToken,
-          refreshToken
-        }
+    if (pgStatus === 'connected') {
+      // 使用现有的PG实现
+      const auth = await getUserAuthByEmail(email);
+      if (!auth || !auth.agg.isActive) {
+        return res.status(401).json({
+          success: false,
+          message: '邮箱或密码错误',
+          errors: [{ field: 'email', message: '用户不存在或不可用' }]
+        });
       }
-    });
 
+      const isPasswordValid = await comparePassword(password, auth.passwordHash);
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: '邮箱或密码错误',
+          errors: [{ field: 'password', message: '密码不正确' }]
+        });
+      }
+
+      const now = new Date();
+      await updateLastLoginById(auth.agg.id, now);
+
+      const { access_token, refresh_token } = generateTokens(auth.agg.id, auth.agg.email);
+      const refreshExp = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+      await recordRefreshTokenById(auth.agg.id, refresh_token, refreshExp);
+
+      const userResponse = {
+        id: auth.agg.id,
+        username: auth.agg.username,
+        email: auth.agg.email,
+        avatar: auth.agg.avatar,
+        profile: auth.agg.profile,
+        preferences: auth.agg.preferences,
+        stats: auth.agg.stats,
+        isActive: auth.agg.isActive,
+        isVerified: auth.agg.isVerified,
+        lastLoginAt: now,
+        createdAt: auth.agg.createdAt,
+        updatedAt: auth.agg.updatedAt
+      };
+
+      return res.json({
+        success: true,
+        message: '登录成功',
+        data: { user: userResponse, tokens: { access_token, refresh_token } }
+      });
+    } else {
+      // Mongo 后备实现
+      const User = (await import('../models/User')).default;
+      const userDoc = await User.findOne({ email });
+      if (!userDoc || !userDoc.isActive) {
+        return res.status(401).json({
+          success: false,
+          message: '邮箱或密码错误',
+          errors: [{ field: 'email', message: '用户不存在或不可用' }]
+        });
+      }
+
+      const isPasswordValid = await userDoc.comparePassword(password);
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: '邮箱或密码错误',
+          errors: [{ field: 'password', message: '密码不正确' }]
+        });
+      }
+
+      const now = new Date();
+      userDoc.lastLoginAt = now;
+      await userDoc.save();
+
+      const { access_token, refresh_token } = generateTokens(userDoc.id, userDoc.email);
+
+      const userResponse = {
+        id: userDoc.id,
+        username: userDoc.username,
+        email: userDoc.email,
+        avatar: userDoc.avatar ?? null,
+        profile: userDoc.profile ?? {},
+        preferences: userDoc.preferences ?? { notifications: true, emailUpdates: true, language: 'zh-CN' },
+        stats: userDoc.stats ?? { totalAnalysis: 0, totalPosts: 0, reputation: 0 },
+        isActive: userDoc.isActive,
+        isVerified: userDoc.isVerified,
+        lastLoginAt: now,
+        createdAt: userDoc.createdAt,
+        updatedAt: userDoc.updatedAt
+      };
+
+      return res.json({
+        success: true,
+        message: '登录成功（Mongo后备）',
+        data: { user: userResponse, tokens: { access_token, refresh_token } }
+      });
+    }
   } catch (error: any) {
     console.error('用户登录错误:', error);
-    
-    res.status(500).json({
-      success: false,
-      message: '服务器内部错误，请稍后重试'
-    });
+    return res.status(500).json({ success: false, message: '服务器内部错误，请稍后重试' });
   }
 });
 
@@ -245,9 +264,9 @@ router.post('/refresh', async (req: Request, res: Response) => {
       });
     }
 
-    // 查找用户
-    const user = await User.findById(decoded.id);
-    if (!user || !user.isActive) {
+    // 查找用户（PG）
+    const userAgg = await getUserById(decoded.id);
+    if (!userAgg || !userAgg.isActive) {
       return res.status(401).json({
         success: false,
         message: '用户不存在或已被禁用'
@@ -255,15 +274,17 @@ router.post('/refresh', async (req: Request, res: Response) => {
     }
 
     // 生成新的令牌对
-    const { accessToken, refreshToken: newRefreshToken } = generateTokens(user._id.toString(), user.email);
+    const { access_token, refresh_token: newRefreshToken } = generateTokens(userAgg.id, userAgg.email);
+    const refreshExp = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+    await recordRefreshTokenById(userAgg.id, newRefreshToken, refreshExp);
 
     res.json({
       success: true,
       message: '令牌刷新成功',
       data: {
         tokens: {
-          accessToken,
-          refreshToken: newRefreshToken
+          access_token,
+          refresh_token: newRefreshToken
         }
       }
     });
@@ -295,8 +316,12 @@ router.post('/refresh', async (req: Request, res: Response) => {
 // 登出
 router.post('/logout', authenticateToken, async (req: Request, res: Response) => {
   try {
-    // 在实际应用中，这里可以将令牌加入黑名单
-    // 目前只是返回成功响应
+    // 将当前访问令牌加入黑名单（Postgres）
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token && req.user?.userId) {
+      revokeToken(token, req.user.userId);
+    }
     res.json({
       success: true,
       message: '登出成功'
@@ -314,9 +339,9 @@ router.post('/logout', authenticateToken, async (req: Request, res: Response) =>
 // 获取当前用户信息
 router.get('/me', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const user = await User.findById(req.user?.userId);
+    const userAgg = await getUserById(req.user?.userId as string);
     
-    if (!user) {
+    if (!userAgg) {
       return res.status(404).json({
         success: false,
         message: '用户不存在'
@@ -324,18 +349,18 @@ router.get('/me', authenticateToken, async (req: Request, res: Response) => {
     }
 
     const userResponse = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      avatar: user.avatar,
-      profile: user.profile,
-      preferences: user.preferences,
-      stats: user.stats,
-      isActive: user.isActive,
-      isVerified: user.isVerified,
-      lastLoginAt: user.lastLoginAt,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
+      id: userAgg.id,
+      username: userAgg.username,
+      email: userAgg.email,
+      avatar: userAgg.avatar,
+      profile: userAgg.profile,
+      preferences: userAgg.preferences,
+      stats: userAgg.stats,
+      isActive: userAgg.isActive,
+      isVerified: userAgg.isVerified,
+      lastLoginAt: userAgg.lastLoginAt,
+      createdAt: userAgg.createdAt,
+      updatedAt: userAgg.updatedAt
     };
 
     res.json({

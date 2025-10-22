@@ -83,6 +83,11 @@ const CommunityPostSchema = new mongoose_1.Schema({
         default: 'published',
         index: true
     },
+    isAnonymous: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
     interactions: {
         likes: [{
                 type: mongoose_1.Schema.Types.ObjectId,

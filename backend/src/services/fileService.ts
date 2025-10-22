@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { APP_CONFIG } from '../config/constants';
 
 const unlinkAsync = promisify(fs.unlink);
 const mkdirAsync = promisify(fs.mkdir);
@@ -21,10 +22,33 @@ export class FileService {
   }
 
   /**
+   * 保存图片文件
+   */
+  static async saveImage(
+    imageBuffer: Buffer,
+    filename: string,
+    type: 'avatars' | 'analysis' | 'community'
+  ): Promise<string> {
+    // 确保上传目录存在
+    const uploadDir = path.join(process.cwd(), 'uploads', type);
+    await this.ensureUploadDir(uploadDir);
+
+    // 生成安全的文件名
+    const safeFilename = this.generateSafeFilename(filename);
+    const filePath = path.join(uploadDir, safeFilename);
+
+    // 写入文件
+    await fs.promises.writeFile(filePath, imageBuffer);
+
+    // 返回文件URL
+    return this.generateFileUrl(safeFilename, type);
+  }
+
+  /**
    * 生成文件URL
    */
   static generateFileUrl(filename: string, type: 'avatars' | 'analysis' | 'community'): string {
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    const baseUrl = APP_CONFIG.BASE_URL || 'http://localhost:5000';
     return `${baseUrl}/uploads/${type}/${filename}`;
   }
 

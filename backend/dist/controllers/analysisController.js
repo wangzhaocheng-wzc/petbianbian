@@ -1,176 +1,77 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AnalysisController = void 0;
 const fileService_1 = require("../services/fileService");
 const aiService_1 = require("../services/aiService");
 const analysisService_1 = require("../services/analysisService");
 const logger_1 = require("../utils/logger");
+const pdfkit_1 = __importDefault(require("pdfkit"));
 class AnalysisController {
     /**
      * 上传图片进行分析
      */
     static async uploadForAnalysis(req, res) {
         try {
-            // 检查是否有文件上传
-            if (!req.file) {
-                res.status(400).json({
-                    success: false,
-                    message: '请选择要上传的图片文件'
-                });
-                return;
-            }
             const file = req.file;
-            const { petId, notes, symptoms } = req.body;
-            // 验证必需参数
-            if (!petId) {
+            const userId = req.user.userId;
+            const { petId } = req.body;
+            if (!file) {
                 res.status(400).json({
                     success: false,
-                    message: '请指定宠物ID'
+                    message: '未找到上传的图片'
                 });
                 return;
             }
-            // 验证文件类型
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-            if (!allowedTypes.includes(file.mimetype)) {
+            // 保存图片
+            const imageUrl = await fileService_1.FileService.saveImage(file.buffer, file.originalname, 'analysis');
+            // 预处理图片
+            const processedImage = await aiService_1.AIService.preprocessImage(file.buffer);
+            // 验证图片内容
+            const isValidContent = await aiService_1.AIService.validatePoopContent(processedImage);
+            if (!isValidContent) {
                 res.status(400).json({
                     success: false,
-                    message: '只支持JPG、PNG、WebP格式的图片文件'
+                    message: '上传的图片不是有效的便便图片'
                 });
                 return;
             }
-            // 验证文件大小 (10MB)
-            const maxSize = 10 * 1024 * 1024;
-            if (file.size > maxSize) {
-                res.status(400).json({
-                    success: false,
-                    message: '文件大小不能超过10MB'
-                });
-                return;
-            }
-            // 生成文件URL
-            const imageUrl = fileService_1.FileService.generateFileUrl(file.filename, 'analysis');
-            // 执行AI分析流程
-            let analysisResult;
-            try {
-                logger_1.Logger.info(`开始AI分析流程，文件路径: ${file.path}`);
-                // 1. 图片预处理
-                const processedImage = await aiService_1.AIService.preprocessImage(file.path);
-                logger_1.Logger.info(`图片预处理完成，大小: ${processedImage.size} bytes`);
-                // 2. 验证图片内容
-                const isValidContent = await aiService_1.AIService.validatePoopContent(processedImage);
-                logger_1.Logger.info(`内容验证结果: ${isValidContent}`);
-                if (!isValidContent) {
-                    res.status(400).json({
-                        success: false,
-                        message: '上传的图片不符合要求，请上传清晰的便便照片'
-                    });
-                    return;
-                }
-                // 3. 执行AI分析
-                analysisResult = await aiService_1.AIService.analyzePoopImage(processedImage);
-                logger_1.Logger.info(`AI分析原始结果: ${JSON.stringify(analysisResult)}`);
-                // 4. 验证分析结果
-                if (!aiService_1.AIService.validateAnalysisResult(analysisResult)) {
-                    throw new Error('AI分析结果验证失败');
-                }
-                logger_1.Logger.info(`AI分析完成: 形状=${analysisResult.shape}, 健康状态=${analysisResult.healthStatus}, 置信度=${analysisResult.confidence}%`);
-            }
-            catch (aiError) {
-                logger_1.Logger.error('AI分析过程失败:', aiError);
-                if (aiError instanceof Error) {
-                    logger_1.Logger.error('错误堆栈:', aiError.stack);
-                }
-                res.status(500).json({
-                    success: false,
-                    message: 'AI分析服务暂时不可用，请稍后重试'
-                });
-                return;
-            }
-            // 保存分析记录到数据库
-            const savedRecord = await analysisService_1.AnalysisService.createAnalysisRecord({
+            // 调用AI服务进行分析
+            const analysisResult = await aiService_1.AIService.analyzePoopImage(processedImage);
+            // 创建分析记录
+            const record = await analysisService_1.AnalysisService.createAnalysisRecord({
+                userId,
                 petId,
-                userId: req.user.id, // 从认证中间件获取用户ID
                 imageUrl,
-                analysis: analysisResult,
-                userNotes: notes || '',
-                symptoms: symptoms ? symptoms.split(',').map((s) => s.trim()) : [],
-                timestamp: new Date(),
-                isShared: false
+                result: analysisResult
             });
-            // 构造响应数据
-            const responseData = {
-                id: savedRecord._id,
-                petId: savedRecord.petId,
-                imageUrl: savedRecord.imageUrl,
-                analysis: {
-                    shape: savedRecord.analysis.shape,
-                    healthStatus: savedRecord.analysis.healthStatus,
-                    confidence: savedRecord.analysis.confidence,
-                    details: savedRecord.analysis.details,
-                    recommendations: savedRecord.analysis.recommendations,
-                    detectedFeatures: savedRecord.analysis.detectedFeatures,
-                    shapeDescription: aiService_1.AIService.getShapeDescription(savedRecord.analysis.shape),
-                    healthStatusDescription: aiService_1.AIService.getHealthStatusDescription(savedRecord.analysis.healthStatus)
-                },
-                userNotes: savedRecord.userNotes,
-                symptoms: savedRecord.symptoms,
-                timestamp: savedRecord.timestamp,
-                isShared: savedRecord.isShared
-            };
-            logger_1.Logger.info(`图片分析完成并保存: ${file.filename}, 记录ID: ${savedRecord._id}`);
             res.json({
                 success: true,
-                message: '图片上传和分析成功',
-                data: responseData
+                data: record
             });
         }
         catch (error) {
-            logger_1.Logger.error('图片分析失败:', error);
+            logger_1.Logger.error('图片上传分析失败:', error);
             res.status(500).json({
                 success: false,
-                message: '图片分析失败，请稍后重试'
+                message: '图片上传分析失败'
             });
         }
     }
     /**
-     * 获取分析记录
+     * 获取分析记录列表
      */
     static async getAnalysisRecords(req, res) {
         try {
+            const userId = req.user.userId;
             const { petId } = req.params;
-            const { page = 1, limit = 10, healthStatus, startDate, endDate, sortBy = 'timestamp', sortOrder = 'desc' } = req.query;
-            // 构建查询参数
-            const query = {
-                petId,
-                userId: req.user.id,
-                page: Number(page),
-                limit: Number(limit),
-                sortBy: sortBy,
-                sortOrder: sortOrder
-            };
-            if (healthStatus)
-                query.healthStatus = healthStatus;
-            if (startDate)
-                query.startDate = new Date(startDate);
-            if (endDate)
-                query.endDate = new Date(endDate);
-            // 获取记录和统计数据
-            const [recordsResult, statistics] = await Promise.all([
-                analysisService_1.AnalysisService.getAnalysisRecords(query),
-                analysisService_1.AnalysisService.getHealthStatistics(petId, 30)
-            ]);
+            const query = { ...req.query, userId, petId };
+            const result = await analysisService_1.AnalysisService.getAnalysisRecords(query);
             res.json({
                 success: true,
-                data: {
-                    records: recordsResult.records,
-                    pagination: {
-                        page: recordsResult.page,
-                        limit: Number(limit),
-                        total: recordsResult.total,
-                        totalPages: recordsResult.totalPages
-                    },
-                    statistics
-                }
+                data: result
             });
         }
         catch (error) {
@@ -182,69 +83,17 @@ class AnalysisController {
         }
     }
     /**
-     * 获取分析统计
-     */
-    static async getAnalysisStatistics(req, res) {
-        try {
-            const { petId } = req.params;
-            const { period = 'month' } = req.query; // week, month, quarter
-            // 根据周期确定天数
-            const daysMap = {
-                week: 7,
-                month: 30,
-                quarter: 90
-            };
-            const days = daysMap[period] || 30;
-            // 获取统计数据和趋势数据
-            const [statistics, trends, healthAssessment] = await Promise.all([
-                analysisService_1.AnalysisService.getHealthStatistics(petId, days),
-                analysisService_1.AnalysisService.getHealthTrends(petId, days),
-                analysisService_1.AnalysisService.getHealthAssessment(petId)
-            ]);
-            const responseData = {
-                period,
-                days,
-                totalAnalysis: statistics.totalRecords,
-                healthyPercentage: statistics.healthyPercentage,
-                warningPercentage: statistics.warningPercentage,
-                concerningPercentage: statistics.concerningPercentage,
-                averagePerWeek: statistics.averagePerWeek,
-                trends,
-                healthAssessment,
-                lastUpdated: new Date()
-            };
-            res.json({
-                success: true,
-                data: responseData
-            });
-        }
-        catch (error) {
-            logger_1.Logger.error('获取分析统计失败:', error);
-            res.status(500).json({
-                success: false,
-                message: '获取分析统计失败'
-            });
-        }
-    }
-    /**
      * 获取单个分析记录
      */
     static async getAnalysisRecord(req, res) {
         try {
             const { id } = req.params;
-            const record = await analysisService_1.AnalysisService.getAnalysisRecord(id);
+            const userId = req.user.userId;
+            const record = await analysisService_1.AnalysisService.getAnalysisRecord(id, userId);
             if (!record) {
                 res.status(404).json({
                     success: false,
                     message: '分析记录不存在'
-                });
-                return;
-            }
-            // 验证用户权限
-            if (record.userId.toString() !== req.user.id) {
-                res.status(403).json({
-                    success: false,
-                    message: '无权限访问此记录'
                 });
                 return;
             }
@@ -262,40 +111,81 @@ class AnalysisController {
         }
     }
     /**
-     * 删除分析记录
+     * 更新分析记录
      */
-    static async deleteAnalysisRecord(req, res) {
+    static async updateAnalysisRecord(req, res) {
         try {
             const { id } = req.params;
-            // 先获取记录以获得文件路径
-            const record = await analysisService_1.AnalysisService.getAnalysisRecord(id);
-            if (!record) {
+            const userId = req.user.userId;
+            const updateData = req.body;
+            const updatedRecord = await analysisService_1.AnalysisService.updateAnalysisRecord(id, userId, updateData);
+            if (!updatedRecord) {
                 res.status(404).json({
                     success: false,
                     message: '分析记录不存在'
                 });
                 return;
             }
-            // 验证用户权限
-            if (record.userId.toString() !== req.user.id) {
-                res.status(403).json({
+            res.json({
+                success: true,
+                data: updatedRecord
+            });
+        }
+        catch (error) {
+            logger_1.Logger.error('更新分析记录失败:', error);
+            res.status(500).json({
+                success: false,
+                message: '更新分析记录失败'
+            });
+        }
+    }
+    /**
+     * 分享分析记录
+     */
+    static async shareAnalysisRecord(req, res) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.userId;
+            const { shareType, shareWith } = req.body;
+            const sharedRecord = await analysisService_1.AnalysisService.shareAnalysisRecord(id, userId, {
+                shareType,
+                shareWith
+            });
+            if (!sharedRecord) {
+                res.status(404).json({
                     success: false,
-                    message: '无权限删除此记录'
+                    message: '分析记录不存在'
                 });
                 return;
             }
-            // 删除数据库记录
-            const deleted = await analysisService_1.AnalysisService.deleteAnalysisRecord(id);
-            if (!deleted) {
-                res.status(500).json({
+            res.json({
+                success: true,
+                data: sharedRecord
+            });
+        }
+        catch (error) {
+            logger_1.Logger.error('分享分析记录失败:', error);
+            res.status(500).json({
+                success: false,
+                message: '分享分析记录失败'
+            });
+        }
+    }
+    /**
+     * 删除分析记录
+     */
+    static async deleteAnalysisRecord(req, res) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.userId;
+            const result = await analysisService_1.AnalysisService.deleteAnalysisRecord(id);
+            if (!result) {
+                res.status(404).json({
                     success: false,
-                    message: '删除记录失败'
+                    message: '分析记录不存在'
                 });
                 return;
             }
-            // TODO: 删除相关的图片文件
-            // 这里可以添加文件删除逻辑
-            logger_1.Logger.info(`分析记录删除成功: ${id}`);
             res.json({
                 success: true,
                 message: '分析记录删除成功'
@@ -306,6 +196,141 @@ class AnalysisController {
             res.status(500).json({
                 success: false,
                 message: '删除分析记录失败'
+            });
+        }
+    }
+    /**
+     * 批量删除分析记录
+     */
+    static async batchDeleteRecords(req, res) {
+        try {
+            const { recordIds } = req.body;
+            const userId = req.user.userId;
+            if (!Array.isArray(recordIds) || recordIds.length === 0) {
+                res.status(400).json({
+                    success: false,
+                    message: '请提供要删除的记录ID列表'
+                });
+                return;
+            }
+            const result = await analysisService_1.AnalysisService.batchDeleteRecords(recordIds);
+            res.json(result);
+        }
+        catch (error) {
+            logger_1.Logger.error('批量删除分析记录失败:', error);
+            res.status(500).json({
+                success: false,
+                message: '批量删除分析记录失败'
+            });
+        }
+    }
+    /**
+     * 获取分析统计
+     */
+    static async getAnalysisStatistics(req, res) {
+        try {
+            const { petId } = req.params;
+            const userId = req.user.userId;
+            const { startDate, endDate } = req.query;
+            const statistics = await analysisService_1.AnalysisService.getAnalysisStatistics({
+                userId,
+                petId,
+                startDate: startDate ? new Date(startDate) : undefined,
+                endDate: endDate ? new Date(endDate) : undefined
+            });
+            res.json({
+                success: true,
+                data: statistics
+            });
+        }
+        catch (error) {
+            logger_1.Logger.error('获取分析统计失败:', error);
+            res.status(500).json({
+                success: false,
+                message: '获取分析统计失败'
+            });
+        }
+    }
+    /**
+     * 导出分析记录为CSV
+     */
+    static async exportAnalysisRecordsCSV(req, res) {
+        try {
+            const { petId } = req.params;
+            const userId = req.user.userId;
+            const { startDate, endDate } = req.query;
+            const { records } = await analysisService_1.AnalysisService.getAnalysisRecords({
+                userId,
+                petId,
+                startDate: startDate ? new Date(startDate) : undefined,
+                endDate: endDate ? new Date(endDate) : undefined
+            });
+            // 生成CSV内容
+            let csvContent = '日期,健康状态,形状,置信度,详细信息,建议\n';
+            records.forEach(record => {
+                csvContent += `${new Date(record.createdAt).toLocaleDateString()},`;
+                csvContent += `${record.analysis.healthStatus},`;
+                csvContent += `${record.analysis.shape},`;
+                csvContent += `${record.analysis.confidence}%,`;
+                csvContent += `"${record.analysis.details}",`;
+                csvContent += `"${record.analysis.recommendations.join('; ')}"\n`;
+            });
+            // 设置响应头
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', `attachment; filename=analysis-records-${petId}-${Date.now()}.csv`);
+            // 发送CSV内容
+            res.send(csvContent);
+        }
+        catch (error) {
+            logger_1.Logger.error('导出分析记录失败:', error);
+            res.status(500).json({
+                success: false,
+                message: '导出分析记录失败'
+            });
+        }
+    }
+    /**
+     * 导出分析记录为PDF
+     */
+    static async exportAnalysisRecordsPDF(req, res) {
+        try {
+            const { petId } = req.params;
+            const userId = req.user.userId;
+            const { startDate, endDate } = req.query;
+            const { records } = await analysisService_1.AnalysisService.getAnalysisRecords({
+                userId,
+                petId,
+                startDate: startDate ? new Date(startDate) : undefined,
+                endDate: endDate ? new Date(endDate) : undefined
+            });
+            // 创建PDF文档
+            const doc = new pdfkit_1.default();
+            // 设置响应头
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=analysis-records-${petId}-${Date.now()}.pdf`);
+            // 将PDF流式传输到响应
+            doc.pipe(res);
+            // 添加标题
+            doc.fontSize(20).text('便便分析记录报告', { align: 'center' });
+            doc.moveDown();
+            // 添加记录
+            records.forEach(record => {
+                doc.fontSize(14).text(`日期: ${new Date(record.createdAt).toLocaleDateString()}`);
+                doc.fontSize(12).text(`健康状态: ${record.analysis.healthStatus}`);
+                doc.text(`形状: ${record.analysis.shape}`);
+                doc.text(`置信度: ${record.analysis.confidence}%`);
+                doc.text(`详细信息: ${record.analysis.details}`);
+                doc.text(`建议: ${record.analysis.recommendations.join('; ')}`);
+                doc.moveDown();
+            });
+            // 结束PDF文档
+            doc.end();
+        }
+        catch (error) {
+            logger_1.Logger.error('导出分析记录失败:', error);
+            res.status(500).json({
+                success: false,
+                message: '导出分析记录失败'
             });
         }
     }

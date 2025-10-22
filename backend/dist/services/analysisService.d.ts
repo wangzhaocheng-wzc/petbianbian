@@ -1,93 +1,88 @@
 import { IPoopRecord } from '../models/PoopRecord';
 import { AIAnalysisResult } from './aiService';
-export interface CreateAnalysisRecordRequest {
-    petId: string;
+interface CreateAnalysisParams {
     userId: string;
+    petId: string;
     imageUrl: string;
-    thumbnailUrl?: string;
-    analysis: AIAnalysisResult;
-    userNotes?: string;
-    symptoms?: string[];
-    timestamp?: Date;
-    location?: {
-        latitude: number;
-        longitude: number;
-    };
-    weather?: {
-        temperature: number;
-        humidity: number;
-    };
-    isShared?: boolean;
+    result: AIAnalysisResult;
 }
-export interface AnalysisRecordQuery {
-    petId?: string;
+interface AnalysisQuery {
     userId?: string;
-    healthStatus?: 'healthy' | 'warning' | 'concerning';
+    petId?: string;
     startDate?: Date;
     endDate?: Date;
-    isShared?: boolean;
+    healthStatus?: string;
     page?: number;
     limit?: number;
-    sortBy?: 'timestamp' | 'confidence';
+    sortBy?: string;
     sortOrder?: 'asc' | 'desc';
 }
-export declare class HealthAdviceGenerator {
-    /**
-     * 根据分析结果生成健康建议
-     */
-    static generateAdvice(analysis: AIAnalysisResult, symptoms?: string[]): string[];
-    /**
-     * 生成健康状态判断
-     */
-    static assessHealthStatus(analysis: AIAnalysisResult, recentRecords?: IPoopRecord[]): {
-        currentStatus: string;
-        trend: 'improving' | 'stable' | 'declining';
-        riskLevel: 'low' | 'medium' | 'high';
-        urgency: 'none' | 'monitor' | 'consult' | 'urgent';
+interface ShareAnalysisParams {
+    shareType: 'public' | 'private' | 'specific';
+    shareWith?: string[];
+}
+interface AnalysisStatistics {
+    totalRecords: number;
+    healthStatusDistribution: {
+        [key: string]: number;
     };
-    private static getStatusDescription;
+    shapeDistribution: {
+        [key: string]: number;
+    };
+    averageConfidence: number;
+    commonSymptoms: {
+        symptom: string;
+        count: number;
+    }[];
+    timeDistribution: {
+        date: string;
+        count: number;
+    }[];
 }
 export declare class AnalysisService {
     /**
      * 创建分析记录
      */
-    static createAnalysisRecord(data: CreateAnalysisRecordRequest): Promise<IPoopRecord>;
+    static createAnalysisRecord(params: CreateAnalysisParams): Promise<IPoopRecord>;
     /**
      * 获取分析记录列表
      */
-    static getAnalysisRecords(query: AnalysisRecordQuery): Promise<{
+    static getAnalysisRecords(query: AnalysisQuery): Promise<{
         records: IPoopRecord[];
         total: number;
-        page: number;
-        totalPages: number;
     }>;
     /**
      * 获取单个分析记录
      */
-    static getAnalysisRecord(id: string): Promise<IPoopRecord | null>;
+    static getAnalysisRecord(id: string, userId?: string): Promise<IPoopRecord | null>;
     /**
      * 更新分析记录
      */
-    static updateAnalysisRecord(id: string, updates: Partial<CreateAnalysisRecordRequest>): Promise<IPoopRecord | null>;
+    static updateAnalysisRecord(id: string, userId: string, updateData: Partial<IPoopRecord>): Promise<IPoopRecord | null>;
+    /**
+     * 分享分析记录
+     */
+    static shareAnalysisRecord(id: string, userId: string, params: ShareAnalysisParams): Promise<IPoopRecord | null>;
     /**
      * 删除分析记录
      */
     static deleteAnalysisRecord(id: string): Promise<boolean>;
     /**
-     * 获取健康统计
+     * 批量删除分析记录
      */
-    static getHealthStatistics(petId: string, days?: number): Promise<any>;
+    static batchDeleteRecords(recordIds: string[]): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     /**
-     * 获取健康趋势
+     * 获取分析统计
      */
-    static getHealthTrends(petId: string, days?: number): Promise<any[]>;
-    /**
-     * 填充缺失的日期数据
-     */
-    private static fillMissingDates;
-    /**
-     * 获取健康评估
-     */
-    static getHealthAssessment(petId: string): Promise<any>;
+    static getAnalysisStatistics(params: {
+        userId: string;
+        petId: string;
+        startDate?: Date;
+        endDate?: Date;
+    }): Promise<AnalysisStatistics>;
 }
+export {};
 //# sourceMappingURL=analysisService.d.ts.map

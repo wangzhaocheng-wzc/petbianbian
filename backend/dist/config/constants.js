@@ -13,31 +13,26 @@ exports.APP_CONFIG = {
     JWT_EXPIRES_IN: '15m',
     REFRESH_TOKEN_EXPIRES_IN: '7d',
     // 文件上传配置
+    BASE_URL: process.env.BASE_URL || 'http://localhost:5000',
     MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
-    ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
-    UPLOAD_PATHS: {
-        AVATARS: 'uploads/avatars/',
-        ANALYSIS: 'uploads/analysis/',
-        COMMUNITY: 'uploads/community/',
+    ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+    UPLOAD_PATH: {
+        AVATARS: 'uploads/avatars',
+        ANALYSIS: 'uploads/analysis',
+        COMMUNITY: 'uploads/community'
     },
-    // AI服务配置
     AI_SERVICE: {
-        URL: process.env.AI_SERVICE_URL || '',
-        KEY: process.env.AI_SERVICE_KEY || '',
-        TIMEOUT: 30000, // 30秒
+        URL: process.env.AI_SERVICE_URL || 'http://localhost:8000',
+        KEY: process.env.AI_SERVICE_KEY || 'default-key'
     },
-    // 分页配置
     PAGINATION: {
-        DEFAULT_PAGE: 1,
-        DEFAULT_LIMIT: 10,
-        MAX_LIMIT: 100,
+        DEFAULT_PAGE_SIZE: 10,
+        MAX_PAGE_SIZE: 100
     },
-    // 安全配置
-    BCRYPT_ROUNDS: 12,
     RATE_LIMIT: {
-        WINDOW_MS: 15 * 60 * 1000, // 15分钟
-        MAX_REQUESTS: 100, // 每个IP最多100个请求
-    },
+        WINDOW_MS: 15 * 60 * 1000, // 15 minutes
+        MAX_REQUESTS: 100
+    }
 };
 // 便便分析类型
 exports.POOP_TYPES = {

@@ -43,12 +43,22 @@ api.interceptors.response.use(
       const refreshToken = tokenManager.getRefreshToken();
       if (refreshToken) {
         try {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          const resp = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refreshToken,
           });
-          
-          const { accessToken } = response.data.data;
+
+          const tokens = resp?.data?.data?.tokens;
+          const accessToken = tokens?.access_token;
+          const newRefreshToken = tokens?.refresh_token;
+
+          if (!accessToken) {
+            throw new Error('令牌刷新失败：未返回 access_token');
+          }
+
           tokenManager.setAccessToken(accessToken);
+          if (newRefreshToken) {
+            tokenManager.setRefreshToken(newRefreshToken);
+          }
           
           // 重试原请求
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;

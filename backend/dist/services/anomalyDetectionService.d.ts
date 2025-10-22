@@ -45,6 +45,7 @@ export interface AnomalyDetectionRules {
 }
 export declare class AnomalyDetectionService {
     private static readonly DEFAULT_RULES;
+    private static fetchRecords;
     /**
      * 检测宠物健康异常
      */

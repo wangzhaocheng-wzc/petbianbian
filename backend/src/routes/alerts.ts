@@ -20,8 +20,8 @@ const createAlertRuleValidation = [
   
   body('petId')
     .optional()
-    .isMongoId()
-    .withMessage('宠物ID格式无效'),
+    .isUUID()
+    .withMessage('宠物ID必须是UUID格式'),
   
   body('triggers.anomalyTypes')
     .isArray({ min: 1 })
@@ -95,14 +95,14 @@ const updateAlertRuleValidation = [
 
 const mongoIdValidation = [
   param('ruleId')
-    .isMongoId()
-    .withMessage('规则ID格式无效')
+    .isUUID()
+    .withMessage('规则ID必须是UUID格式')
 ];
 
 const petIdValidation = [
   param('petId')
-    .isMongoId()
-    .withMessage('宠物ID格式无效')
+    .isUUID()
+    .withMessage('宠物ID必须是UUID格式')
 ];
 
 // 提醒规则管理路由
@@ -119,8 +119,8 @@ router.get(
   [
     query('petId')
       .optional()
-      .isMongoId()
-      .withMessage('宠物ID格式无效'),
+      .isUUID()
+      .withMessage('宠物ID必须是UUID格式'),
     query('includeInactive')
       .optional()
       .isBoolean()

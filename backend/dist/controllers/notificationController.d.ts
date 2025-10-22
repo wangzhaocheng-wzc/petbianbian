@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 interface AuthenticatedRequest extends Request {
     user?: {
-        id: string;
-        username: string;
+        userId: string;
         email: string;
+        username?: string;
     };
 }
 export declare class NotificationController {
+    private static getBaseService;
     /**
      * 创建通知
      */

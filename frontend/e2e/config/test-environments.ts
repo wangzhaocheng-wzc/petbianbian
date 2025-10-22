@@ -20,7 +20,7 @@ export interface TestEnvironment {
  */
 export const developmentConfig: TestEnvironment = {
   name: 'development',
-  baseURL: 'http://localhost:3000',
+  baseURL: 'http://localhost:5173',
   apiBaseURL: 'http://localhost:5000/api',
   timeout: 30000,
   retries: 0,

@@ -82,9 +82,16 @@
     "test:maintainability:apply": "node e2e/run-maintainability-enhancement.cjs --apply"
   },
   "dependencies": {
-    "axios": "^1.3.4",
+    "@chakra-ui/form-control": "^2.2.0",
+    "@chakra-ui/icons": "^2.2.4",
+    "@chakra-ui/react": "^3.27.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "axios": "^1.12.2",
     "chart.js": "^4.5.0",
     "date-fns": "^4.1.0",
+    "form-data": "^4.0.4",
+    "framer-motion": "^12.23.22",
     "lucide-react": "^0.321.0",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.3.0",

@@ -5,13 +5,18 @@ const axios = require('axios');
 const BASE_URL = 'http://localhost:5000';
 let serverProcess;
 
+const TEST_ID = Date.now();
+const TEST_EMAIL = `test${TEST_ID}@example.com`;
+const TEST_USERNAME = `tu${TEST_ID % 100000}`;
+
 // 启动服务器
 function startServer() {
   return new Promise((resolve, reject) => {
     console.log('启动后端服务器...');
-    serverProcess = spawn('npm', ['run', 'dev'], { 
+    serverProcess = spawn('npm', ['run', 'dev:backend'], { 
       stdio: 'pipe',
-      shell: true 
+      shell: true,
+      env: { ...process.env, DB_PRIMARY: 'postgres' }
     });
 
     let serverReady = false;
@@ -36,12 +41,12 @@ function startServer() {
       reject(error);
     });
 
-    // 10秒超时
+    // 90秒超时（内存Mongo初次下载可能较慢）
     setTimeout(() => {
       if (!serverReady) {
         reject(new Error('服务器启动超时'));
       }
-    }, 10000);
+    }, 90000);
   });
 }
 
@@ -59,8 +64,8 @@ async function testRegistration() {
     console.log('测试用户注册功能...');
     
     const testUser = {
-      username: 'testuser123',
-      email: 'test@example.com',
+      username: TEST_USERNAME,
+      email: TEST_EMAIL,
       password: 'password123',
       confirmPassword: 'password123'
     };
@@ -72,7 +77,7 @@ async function testRegistration() {
     console.log('用户ID:', response.data.data.user.id);
     console.log('用户名:', response.data.data.user.username);
     console.log('邮箱:', response.data.data.user.email);
-    console.log('访问令牌长度:', response.data.data.tokens.accessToken.length);
+    console.log('访问令牌长度:', response.data.data.tokens.access_token.length);
     
     return response.data.data.user.id;
     
@@ -94,8 +99,8 @@ async function testDuplicateRegistration() {
     console.log('测试重复注册...');
     
     const testUser = {
-      username: 'testuser123',
-      email: 'test@example.com',
+      username: TEST_USERNAME,
+      email: TEST_EMAIL,
       password: 'password123',
       confirmPassword: 'password123'
     };

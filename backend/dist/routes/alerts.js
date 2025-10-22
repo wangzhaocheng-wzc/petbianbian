@@ -21,8 +21,8 @@ const createAlertRuleValidation = [
         .withMessage('描述不能超过500个字符'),
     (0, express_validator_1.body)('petId')
         .optional()
-        .isMongoId()
-        .withMessage('宠物ID格式无效'),
+        .isUUID()
+        .withMessage('宠物ID必须是UUID格式'),
     (0, express_validator_1.body)('triggers.anomalyTypes')
         .isArray({ min: 1 })
         .withMessage('至少选择一种异常类型')
@@ -83,21 +83,21 @@ const updateAlertRuleValidation = [
 ];
 const mongoIdValidation = [
     (0, express_validator_1.param)('ruleId')
-        .isMongoId()
-        .withMessage('规则ID格式无效')
+        .isUUID()
+        .withMessage('规则ID必须是UUID格式')
 ];
 const petIdValidation = [
     (0, express_validator_1.param)('petId')
-        .isMongoId()
-        .withMessage('宠物ID格式无效')
+        .isUUID()
+        .withMessage('宠物ID必须是UUID格式')
 ];
 // 提醒规则管理路由
 router.post('/rules', auth_1.authenticateToken, createAlertRuleValidation, alertController_1.AlertController.createAlertRule);
 router.get('/rules', auth_1.authenticateToken, [
     (0, express_validator_1.query)('petId')
         .optional()
-        .isMongoId()
-        .withMessage('宠物ID格式无效'),
+        .isUUID()
+        .withMessage('宠物ID必须是UUID格式'),
     (0, express_validator_1.query)('includeInactive')
         .optional()
         .isBoolean()

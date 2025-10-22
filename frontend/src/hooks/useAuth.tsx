@@ -1,7 +1,8 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { ReactNode } from 'react'
-import axios from 'axios'
 import { User, LoginRequest, RegisterRequest, AuthResponse } from '../../../shared/types'
+import { tokenManager } from '../utils/helpers'
+import { apiClient } from '../services/api'
 
 interface AuthContextType {
   user: User | null
@@ -15,71 +16,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// API 基础配置
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-
-// 配置 axios 默认设置
-axios.defaults.baseURL = API_BASE_URL
-
-// 请求拦截器 - 添加认证令牌
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('accessToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
-
-// 响应拦截器 - 处理令牌过期
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-    
-    // 避免在刷新token的请求上重试
-    if (originalRequest.url?.includes('/auth/refresh')) {
-      return Promise.reject(error)
-    }
-    
-    // 只在访问需要认证的API时处理401错误
-    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url?.includes('/api/')) {
-      originalRequest._retry = true
-      
-      const refreshToken = localStorage.getItem('refreshToken')
-      if (refreshToken) {
-        try {
-          const response = await axios.post('/auth/refresh', {
-            refreshToken
-          })
-          
-          const { accessToken } = response.data.data.tokens
-          localStorage.setItem('accessToken', accessToken)
-          
-          // 重试原始请求
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`
-          return axios(originalRequest)
-        } catch (refreshError: any) {
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-          window.dispatchEvent(new CustomEvent('auth-logout'))
-          return Promise.reject(refreshError)
-        }
-      } else {
-        localStorage.removeItem('accessToken')
-        window.dispatchEvent(new CustomEvent('auth-logout'))
-        return Promise.reject(error)
-      }
-    }
-    
-    return Promise.reject(error)
-  }
-)
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -89,17 +25,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 初始化时检查本地存储的令牌
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('accessToken')
-      const refreshToken = localStorage.getItem('refreshToken')
+      const token = tokenManager.getAccessToken()
+      const refreshToken = tokenManager.getRefreshToken()
       
       if (token && refreshToken) {
         try {
-          const response = await axios.get('/auth/me')
-          setUser(response.data.data.user)
+          const response = await apiClient.get('/auth/me')
+          setUser(response.data.user)
         } catch (error: any) {
           if (error.response?.status === 401 || error.response?.status === 403) {
-            localStorage.removeItem('accessToken')
-            localStorage.removeItem('refreshToken')
+            tokenManager.clearTokens()
             setUser(null)
           }
         }
@@ -124,14 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
     try {
       setIsLoading(true)
-      const response = await axios.post('/auth/login', credentials)
-      const authData = response.data
+      const response = await apiClient.post('/auth/login', credentials)
+      const authData = response
 
       if (authData.success && authData.data) {
         const { user, tokens } = authData.data
         setUser(user)
-        localStorage.setItem('accessToken', tokens.accessToken)
-        localStorage.setItem('refreshToken', tokens.refreshToken)
+        tokenManager.setAccessToken(tokens.access_token)
+        tokenManager.setRefreshToken(tokens.refresh_token)
       }
 
       return authData
@@ -150,14 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (userData: RegisterRequest): Promise<AuthResponse> => {
     try {
       setIsLoading(true)
-      const response = await axios.post('/auth/register', userData)
-      const authData = response.data
+      const response = await apiClient.post('/auth/register', userData)
+      const authData = response
 
       if (authData.success && authData.data) {
         const { user, tokens } = authData.data
         setUser(user)
-        localStorage.setItem('accessToken', tokens.accessToken)
-        localStorage.setItem('refreshToken', tokens.refreshToken)
+        tokenManager.setAccessToken(tokens.access_token)
+        tokenManager.setRefreshToken(tokens.refresh_token)
       }
 
       return authData
@@ -175,20 +110,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    tokenManager.clearTokens()
     window.dispatchEvent(new CustomEvent('auth-logout'))
   }
 
   const refreshToken = async (): Promise<boolean> => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken')
+      const refreshToken = tokenManager.getRefreshToken()
       if (!refreshToken) return false
 
-      const response = await axios.post('/auth/refresh', { refreshToken })
-      const { accessToken } = response.data.data.tokens
-      
-      localStorage.setItem('accessToken', accessToken)
+      const response = await apiClient.post('/auth/refresh', { refreshToken })
+      const { access_token } = response.data.tokens
+
+      tokenManager.setAccessToken(access_token)
       return true
     } catch (error) {
       logout()

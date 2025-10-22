@@ -36,8 +36,10 @@ export const getMultiPetComparison = async (req: AuthenticatedRequest, res: Resp
     let petIdArray: string[];
     if (typeof petIds === 'string') {
       petIdArray = petIds.split(',').filter(id => id.trim());
-    } else if (Array.isArray(petIds)) {
-      petIdArray = petIds.filter(id => typeof id === 'string' && id.trim());
+  } else if (Array.isArray(petIds)) {
+      petIdArray = petIds
+        .filter((id): id is string => typeof id === 'string')
+        .filter(id => id.trim());
     } else {
       return res.status(400).json({
         success: false,
@@ -122,8 +124,10 @@ export const getPetHealthTrends = async (req: AuthenticatedRequest, res: Respons
     let petIdArray: string[];
     if (typeof petIds === 'string') {
       petIdArray = petIds.split(',').filter(id => id.trim());
-    } else if (Array.isArray(petIds)) {
-      petIdArray = petIds.filter(id => typeof id === 'string' && id.trim());
+  } else if (Array.isArray(petIds)) {
+      petIdArray = petIds
+        .filter((id): id is string => typeof id === 'string')
+        .filter(id => id.trim());
     } else {
       return res.status(400).json({
         success: false,

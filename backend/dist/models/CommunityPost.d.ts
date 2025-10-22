@@ -8,6 +8,7 @@ export interface ICommunityPost extends Document {
     tags: string[];
     category: 'health' | 'help' | 'experience' | 'general';
     status: 'published' | 'draft' | 'archived';
+    isAnonymous: boolean;
     interactions: {
         likes: mongoose.Types.ObjectId[];
         views: number;

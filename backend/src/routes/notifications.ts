@@ -29,8 +29,8 @@ const createNotificationValidation = [
   
   body('petId')
     .optional()
-    .isMongoId()
-    .withMessage('宠物ID格式无效'),
+    .isUUID()
+    .withMessage('宠物ID必须是UUID格式'),
   
   body('priority')
     .optional()
@@ -51,17 +51,16 @@ const createNotificationValidation = [
 const markMultipleAsReadValidation = [
   body('notificationIds')
     .isArray({ min: 1 })
-    .withMessage('通知ID列表不能为空')
-    .custom((value) => {
-      return value.every((id: string) => typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/));
-    })
-    .withMessage('通知ID格式无效')
+    .withMessage('通知ID列表不能为空'),
+  body('notificationIds.*')
+    .isUUID()
+    .withMessage('通知ID必须是UUID格式')
 ];
 
 const mongoIdValidation = [
   param('notificationId')
-    .isMongoId()
-    .withMessage('通知ID格式无效')
+    .isUUID()
+    .withMessage('通知ID必须是UUID格式')
 ];
 
 const updateSettingsValidation = [

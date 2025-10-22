@@ -28,8 +28,8 @@ const Debug: React.FC = () => {
           <strong>本地存储:</strong>
           <pre className="mt-2 p-4 bg-gray-100 rounded text-sm">
             {JSON.stringify({
-              accessToken: localStorage.getItem('accessToken') ? '存在' : '不存在',
-              refreshToken: localStorage.getItem('refreshToken') ? '存在' : '不存在'
+              accessToken: localStorage.getItem('ACCESS_TOKEN') ? '存在' : '不存在',
+              refreshToken: localStorage.getItem('REFRESH_TOKEN') ? '存在' : '不存在'
             }, null, 2)}
           </pre>
         </div>

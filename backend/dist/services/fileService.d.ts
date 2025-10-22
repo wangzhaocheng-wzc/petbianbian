@@ -4,6 +4,10 @@ export declare class FileService {
      */
     static ensureUploadDir(dirPath: string): Promise<void>;
     /**
+     * 保存图片文件
+     */
+    static saveImage(imageBuffer: Buffer, filename: string, type: 'avatars' | 'analysis' | 'community'): Promise<string>;
+    /**
      * 生成文件URL
      */
     static generateFileUrl(filename: string, type: 'avatars' | 'analysis' | 'community'): string;

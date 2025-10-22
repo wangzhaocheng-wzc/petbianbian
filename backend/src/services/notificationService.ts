@@ -1,6 +1,5 @@
 import { Notification, INotification } from '../models/Notification';
-import { User } from '../models/User';
-import { Pet } from '../models/Pet';
+// 移除未使用的模型导入（User、Pet 默认导出），避免错误的命名导入
 import { Logger } from '../utils/logger';
 import mongoose from 'mongoose';
 import nodemailer from 'nodemailer';
@@ -58,7 +57,7 @@ export class NotificationService {
    */
   static initializeEmailService(config: EmailConfig): void {
     try {
-      this.emailTransporter = nodemailer.createTransporter({
+      this.emailTransporter = nodemailer.createTransport({
         host: config.host,
         port: config.port,
         secure: config.secure,
@@ -700,7 +699,7 @@ export class NotificationService {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
       
-      const pipeline = [
+      const pipeline: mongoose.PipelineStage[] = [
         {
           $match: {
             userId: new mongoose.Types.ObjectId(userId),

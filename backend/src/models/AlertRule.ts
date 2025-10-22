@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { IUser } from './User';
+import { IPet } from './Pet';
 
 // 提醒规则接口
 export interface IAlertRule extends Document {
@@ -54,6 +56,9 @@ export interface IAlertRule extends Document {
   
   createdAt: Date;
   updatedAt: Date;
+  // 虚拟关联（populate 后可用）
+  user?: IUser;
+  pet?: IPet;
 }
 
 // 提醒规则Schema

@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { IUser } from './User';
+import { IPet } from './Pet';
 
 // 通知接口
 export interface INotification extends Document {
@@ -56,6 +58,16 @@ export interface INotification extends Document {
   
   createdAt: Date;
   updatedAt: Date;
+  // 虚拟关联（populate 后可用）
+  user?: IUser;
+  pet?: IPet;
+  // 实例方法（Schema.methods 中定义）
+  markAsRead(): Promise<void>;
+  markAsArchived(): Promise<void>;
+  recordClick(): Promise<void>;
+  markInAppSent(): Promise<void>;
+  markEmailSent(emailAddress: string): Promise<void>;
+  markPushSent(deviceTokens: string[]): Promise<void>;
 }
 
 // 通知Schema

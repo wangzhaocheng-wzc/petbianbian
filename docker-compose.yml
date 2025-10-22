@@ -33,12 +33,15 @@ services:
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-here}
       - AI_SERVICE_URL=${AI_SERVICE_URL:-}
       - AI_SERVICE_KEY=${AI_SERVICE_KEY:-}
+      - POSTGRES_URL=${POSTGRES_URL:-postgresql://postgres:postgres@postgres:5432/pet_health}
+      - DB_PRIMARY=${DB_PRIMARY:-postgres}
     volumes:
       - ./backend/uploads:/app/uploads
       - ./backend/logs:/app/logs
     depends_on:
       - mongo
       - redis
+      - postgres
     restart: unless-stopped
     networks:
       - pet-health-network
@@ -73,6 +76,22 @@ services:
     networks:
       - pet-health-network
 
+  # Postgres database
+  postgres:
+    image: postgres:16-alpine
+    container_name: pet-health-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=pet_health
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - pet-health-network
+
   # Nginx reverse proxy
   nginx:
     image: nginx:alpine
@@ -96,6 +115,8 @@ volumes:
   mongo_data:
     driver: local
   redis_data:
+    driver: local
+  postgres_data:
     driver: local
 
 networks:

@@ -7,8 +7,8 @@ import { validationResult } from 'express-validator';
 // 扩展Request接口以包含用户信息
 interface AuthenticatedRequest extends Request {
   user?: {
-    id: string;
-    username: string;
+    userId: string;
+    username?: string;
     email: string;
   };
 }
@@ -30,7 +30,7 @@ export class AlertController {
         return;
       }
 
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -66,7 +66,7 @@ export class AlertController {
    */
   static async getUserAlertRules(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -181,7 +181,7 @@ export class AlertController {
    */
   static async triggerAlertCheck(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -279,7 +279,7 @@ export class AlertController {
    */
   static async getAlertStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -315,7 +315,7 @@ export class AlertController {
    */
   static async createDefaultRules(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,

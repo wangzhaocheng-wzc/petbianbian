@@ -27,7 +27,9 @@ const getMultiPetComparison = async (req, res) => {
             petIdArray = petIds.split(',').filter(id => id.trim());
         }
         else if (Array.isArray(petIds)) {
-            petIdArray = petIds.filter(id => typeof id === 'string' && id.trim());
+            petIdArray = petIds
+                .filter((id) => typeof id === 'string')
+                .filter(id => id.trim());
         }
         else {
             return res.status(400).json({
@@ -101,7 +103,9 @@ const getPetHealthTrends = async (req, res) => {
             petIdArray = petIds.split(',').filter(id => id.trim());
         }
         else if (Array.isArray(petIds)) {
-            petIdArray = petIds.filter(id => typeof id === 'string' && id.trim());
+            petIdArray = petIds
+                .filter((id) => typeof id === 'string')
+                .filter(id => id.trim());
         }
         else {
             return res.status(400).json({

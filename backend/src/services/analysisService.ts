@@ -1,459 +1,312 @@
-import { PoopRecord, IPoopRecord } from '../models/PoopRecord';
-import { AIAnalysisResult } from './aiService';
-import { Logger } from '../utils/logger';
 import mongoose from 'mongoose';
+import { PoopRecord, IPoopRecord } from '../models/PoopRecord';
+import { Logger } from '../utils/logger';
+import { AIAnalysisResult } from './aiService';
+import { upsertPoopRecord, deletePoopRecord } from './pgSyncService';
 
-// 分析记录创建请求
-export interface CreateAnalysisRecordRequest {
-  petId: string;
+interface CreateAnalysisParams {
   userId: string;
+  petId: string;
   imageUrl: string;
-  thumbnailUrl?: string;
-  analysis: AIAnalysisResult;
-  userNotes?: string;
-  symptoms?: string[];
-  timestamp?: Date;
-  location?: {
-    latitude: number;
-    longitude: number;
-  };
-  weather?: {
-    temperature: number;
-    humidity: number;
-  };
-  isShared?: boolean;
+  result: AIAnalysisResult;
 }
 
-// 分析记录查询选项
-export interface AnalysisRecordQuery {
-  petId?: string;
+interface AnalysisQuery {
   userId?: string;
-  healthStatus?: 'healthy' | 'warning' | 'concerning';
+  petId?: string;
   startDate?: Date;
   endDate?: Date;
-  isShared?: boolean;
+  healthStatus?: string;
   page?: number;
   limit?: number;
-  sortBy?: 'timestamp' | 'confidence';
+  sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
 
-// 健康建议生成器
-export class HealthAdviceGenerator {
-  /**
-   * 根据分析结果生成健康建议
-   */
-  static generateAdvice(analysis: AIAnalysisResult, symptoms?: string[]): string[] {
-    const baseAdvice = [...analysis.recommendations];
-    const additionalAdvice: string[] = [];
-    
-    // 根据健康状态添加建议
-    switch (analysis.healthStatus) {
-      case 'healthy':
-        additionalAdvice.push('保持良好的饮食和运动习惯');
-        if (analysis.confidence < 80) {
-          additionalAdvice.push('建议继续观察，如有异常及时记录');
-        }
-        break;
-        
-      case 'warning':
-        additionalAdvice.push('建议调整饮食结构，增加纤维素摄入');
-        additionalAdvice.push('确保宠物有充足的饮水');
-        if (symptoms && symptoms.length > 0) {
-          additionalAdvice.push('注意观察相关症状的变化');
-        }
-        break;
-        
-      case 'concerning':
-        additionalAdvice.push('强烈建议咨询专业兽医');
-        additionalAdvice.push('暂时改为易消化的食物');
-        additionalAdvice.push('密切监控宠物的整体状态');
-        break;
-    }
-    
-    // 根据形状类型添加特定建议
-    switch (analysis.shape) {
-      case 'type1':
-      case 'type2':
-        additionalAdvice.push('增加水分摄入，考虑添加益生菌');
-        break;
-      case 'type6':
-      case 'type7':
-        additionalAdvice.push('暂时减少食物摄入，观察是否改善');
-        break;
-    }
-    
-    // 根据症状添加建议
-    if (symptoms) {
-      if (symptoms.includes('食欲不振')) {
-        additionalAdvice.push('监控食欲变化，必要时就医');
-      }
-      if (symptoms.includes('呕吐')) {
-        additionalAdvice.push('暂时禁食4-6小时，然后少量多餐');
-      }
-      if (symptoms.includes('精神萎靡')) {
-        additionalAdvice.push('立即咨询兽医，可能需要紧急处理');
-      }
-    }
-    
-    return [...baseAdvice, ...additionalAdvice];
-  }
-  
-  /**
-   * 生成健康状态判断
-   */
-  static assessHealthStatus(
-    analysis: AIAnalysisResult, 
-    recentRecords?: IPoopRecord[]
-  ): {
-    currentStatus: string;
-    trend: 'improving' | 'stable' | 'declining';
-    riskLevel: 'low' | 'medium' | 'high';
-    urgency: 'none' | 'monitor' | 'consult' | 'urgent';
-  } {
-    let riskLevel: 'low' | 'medium' | 'high' = 'low';
-    let urgency: 'none' | 'monitor' | 'consult' | 'urgent' = 'none';
-    
-    // 基于当前分析结果判断
-    switch (analysis.healthStatus) {
-      case 'healthy':
-        riskLevel = 'low';
-        urgency = 'none';
-        break;
-      case 'warning':
-        riskLevel = 'medium';
-        urgency = 'monitor';
-        break;
-      case 'concerning':
-        riskLevel = 'high';
-        urgency = analysis.shape === 'type7' ? 'urgent' : 'consult';
-        break;
-    }
-    
-    // 分析趋势
-    let trend: 'improving' | 'stable' | 'declining' = 'stable';
-    if (recentRecords && recentRecords.length >= 3) {
-      const recentStatuses = recentRecords
-        .slice(0, 3)
-        .map(record => record.analysis.healthStatus);
-      
-      const healthyCount = recentStatuses.filter(s => s === 'healthy').length;
-      const concerningCount = recentStatuses.filter(s => s === 'concerning').length;
-      
-      if (healthyCount > concerningCount && recentStatuses[0] === 'healthy') {
-        trend = 'improving';
-      } else if (concerningCount > healthyCount) {
-        trend = 'declining';
-        if (urgency === 'none') urgency = 'monitor';
-        if (urgency === 'monitor') urgency = 'consult';
-      }
-    }
-    
-    return {
-      currentStatus: this.getStatusDescription(analysis.healthStatus),
-      trend,
-      riskLevel,
-      urgency
-    };
-  }
-  
-  private static getStatusDescription(status: string): string {
-    const descriptions = {
-      healthy: '健康状态良好',
-      warning: '需要关注的状态',
-      concerning: '异常状态，需要处理'
-    };
-    return descriptions[status as keyof typeof descriptions] || '未知状态';
-  }
+interface ShareAnalysisParams {
+  shareType: 'public' | 'private' | 'specific';
+  shareWith?: string[];
+}
+
+interface AnalysisStatistics {
+  totalRecords: number;
+  healthStatusDistribution: {
+    [key: string]: number;
+  };
+  shapeDistribution: {
+    [key: string]: number;
+  };
+  averageConfidence: number;
+  commonSymptoms: {
+    symptom: string;
+    count: number;
+  }[];
+  timeDistribution: {
+    date: string;
+    count: number;
+  }[];
 }
 
 export class AnalysisService {
   /**
    * 创建分析记录
    */
-  static async createAnalysisRecord(data: CreateAnalysisRecordRequest): Promise<IPoopRecord> {
+  static async createAnalysisRecord(params: CreateAnalysisParams): Promise<IPoopRecord> {
     try {
-      Logger.info(`创建分析记录: 宠物ID=${data.petId}, 用户ID=${data.userId}`);
-      
-      // 生成增强的健康建议
-      const enhancedRecommendations = HealthAdviceGenerator.generateAdvice(
-        data.analysis,
-        data.symptoms
-      );
-      
-      // 创建记录
       const record = new PoopRecord({
-        petId: new mongoose.Types.ObjectId(data.petId),
-        userId: new mongoose.Types.ObjectId(data.userId),
-        imageUrl: data.imageUrl,
-        thumbnailUrl: data.thumbnailUrl,
+        userId: params.userId,
+        petId: params.petId,
+        imageUrl: params.imageUrl,
         analysis: {
-          ...data.analysis,
-          recommendations: enhancedRecommendations
+          healthStatus: params.result.healthStatus,
+          shape: params.result.shape,
+          confidence: params.result.confidence,
+          details: params.result.details,
+          recommendations: params.result.recommendations,
+          detectedFeatures: params.result.detectedFeatures
         },
-        userNotes: data.userNotes,
-        symptoms: data.symptoms,
-        timestamp: data.timestamp || new Date(),
-        location: data.location,
-        weather: data.weather,
-        isShared: data.isShared || false
+        timestamp: new Date(),
+        shared: false
       });
-      
-      const savedRecord = await record.save();
-      Logger.info(`分析记录创建成功: ID=${savedRecord._id}`);
-      
-      return savedRecord;
-      
+
+      await record.save();
+      // PG双写（若未建立用户或宠物映射则自动跳过）
+      upsertPoopRecord(String(record.userId), String(record.petId), record);
+      return record;
     } catch (error) {
       Logger.error('创建分析记录失败:', error);
-      throw new Error('创建分析记录失败');
+      throw error;
     }
   }
-  
+
   /**
    * 获取分析记录列表
    */
-  static async getAnalysisRecords(query: AnalysisRecordQuery): Promise<{
-    records: IPoopRecord[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
+  static async getAnalysisRecords(query: AnalysisQuery): Promise<{ records: IPoopRecord[]; total: number }> {
     try {
       const {
-        petId,
         userId,
-        healthStatus,
+        petId,
         startDate,
         endDate,
-        isShared,
+        healthStatus,
         page = 1,
         limit = 10,
         sortBy = 'timestamp',
         sortOrder = 'desc'
       } = query;
-      
-      // 构建查询条件
+
       const filter: any = {};
       
-      if (petId) filter.petId = new mongoose.Types.ObjectId(petId);
-      if (userId) filter.userId = new mongoose.Types.ObjectId(userId);
+      if (userId) filter.userId = userId;
+      if (petId) filter.petId = petId;
       if (healthStatus) filter['analysis.healthStatus'] = healthStatus;
-      if (isShared !== undefined) filter.isShared = isShared;
       
       if (startDate || endDate) {
         filter.timestamp = {};
         if (startDate) filter.timestamp.$gte = startDate;
         if (endDate) filter.timestamp.$lte = endDate;
       }
+
+      const total = await PoopRecord.countDocuments(filter);
       
-      // 构建排序
-      const sort: any = {};
-      sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
-      
-      // 执行查询
-      const skip = (page - 1) * limit;
-      const [records, total] = await Promise.all([
-        PoopRecord.find(filter)
-          .sort(sort)
-          .skip(skip)
-          .limit(limit)
-          .populate('pet', 'name type breed')
-          .populate('user', 'username avatar'),
-        PoopRecord.countDocuments(filter)
-      ]);
-      
-      Logger.info(`获取分析记录: 查询到${records.length}条记录，总计${total}条`);
-      
+      const records = await PoopRecord.find(filter)
+        .sort({ [sortBy]: sortOrder })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec();
+
       return {
         records,
-        total,
-        page,
-        totalPages: Math.ceil(total / limit)
+        total
       };
-      
     } catch (error) {
-      Logger.error('获取分析记录失败:', error);
-      throw new Error('获取分析记录失败');
+      Logger.error('获取分析记录列表失败:', error);
+      throw error;
     }
   }
-  
+
   /**
    * 获取单个分析记录
    */
-  static async getAnalysisRecord(id: string): Promise<IPoopRecord | null> {
+  static async getAnalysisRecord(id: string, userId?: string): Promise<IPoopRecord | null> {
     try {
-      const record = await PoopRecord.findById(id)
-        .populate('pet', 'name type breed avatar')
-        .populate('user', 'username avatar');
-      
-      if (!record) {
-        Logger.warn(`分析记录不存在: ID=${id}`);
-        return null;
-      }
-      
+      const filter: any = { _id: id };
+      if (userId) filter.userId = userId;
+
+      const record = await PoopRecord.findOne(filter);
       return record;
-      
     } catch (error) {
       Logger.error('获取分析记录失败:', error);
-      throw new Error('获取分析记录失败');
+      throw error;
     }
   }
-  
+
   /**
    * 更新分析记录
    */
-  static async updateAnalysisRecord(
-    id: string,
-    updates: Partial<CreateAnalysisRecordRequest>
-  ): Promise<IPoopRecord | null> {
+  static async updateAnalysisRecord(id: string, userId: string, updateData: Partial<IPoopRecord>): Promise<IPoopRecord | null> {
     try {
-      const record = await PoopRecord.findByIdAndUpdate(
-        id,
-        { $set: updates },
-        { new: true, runValidators: true }
+      const record = await PoopRecord.findOneAndUpdate(
+        { _id: id, userId },
+        { $set: updateData },
+        { new: true }
       );
-      
-      if (!record) {
-        Logger.warn(`分析记录不存在: ID=${id}`);
-        return null;
-      }
-      
-      Logger.info(`分析记录更新成功: ID=${id}`);
       return record;
-      
     } catch (error) {
       Logger.error('更新分析记录失败:', error);
-      throw new Error('更新分析记录失败');
+      throw error;
     }
   }
-  
+
+  /**
+   * 分享分析记录
+   */
+  static async shareAnalysisRecord(id: string, userId: string, params: ShareAnalysisParams): Promise<IPoopRecord | null> {
+    try {
+      const record = await PoopRecord.findOneAndUpdate(
+        { _id: id, userId },
+        {
+          $set: {
+            shared: true,
+            shareType: params.shareType,
+            shareWith: params.shareWith || []
+          }
+        },
+        { new: true }
+      );
+      return record;
+    } catch (error) {
+      Logger.error('分享分析记录失败:', error);
+      throw error;
+    }
+  }
+
   /**
    * 删除分析记录
    */
   static async deleteAnalysisRecord(id: string): Promise<boolean> {
     try {
-      const result = await PoopRecord.findByIdAndDelete(id);
-      
-      if (!result) {
-        Logger.warn(`分析记录不存在: ID=${id}`);
-        return false;
+      const result = await PoopRecord.deleteOne({ _id: id });
+      if (result.deletedCount && result.deletedCount > 0) {
+        // 删除PG中的对应记录
+        deletePoopRecord(String(id));
+        return true;
       }
-      
-      Logger.info(`分析记录删除成功: ID=${id}`);
-      return true;
-      
+      return false;
     } catch (error) {
       Logger.error('删除分析记录失败:', error);
-      throw new Error('删除分析记录失败');
+      throw error;
     }
   }
-  
+
   /**
-   * 获取健康统计
+   * 批量删除分析记录
    */
-  static async getHealthStatistics(petId: string, days: number = 30): Promise<any> {
+  static async batchDeleteRecords(recordIds: string[]): Promise<{ success: boolean; message: string }> {
     try {
-      const statistics = await (PoopRecord as any).getHealthStatistics(petId, days);
-      
-      // 计算平均每周次数
-      const totalDays = days;
-      const averagePerWeek = statistics.totalRecords > 0 
-        ? Math.round((statistics.totalRecords / totalDays) * 7 * 10) / 10
-        : 0;
-      
-      return {
-        ...statistics,
-        averagePerWeek,
-        period: `${days}天`,
-        lastUpdated: new Date()
-      };
-      
-    } catch (error) {
-      Logger.error('获取健康统计失败:', error);
-      throw new Error('获取健康统计失败');
-    }
-  }
-  
-  /**
-   * 获取健康趋势
-   */
-  static async getHealthTrends(petId: string, days: number = 30): Promise<any[]> {
-    try {
-      const trends = await (PoopRecord as any).getHealthTrends(petId, days);
-      
-      // 填充缺失的日期
-      const filledTrends = this.fillMissingDates(trends, days);
-      
-      Logger.info(`获取健康趋势: 宠物ID=${petId}, ${filledTrends.length}天数据`);
-      return filledTrends;
-      
-    } catch (error) {
-      Logger.error('获取健康趋势失败:', error);
-      throw new Error('获取健康趋势失败');
-    }
-  }
-  
-  /**
-   * 填充缺失的日期数据
-   */
-  private static fillMissingDates(trends: any[], days: number): any[] {
-    const result = [];
-    const today = new Date();
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateString = date.toISOString().split('T')[0];
-      
-      const existingData = trends.find(t => t._id === dateString);
-      
-      result.push({
-        date: dateString,
-        healthy: existingData?.healthy || 0,
-        warning: existingData?.warning || 0,
-        concerning: existingData?.concerning || 0,
-        total: (existingData?.healthy || 0) + (existingData?.warning || 0) + (existingData?.concerning || 0)
+      const result = await PoopRecord.deleteMany({
+        _id: { $in: recordIds.map(id => new mongoose.Types.ObjectId(id)) }
       });
-    }
-    
-    return result;
-  }
-  
-  /**
-   * 获取健康评估
-   */
-  static async getHealthAssessment(petId: string): Promise<any> {
-    try {
-      // 获取最近的记录
-      const recentRecords = await PoopRecord.find({ petId: new mongoose.Types.ObjectId(petId) })
-        .sort({ timestamp: -1 })
-        .limit(10);
-      
-      if (recentRecords.length === 0) {
-        return {
-          status: 'no_data',
-          message: '暂无分析记录',
-          recommendations: ['开始记录宠物的排便情况以获得健康评估']
-        };
+      // 同步删除PG中的对应记录
+      for (const rid of recordIds) {
+        deletePoopRecord(String(rid));
       }
-      
-      const latestRecord = recentRecords[0];
-      const assessment = HealthAdviceGenerator.assessHealthStatus(
-        latestRecord.analysis,
-        recentRecords
-      );
-      
       return {
-        ...assessment,
-        lastAnalysis: latestRecord.timestamp,
-        totalRecords: recentRecords.length,
-        recommendations: latestRecord.analysis.recommendations
+        success: true,
+        message: `成功删除${result.deletedCount}条记录`
       };
-      
     } catch (error) {
-      Logger.error('获取健康评估失败:', error);
-      throw new Error('获取健康评估失败');
+      Logger.error('批量删除分析记录失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取分析统计
+   */
+  static async getAnalysisStatistics(params: {
+    userId: string;
+    petId: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<AnalysisStatistics> {
+    try {
+      const { userId, petId, startDate, endDate } = params;
+      
+      const filter: any = { userId, petId };
+      if (startDate || endDate) {
+        filter.timestamp = {};
+        if (startDate) filter.timestamp.$gte = startDate;
+        if (endDate) filter.timestamp.$lte = endDate;
+      }
+
+      // 获取所有符合条件的记录
+      const records = await PoopRecord.find(filter);
+
+      // 计算统计数据
+      const statistics: AnalysisStatistics = {
+        totalRecords: records.length,
+        healthStatusDistribution: {},
+        shapeDistribution: {},
+        averageConfidence: 0,
+        commonSymptoms: [],
+        timeDistribution: []
+      };
+
+      // 临时存储症状计数
+      const symptomsCount: { [key: string]: number } = {};
+      let totalConfidence = 0;
+
+      // 按日期分组的记录计数
+      const dateCount: { [key: string]: number } = {};
+
+      records.forEach((record: IPoopRecord) => {
+        // 健康状态分布
+        const healthStatus = record.analysis.healthStatus;
+        statistics.healthStatusDistribution[healthStatus] = 
+          (statistics.healthStatusDistribution[healthStatus] || 0) + 1;
+
+        // 形状分布
+        const shape = record.analysis.shape;
+        statistics.shapeDistribution[shape] = 
+          (statistics.shapeDistribution[shape] || 0) + 1;
+
+        // 置信度累加
+        totalConfidence += record.analysis.confidence;
+
+        // 症状统计
+        if (record.symptoms) {
+          record.symptoms.forEach((symptom: string) => {
+            symptomsCount[symptom] = (symptomsCount[symptom] || 0) + 1;
+          });
+        }
+
+        // 时间分布
+        const date = record.timestamp.toISOString().split('T')[0];
+        dateCount[date] = (dateCount[date] || 0) + 1;
+      });
+
+      // 计算平均置信度
+      statistics.averageConfidence = records.length > 0 
+        ? totalConfidence / records.length 
+        : 0;
+
+      // 转换症状计数为数组并排序
+      statistics.commonSymptoms = Object.entries(symptomsCount)
+        .map(([symptom, count]) => ({ symptom, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);  // 只取前5个最常见的症状
+
+      // 转换时间分布为数组并排序
+      statistics.timeDistribution = Object.entries(dateCount)
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return statistics;
+    } catch (error) {
+      Logger.error('获取分析统计失败:', error);
+      throw error;
     }
   }
 }

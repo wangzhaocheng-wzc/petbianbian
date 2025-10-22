@@ -22,7 +22,7 @@ export declare class AIService {
     /**
      * 图片预处理和格式转换
      */
-    static preprocessImage(imagePath: string): Promise<ProcessedImage>;
+    static preprocessImage(imageBuffer: Buffer): Promise<ProcessedImage>;
     /**
      * 验证图片是否包含便便内容
      */

@@ -9,7 +9,13 @@ const TestUpload: React.FC = () => {
   const [error, setError] = useState<string>('');
 
   const handleFileSelect = (files: File[]) => {
-    console.log('选择的文件:', files);
+    console.log('TestUpload: 选择的文件:', files);
+    console.log('TestUpload: 文件详情:', files.map(f => ({
+      name: f.name,
+      size: f.size,
+      type: f.type,
+      lastModified: f.lastModified
+    })));
   };
 
   const handleAvatarChange = (url: string) => {

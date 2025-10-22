@@ -1,4 +1,6 @@
 import mongoose, { Document } from 'mongoose';
+import { IUser } from './User';
+import { IPet } from './Pet';
 export interface INotification extends Document {
     userId: mongoose.Types.ObjectId;
     petId?: mongoose.Types.ObjectId;
@@ -45,6 +47,14 @@ export interface INotification extends Document {
     };
     createdAt: Date;
     updatedAt: Date;
+    user?: IUser;
+    pet?: IPet;
+    markAsRead(): Promise<void>;
+    markAsArchived(): Promise<void>;
+    recordClick(): Promise<void>;
+    markInAppSent(): Promise<void>;
+    markEmailSent(emailAddress: string): Promise<void>;
+    markPushSent(deviceTokens: string[]): Promise<void>;
 }
 export declare const Notification: mongoose.Model<INotification, {}, {}, {}, mongoose.Document<unknown, {}, INotification> & INotification & {
     _id: mongoose.Types.ObjectId;

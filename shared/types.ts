@@ -77,6 +77,8 @@ export interface Pet {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  recordCount?: number;
+  lastRecordDate?: Date;
 }
 
 // 宠物相关的请求和响应类型
@@ -88,6 +90,7 @@ export interface CreatePetRequest {
   age?: number;
   weight?: number;
   description?: string;
+  avatar?: string;
   medicalHistory?: {
     allergies: string[];
     medications: string[];

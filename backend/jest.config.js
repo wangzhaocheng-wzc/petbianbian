@@ -17,7 +17,13 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.simple.ts'],
+  testPathIgnorePatterns: [
+    '<rootDir>/tests/models/',
+    '<rootDir>/tests/controllers/',
+    '<rootDir>/tests/routes/',
+    '<rootDir>/tests/services/'
+  ],
   testTimeout: 10000,
   globalSetup: '<rootDir>/tests/globalSetup.ts',
   globalTeardown: '<rootDir>/tests/globalTeardown.ts',

@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import { Pet, CreatePetRequest, UpdatePetRequest } from '../../../shared/types';
 import { petService } from '../services/petService';
 
+// 统一处理后端返回的宠物对象，确保存在 id 字段
+const normalizePet = (pet: any): Pet => {
+  const id = pet?.id ?? pet?._id;
+  // 保留原有字段，同时补充 id 字段
+  return {
+    ...pet,
+    id,
+  } as Pet;
+};
+
 export const usePets = () => {
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(false);
@@ -14,7 +24,8 @@ export const usePets = () => {
       setError(null);
       const response = await petService.getPets(isInitialLoad);
       if (response.success && response.data) {
-        setPets(response.data.pets);
+        const normalized = response.data.pets.map(normalizePet);
+        setPets(normalized);
       } else {
         setError(response.message || '获取宠物列表失败');
       }
@@ -32,7 +43,8 @@ export const usePets = () => {
       setError(null);
       const response = await petService.createPet(petData);
       if (response.success && response.data) {
-        setPets(prev => [response.data!, ...prev]);
+        const created = normalizePet(response.data!);
+        setPets(prev => [created, ...prev]);
         return true;
       } else {
         setError(response.message || '创建宠物失败');
@@ -53,8 +65,9 @@ export const usePets = () => {
       setError(null);
       const response = await petService.updatePet(petId, petData);
       if (response.success && response.data) {
+        const updated = normalizePet(response.data!);
         setPets(prev => prev.map(pet => 
-          pet.id === petId ? response.data! : pet
+          (pet.id === petId || (pet as any)._id === petId) ? updated : pet
         ));
         return true;
       } else {

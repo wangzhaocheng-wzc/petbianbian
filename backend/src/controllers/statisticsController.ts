@@ -331,9 +331,9 @@ export class StatisticsController {
 
       // 获取不同时间段的统计数据
       const [weekStats, monthStats, quarterStats] = await Promise.all([
-        this.calculateUserPeriodStats(userId, 'week'),
-        this.calculateUserPeriodStats(userId, 'month'),
-        this.calculateUserPeriodStats(userId, 'quarter')
+        StatisticsController.calculateUserPeriodStats(userId, 'week'),
+        StatisticsController.calculateUserPeriodStats(userId, 'month'),
+        StatisticsController.calculateUserPeriodStats(userId, 'quarter')
       ]);
 
       // 获取最近的异常情况

@@ -2291,7 +2291,7 @@ declare const redisClient: import("@redis/client").RedisClientType<{
             readonly transformReply: () => import("@redis/client/dist/lib/RESP/types").SimpleStringReply<"OK">;
         };
     };
-} & import("redis").RedisModules, import("redis").RedisFunctions, import("redis").RedisScripts, import("redis").RespVersions, import("redis").TypeMapping>;
+} & import("redis").RedisModules, import("redis").RedisFunctions, import("redis").RedisScripts, import("redis").RespVersions, import("redis").TypeMapping> | null;
 export declare const connectRedis: () => Promise<void>;
 export declare const disconnectRedis: () => Promise<void>;
 export default redisClient;

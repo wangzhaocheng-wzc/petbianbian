@@ -12,28 +12,28 @@ const ensureUploadDir = (dirPath: string) => {
 
 // 文件存储配置
 const storage = multer.diskStorage({
-  destination: (req: Request, file: Express.Multer.File, cb) => {
-    let uploadPath = 'uploads/';
+  destination: (req, file, cb) => {
+    let uploadDir = 'uploads';
     
-    // 根据上传类型确定存储路径
-    if (req.path.includes('avatar')) {
-      uploadPath += 'avatars/';
-    } else if (req.path.includes('analysis')) {
-      uploadPath += 'analysis/';
-    } else if (req.path.includes('community')) {
-      uploadPath += 'community/';
+    // 根据请求路径确定上传目录
+    if (req.path.includes('/avatar')) {
+      uploadDir = path.join('uploads', 'avatars');
+    } else if (req.path.includes('/analysis')) {
+      uploadDir = path.join('uploads', 'analysis');
+    } else if (req.path.includes('/community')) {
+      uploadDir = path.join('uploads', 'community');
     }
     
     // 确保目录存在
-    ensureUploadDir(uploadPath);
-    
-    cb(null, uploadPath);
+    ensureUploadDir(uploadDir);
+    cb(null, uploadDir);
   },
-  filename: (req: Request, file: Express.Multer.File, cb) => {
-    // 生成唯一文件名
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  filename: (req, file, cb) => {
+    // 生成文件名：时间戳-随机数.扩展名
+    const timestamp = Date.now();
+    const random = Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${timestamp}-${random}${ext}`);
   }
 });
 

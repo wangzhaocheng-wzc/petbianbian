@@ -158,7 +158,7 @@ exports.getPost = getPost;
 // 创建新帖子
 const createPost = async (req, res) => {
     try {
-        const { title, content, petId, images = [], tags = [], category = 'general' } = req.body;
+        const { title, content, petId, images = [], tags = [], category = 'general', isAnonymous = false } = req.body;
         const userId = req.user.userId;
         // 验证必填字段
         if (!title || !content) {
@@ -231,6 +231,7 @@ const createPost = async (req, res) => {
             tags: Array.isArray(tags) ? tags.map((tag) => tag.trim()).filter(Boolean) : [],
             category,
             status,
+            isAnonymous: Boolean(isAnonymous), // 是否匿名发布
             interactions: {
                 likes: [],
                 views: 0,
@@ -271,7 +272,7 @@ exports.createPost = createPost;
 const updatePost = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, content, images, tags, category } = req.body;
+        const { title, content, images, tags, category, isAnonymous } = req.body;
         const userId = req.user.userId;
         if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
@@ -327,6 +328,9 @@ const updatePost = async (req, res) => {
                 });
             }
             post.category = category;
+        }
+        if (isAnonymous !== undefined) {
+            post.isAnonymous = Boolean(isAnonymous);
         }
         await post.save();
         await post.populate('userId', 'username avatar profile.firstName profile.lastName');

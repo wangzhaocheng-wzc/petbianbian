@@ -3,6 +3,7 @@ import { register, collectDefaultMetrics, Counter, Histogram, Gauge } from 'prom
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getPostgresStatus } from '../config/postgres';
 
 // 启用默认指标收集
 collectDefaultMetrics();
@@ -152,8 +153,14 @@ export class MonitoringService {
     // 检查数据库连接
     let databaseStatus: 'connected' | 'disconnected' | 'error' = 'disconnected';
     try {
-      if (mongoose.connection.readyState === 1) {
-        databaseStatus = 'connected';
+      const dbPrimary = process.env.DB_PRIMARY || 'mongo';
+      if (dbPrimary === 'postgres') {
+        const pg = await getPostgresStatus();
+        databaseStatus = pg === 'connected' ? 'connected' : 'disconnected';
+      } else {
+        if (mongoose.connection.readyState === 1) {
+          databaseStatus = 'connected';
+        }
       }
     } catch (error) {
       databaseStatus = 'error';

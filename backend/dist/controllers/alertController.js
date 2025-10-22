@@ -21,7 +21,7 @@ class AlertController {
                 });
                 return;
             }
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -53,7 +53,7 @@ class AlertController {
      */
     static async getUserAlertRules(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -151,7 +151,7 @@ class AlertController {
      */
     static async triggerAlertCheck(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -231,7 +231,7 @@ class AlertController {
      */
     static async getAlertStatistics(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -260,7 +260,7 @@ class AlertController {
      */
     static async createDefaultRules(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,

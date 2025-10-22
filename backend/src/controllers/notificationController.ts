@@ -6,13 +6,21 @@ import { validationResult } from 'express-validator';
 // 扩展Request接口以包含用户信息
 interface AuthenticatedRequest extends Request {
   user?: {
-    id: string;
-    username: string;
+    userId: string;
     email: string;
+    username?: string;
   };
 }
 
 export class NotificationController {
+  // 动态选择底层服务，避免在未配置 Postgres 时模块加载即崩溃
+  private static async getBaseService() {
+    if (process.env.DB_PRIMARY === 'postgres') {
+      const { PGNotificationService } = await import('../services/pgNotificationService');
+      return PGNotificationService as any;
+    }
+    return NotificationService as any;
+  }
   /**
    * 创建通知
    */
@@ -29,7 +37,7 @@ export class NotificationController {
         return;
       }
 
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -43,7 +51,8 @@ export class NotificationController {
         ...req.body
       };
 
-      const notification = await NotificationService.createNotification(notificationData);
+      const Service = await NotificationController.getBaseService();
+      const notification = await Service.createNotification(notificationData as any);
 
       res.status(201).json({
         success: true,
@@ -65,7 +74,7 @@ export class NotificationController {
    */
   static async getUserNotifications(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -92,7 +101,8 @@ export class NotificationController {
         limit: parseInt(limit as string)
       };
 
-      const result = await NotificationService.getUserNotifications(userId, options);
+      const Service = await NotificationController.getBaseService();
+      const result = await Service.getUserNotifications(userId, options);
 
       res.json({
         success: true,
@@ -114,7 +124,7 @@ export class NotificationController {
    */
   static async getUnreadCount(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -123,16 +133,20 @@ export class NotificationController {
         return;
       }
 
-      const result = await NotificationService.getUserNotifications(userId, {
-        status: 'unread',
-        limit: 1
-      });
+      let unreadCount = 0;
+      const Base: any = await NotificationController.getBaseService();
+      if (typeof Base.getUnreadCount === 'function') {
+        unreadCount = await Base.getUnreadCount(userId);
+      } else {
+        const result = await NotificationService.getUserNotifications(userId, {} as any);
+        unreadCount = (result as any).unreadCount ?? 0;
+      }
 
       res.json({
         success: true,
         message: '获取未读通知数量成功',
         data: {
-          unreadCount: result.unreadCount
+          unreadCount
         }
       });
 
@@ -150,7 +164,7 @@ export class NotificationController {
    */
   static async markAsRead(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -161,7 +175,8 @@ export class NotificationController {
 
       const { notificationId } = req.params;
 
-      const success = await NotificationService.markNotificationAsRead(notificationId, userId);
+      const Service = await NotificationController.getBaseService();
+      const success = await Service.markNotificationAsRead(notificationId, userId);
 
       if (!success) {
         res.status(404).json({
@@ -201,7 +216,7 @@ export class NotificationController {
         return;
       }
 
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -212,7 +227,8 @@ export class NotificationController {
 
       const { notificationIds } = req.body;
 
-      const updatedCount = await NotificationService.markNotificationsAsRead(notificationIds, userId);
+      const Service = await NotificationController.getBaseService();
+      const updatedCount = await Service.markNotificationsAsRead(notificationIds, userId);
 
       res.json({
         success: true,
@@ -236,7 +252,7 @@ export class NotificationController {
    */
   static async deleteNotification(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -247,7 +263,8 @@ export class NotificationController {
 
       const { notificationId } = req.params;
 
-      const success = await NotificationService.deleteNotification(notificationId, userId);
+      const Service = await NotificationController.getBaseService();
+      const success = await Service.deleteNotification(notificationId, userId);
 
       if (!success) {
         res.status(404).json({
@@ -276,7 +293,7 @@ export class NotificationController {
    */
   static async getNotificationStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -287,7 +304,8 @@ export class NotificationController {
 
       const { days = '30' } = req.query;
 
-      const statistics = await NotificationService.getNotificationStatistics(
+      const Service = await NotificationController.getBaseService();
+      const statistics = await Service.getNotificationStatistics(
         userId,
         parseInt(days as string)
       );
@@ -312,7 +330,7 @@ export class NotificationController {
    */
   static async sendTestNotification(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -335,7 +353,8 @@ export class NotificationController {
         }
       };
 
-      const notification = await NotificationService.createNotification(testNotification);
+      const Service = await NotificationController.getBaseService();
+      const notification = await Service.createNotification(testNotification as any);
 
       res.json({
         success: true,
@@ -359,8 +378,12 @@ export class NotificationController {
     try {
       // 这里应该添加管理员权限检查
       // if (!req.user?.isAdmin) { ... }
-
-      const result = await NotificationService.processPendingNotifications();
+      const Base: any = await NotificationController.getBaseService();
+      if (typeof Base.processPendingNotifications !== 'function') {
+        res.status(501).json({ success: false, message: 'Postgres 模式下暂未实现该功能' });
+        return;
+      }
+      const result = await Base.processPendingNotifications();
 
       res.json({
         success: true,
@@ -384,8 +407,12 @@ export class NotificationController {
     try {
       // 这里应该添加管理员权限检查
       // if (!req.user?.isAdmin) { ... }
-
-      const deletedCount = await NotificationService.cleanupExpiredNotifications();
+      const Base: any = await NotificationController.getBaseService();
+      if (typeof Base.cleanupExpiredNotifications !== 'function') {
+        res.status(501).json({ success: false, message: 'Postgres 模式下暂未实现该功能' });
+        return;
+      }
+      const deletedCount = await Base.cleanupExpiredNotifications();
 
       res.json({
         success: true,
@@ -409,7 +436,7 @@ export class NotificationController {
    */
   static async getNotificationSettings(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -485,7 +512,7 @@ export class NotificationController {
         return;
       }
 
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
       if (!userId) {
         res.status(401).json({
           success: false,

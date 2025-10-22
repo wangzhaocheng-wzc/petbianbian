@@ -17,7 +17,7 @@ test.describe('用户认证流程', () => {
 
   test('用户注册流程', async ({ page }) => {
     // 点击注册按钮
-    await page.click('text=注册');
+    await page.getByRole('link', { name: '注册' }).click();
     
     // 等待注册页面加载
     await expect(page).toHaveURL(/.*register/);
@@ -27,104 +27,112 @@ test.describe('用户认证流程', () => {
     const testEmail = `test${timestamp}@example.com`;
     const testUsername = `testuser${timestamp}`;
     
-    await page.fill('[data-testid="username-input"]', testUsername);
-    await page.fill('[data-testid="email-input"]', testEmail);
-    await page.fill('[data-testid="password-input"]', 'password123');
-    await page.fill('[data-testid="confirm-password-input"]', 'password123');
+    await page.fill('#username', testUsername);
+    await page.fill('#email', testEmail);
+    await page.fill('#password', 'password123');
+    await page.fill('#confirmPassword', 'password123');
     
     // 提交注册表单
-    await page.click('[data-testid="register-submit"]');
+    await page.getByRole('button', { name: '注册' }).click();
     
     // 验证注册成功
-    await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.locator('[data-testid="user-welcome"]')).toContainText(testUsername);
+    await expect(page).toHaveURL('/');
+    await expect(page.getByText(testUsername, { exact: false })).toBeVisible();
   });
 
   test('用户登录流程', async ({ page }) => {
     // 点击登录按钮
-    await page.click('text=登录');
+    await page.getByRole('link', { name: '登录' }).click();
     
     // 等待登录页面加载
     await expect(page).toHaveURL(/.*login/);
     
     // 填写登录表单（使用预设的测试账户）
-    await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'password123');
+    await page.fill('#email', 'test@example.com');
+    await page.fill('#password', 'password123');
     
     // 提交登录表单
-    await page.click('[data-testid="login-submit"]');
+    await page.getByRole('button', { name: '登录' }).click();
     
     // 验证登录成功
-    await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.locator('[data-testid="user-menu"]')).toBeVisible();
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('button', { name: '退出' })).toBeVisible();
   });
 
   test('登录验证失败', async ({ page }) => {
-    await page.click('text=登录');
+    await page.getByRole('link', { name: '登录' }).click();
     await expect(page).toHaveURL(/.*login/);
     
     // 使用错误的凭据
-    await page.fill('[data-testid="email-input"]', 'wrong@example.com');
-    await page.fill('[data-testid="password-input"]', 'wrongpassword');
+    await page.fill('#email', 'wrong@example.com');
+    await page.fill('#password', 'wrongpassword');
     
-    await page.click('[data-testid="login-submit"]');
+    await page.getByRole('button', { name: '登录' }).click();
     
-    // 验证错误消息显示
-    await expect(page.locator('[data-testid="error-message"]')).toContainText('邮箱或密码错误');
+    // 验证错误消息显示（兼容多种错误文案）
+    await expect(page.getByText(/(邮箱或密码错误|登录失败)/)).toBeVisible();
   });
 
   test('用户登出流程', async ({ page }) => {
     // 先登录
-    await page.click('text=登录');
-    await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'password123');
-    await page.click('[data-testid="login-submit"]');
+    await page.getByRole('link', { name: '登录' }).click();
+    await page.fill('#email', 'test@example.com');
+    await page.fill('#password', 'password123');
+    await page.getByRole('button', { name: '登录' }).click();
     
     // 等待登录成功
-    await expect(page).toHaveURL(/.*dashboard/);
-    
-    // 点击用户菜单
-    await page.click('[data-testid="user-menu"]');
+    await expect(page).toHaveURL('/');
     
     // 点击登出
-    await page.click('text=登出');
+    await page.getByRole('button', { name: '退出' }).click();
     
     // 验证登出成功
     await expect(page).toHaveURL('/');
-    await expect(page.locator('text=登录')).toBeVisible();
+    await expect(page.getByRole('link', { name: '登录' })).toBeVisible();
   });
 
   test('表单验证', async ({ page }) => {
-    await page.click('text=注册');
+    await page.getByRole('link', { name: '注册' }).click();
     
     // 尝试提交空表单
-    await page.click('[data-testid="register-submit"]');
+    await page.getByRole('button', { name: '注册' }).click();
     
-    // 验证验证错误显示
-    await expect(page.locator('[data-testid="username-error"]')).toContainText('用户名是必需的');
-    await expect(page.locator('[data-testid="email-error"]')).toContainText('邮箱是必需的');
-    await expect(page.locator('[data-testid="password-error"]')).toContainText('密码是必需的');
+    // 验证浏览器原生必填校验触发
+    const usernameMissing = await page.locator('#username').evaluate(el => (el as HTMLInputElement).validity.valueMissing);
+    const emailMissing = await page.locator('#email').evaluate(el => (el as HTMLInputElement).validity.valueMissing);
+    const passwordMissing = await page.locator('#password').evaluate(el => (el as HTMLInputElement).validity.valueMissing);
+    
+    expect(usernameMissing).toBeTruthy();
+    expect(emailMissing).toBeTruthy();
+    expect(passwordMissing).toBeTruthy();
   });
 
   test('密码强度验证', async ({ page }) => {
-    await page.click('text=注册');
+    await page.getByRole('link', { name: '注册' }).click();
     
-    // 输入弱密码
-    await page.fill('[data-testid="password-input"]', '123');
-    await page.blur('[data-testid="password-input"]');
+    // 输入弱密码并尝试提交
+    await page.fill('#username', 'weakpassuser');
+    await page.fill('#email', `weak${Date.now()}@example.com`);
+    await page.fill('#password', '123');
+    await page.fill('#confirmPassword', '123');
+    await page.getByRole('button', { name: '注册' }).click();
     
-    // 验证密码强度提示
-    await expect(page.locator('[data-testid="password-error"]')).toContainText('密码至少需要6个字符');
+    // 验证密码强度提示（页面顶端错误文案）
+    await expect(page.getByText('密码长度至少6位')).toBeVisible();
   });
 
   test('邮箱格式验证', async ({ page }) => {
-    await page.click('text=注册');
+    await page.getByRole('link', { name: '注册' }).click();
     
-    // 输入无效邮箱
-    await page.fill('[data-testid="email-input"]', 'invalid-email');
-    await page.blur('[data-testid="email-input"]');
+    // 输入无效邮箱并尝试提交
+    await page.fill('#username', 'invalidemailuser');
+    await page.fill('#email', 'invalid-email');
+    await page.fill('#password', 'password123');
+    await page.fill('#confirmPassword', 'password123');
+    await page.getByRole('button', { name: '注册' }).click();
     
-    // 验证邮箱格式提示
-    await expect(page.locator('[data-testid="email-error"]')).toContainText('请输入有效的邮箱地址');
+    // 验证原生邮箱格式校验触发
+    const emailFormatInvalid = await page.locator('#email').evaluate(el => (el as HTMLInputElement).validity.typeMismatch);
+    expect(emailFormatInvalid).toBeTruthy();
   });
 });

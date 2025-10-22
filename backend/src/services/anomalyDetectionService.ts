@@ -1,6 +1,7 @@
 import { PoopRecord, IPoopRecord } from '../models/PoopRecord';
 import { Logger } from '../utils/logger';
 import mongoose from 'mongoose';
+import { getPostgresPool } from '../config/postgres';
 
 // 异常检测结果接口
 export interface AnomalyDetectionResult {
@@ -70,6 +71,48 @@ export class AnomalyDetectionService {
     }
   };
 
+  private static async fetchRecords(
+    petId: string,
+    startDate: Date,
+    endDate?: Date
+  ): Promise<any[]> {
+    const DB_PRIMARY = process.env.DB_PRIMARY || 'postgres';
+    if (DB_PRIMARY === 'postgres') {
+      try {
+        const pool = await getPostgresPool();
+        const params: any[] = [petId, startDate];
+        let sql = `SELECT shape, health_status, confidence, timestamp FROM poop_records WHERE pet_id = $1 AND timestamp >= $2`;
+        if (endDate) {
+          sql += ` AND timestamp < $3`;
+          params.push(endDate);
+        }
+        sql += ` ORDER BY timestamp DESC`;
+        const { rows } = await pool.query(sql, params);
+        return rows.map((r: any) => ({
+          analysis: {
+            shape: r.shape,
+            healthStatus: r.health_status,
+            confidence: typeof r.confidence === 'number' ? r.confidence : Number(r.confidence)
+          },
+          timestamp: new Date(r.timestamp)
+        }));
+      } catch (err: any) {
+        Logger.warn(`Postgres poop_records 查询失败或不存在: ${err?.message || err}`);
+        return [];
+      }
+    } else {
+      // MongoDB 分支：仅当 ID 有效时查询，否则返回空数据，避免抛错
+      if (!mongoose.Types.ObjectId.isValid(petId)) {
+        return [];
+      }
+      const query: any = {
+        petId: new mongoose.Types.ObjectId(petId),
+        timestamp: endDate ? { $gte: startDate, $lt: endDate } : { $gte: startDate }
+      };
+      return PoopRecord.find(query).sort({ timestamp: -1 });
+    }
+  }
+
   /**
    * 检测宠物健康异常
    */
@@ -94,14 +137,8 @@ export class AnomalyDetectionService {
       baselineStartDate.setDate(baselineStartDate.getDate() - baselineWindow);
 
       const [analysisRecords, baselineRecords] = await Promise.all([
-        PoopRecord.find({
-          petId: new mongoose.Types.ObjectId(petId),
-          timestamp: { $gte: analysisStartDate }
-        }).sort({ timestamp: -1 }),
-        PoopRecord.find({
-          petId: new mongoose.Types.ObjectId(petId),
-          timestamp: { $gte: baselineStartDate, $lt: analysisStartDate }
-        }).sort({ timestamp: -1 })
+        this.fetchRecords(petId, analysisStartDate),
+        this.fetchRecords(petId, baselineStartDate, analysisStartDate)
       ]);
 
       if (analysisRecords.length === 0) {
@@ -474,49 +511,33 @@ export class AnomalyDetectionService {
     try {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
-
-      const records = await PoopRecord.find({
-        petId: new mongoose.Types.ObjectId(petId),
-        timestamp: { $gte: startDate }
-      }).sort({ timestamp: -1 });
-
+      const records = await this.fetchRecords(petId, startDate);
       if (records.length === 0) {
         throw new Error('没有足够的数据进行模式分析');
       }
-
-      // 计算平均频率
       const averageFrequency = (records.length / days) * 7;
-
-      // 健康状态分布
       const healthStatusDistribution = {
-        healthy: records.filter(r => r.analysis.healthStatus === 'healthy').length,
-        warning: records.filter(r => r.analysis.healthStatus === 'warning').length,
-        concerning: records.filter(r => r.analysis.healthStatus === 'concerning').length
+        healthy: records.filter((r: any) => r.analysis.healthStatus === 'healthy').length,
+        warning: records.filter((r: any) => r.analysis.healthStatus === 'warning').length,
+        concerning: records.filter((r: any) => r.analysis.healthStatus === 'concerning').length
       };
-
-      // 主导健康状态
       const dominantHealthStatus = Object.entries(healthStatusDistribution)
-        .reduce((a, b) => a[1] > b[1] ? a : b)[0] as 'healthy' | 'warning' | 'concerning';
-
-      // 一致性模式
-      const consistencyPattern = this.getShapeDistribution(records);
-
-      // 时间模式分析
+        .reduce((a, b) => (a[1] as number) > (b[1] as number) ? a : b)[0] as 'healthy' | 'warning' | 'concerning';
+      const consistencyPattern = this.getShapeDistribution(records as IPoopRecord[]);
       const timePatterns = {
-        morningCount: records.filter(r => {
-          const hour = r.timestamp.getHours();
+        morningCount: records.filter((r: any) => {
+          const hour = new Date(r.timestamp).getHours();
           return hour >= 6 && hour < 12;
         }).length,
-        afternoonCount: records.filter(r => {
-          const hour = r.timestamp.getHours();
+        afternoonCount: records.filter((r: any) => {
+          const hour = new Date(r.timestamp).getHours();
           return hour >= 12 && hour < 18;
         }).length,
-        eveningCount: records.filter(r => {
-          const hour = r.timestamp.getHours();
+        eveningCount: records.filter((r: any) => {
+          const hour = new Date(r.timestamp).getHours();
           return hour >= 18 || hour < 6;
         }).length
       };
-
       return {
         averageFrequency,
         dominantHealthStatus,
@@ -524,7 +545,6 @@ export class AnomalyDetectionService {
         consistencyPattern,
         timePatterns
       };
-
     } catch (error) {
       Logger.error('健康模式分析失败:', error);
       throw new Error('健康模式分析失败');

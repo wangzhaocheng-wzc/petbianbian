@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
 const Notification_1 = require("../models/Notification");
+// 移除未使用的模型导入（User、Pet 默认导出），避免错误的命名导入
 const logger_1 = require("../utils/logger");
 const mongoose_1 = __importDefault(require("mongoose"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
@@ -14,7 +15,7 @@ class NotificationService {
      */
     static initializeEmailService(config) {
         try {
-            this.emailTransporter = nodemailer_1.default.createTransporter({
+            this.emailTransporter = nodemailer_1.default.createTransport({
                 host: config.host,
                 port: config.port,
                 secure: config.secure,

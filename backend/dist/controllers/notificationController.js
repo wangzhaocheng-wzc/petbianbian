@@ -1,10 +1,51 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationController = void 0;
 const notificationService_1 = require("../services/notificationService");
 const logger_1 = require("../utils/logger");
 const express_validator_1 = require("express-validator");
 class NotificationController {
+    // 动态选择底层服务，避免在未配置 Postgres 时模块加载即崩溃
+    static async getBaseService() {
+        if (process.env.DB_PRIMARY === 'postgres') {
+            const { PGNotificationService } = await Promise.resolve().then(() => __importStar(require('../services/pgNotificationService')));
+            return PGNotificationService;
+        }
+        return notificationService_1.NotificationService;
+    }
     /**
      * 创建通知
      */
@@ -20,7 +61,7 @@ class NotificationController {
                 });
                 return;
             }
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -32,7 +73,8 @@ class NotificationController {
                 userId,
                 ...req.body
             };
-            const notification = await notificationService_1.NotificationService.createNotification(notificationData);
+            const Service = await NotificationController.getBaseService();
+            const notification = await Service.createNotification(notificationData);
             res.status(201).json({
                 success: true,
                 message: '通知创建成功',
@@ -52,7 +94,7 @@ class NotificationController {
      */
     static async getUserNotifications(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -69,7 +111,8 @@ class NotificationController {
                 page: parseInt(page),
                 limit: parseInt(limit)
             };
-            const result = await notificationService_1.NotificationService.getUserNotifications(userId, options);
+            const Service = await NotificationController.getBaseService();
+            const result = await Service.getUserNotifications(userId, options);
             res.json({
                 success: true,
                 message: '获取通知列表成功',
@@ -89,7 +132,7 @@ class NotificationController {
      */
     static async getUnreadCount(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -97,15 +140,20 @@ class NotificationController {
                 });
                 return;
             }
-            const result = await notificationService_1.NotificationService.getUserNotifications(userId, {
-                status: 'unread',
-                limit: 1
-            });
+            let unreadCount = 0;
+            const Base = await NotificationController.getBaseService();
+            if (typeof Base.getUnreadCount === 'function') {
+                unreadCount = await Base.getUnreadCount(userId);
+            }
+            else {
+                const result = await notificationService_1.NotificationService.getUserNotifications(userId, {});
+                unreadCount = result.unreadCount ?? 0;
+            }
             res.json({
                 success: true,
                 message: '获取未读通知数量成功',
                 data: {
-                    unreadCount: result.unreadCount
+                    unreadCount
                 }
             });
         }
@@ -122,7 +170,7 @@ class NotificationController {
      */
     static async markAsRead(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -131,7 +179,8 @@ class NotificationController {
                 return;
             }
             const { notificationId } = req.params;
-            const success = await notificationService_1.NotificationService.markNotificationAsRead(notificationId, userId);
+            const Service = await NotificationController.getBaseService();
+            const success = await Service.markNotificationAsRead(notificationId, userId);
             if (!success) {
                 res.status(404).json({
                     success: false,
@@ -167,7 +216,7 @@ class NotificationController {
                 });
                 return;
             }
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -176,7 +225,8 @@ class NotificationController {
                 return;
             }
             const { notificationIds } = req.body;
-            const updatedCount = await notificationService_1.NotificationService.markNotificationsAsRead(notificationIds, userId);
+            const Service = await NotificationController.getBaseService();
+            const updatedCount = await Service.markNotificationsAsRead(notificationIds, userId);
             res.json({
                 success: true,
                 message: '通知批量标记为已读成功',
@@ -198,7 +248,7 @@ class NotificationController {
      */
     static async deleteNotification(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -207,7 +257,8 @@ class NotificationController {
                 return;
             }
             const { notificationId } = req.params;
-            const success = await notificationService_1.NotificationService.deleteNotification(notificationId, userId);
+            const Service = await NotificationController.getBaseService();
+            const success = await Service.deleteNotification(notificationId, userId);
             if (!success) {
                 res.status(404).json({
                     success: false,
@@ -233,7 +284,7 @@ class NotificationController {
      */
     static async getNotificationStatistics(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -242,7 +293,8 @@ class NotificationController {
                 return;
             }
             const { days = '30' } = req.query;
-            const statistics = await notificationService_1.NotificationService.getNotificationStatistics(userId, parseInt(days));
+            const Service = await NotificationController.getBaseService();
+            const statistics = await Service.getNotificationStatistics(userId, parseInt(days));
             res.json({
                 success: true,
                 message: '获取通知统计成功',
@@ -262,7 +314,7 @@ class NotificationController {
      */
     static async sendTestNotification(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -283,7 +335,8 @@ class NotificationController {
                     push: req.body.includePush === true
                 }
             };
-            const notification = await notificationService_1.NotificationService.createNotification(testNotification);
+            const Service = await NotificationController.getBaseService();
+            const notification = await Service.createNotification(testNotification);
             res.json({
                 success: true,
                 message: '测试通知发送成功',
@@ -305,7 +358,12 @@ class NotificationController {
         try {
             // 这里应该添加管理员权限检查
             // if (!req.user?.isAdmin) { ... }
-            const result = await notificationService_1.NotificationService.processPendingNotifications();
+            const Base = await NotificationController.getBaseService();
+            if (typeof Base.processPendingNotifications !== 'function') {
+                res.status(501).json({ success: false, message: 'Postgres 模式下暂未实现该功能' });
+                return;
+            }
+            const result = await Base.processPendingNotifications();
             res.json({
                 success: true,
                 message: '待发送通知处理完成',
@@ -327,7 +385,12 @@ class NotificationController {
         try {
             // 这里应该添加管理员权限检查
             // if (!req.user?.isAdmin) { ... }
-            const deletedCount = await notificationService_1.NotificationService.cleanupExpiredNotifications();
+            const Base = await NotificationController.getBaseService();
+            if (typeof Base.cleanupExpiredNotifications !== 'function') {
+                res.status(501).json({ success: false, message: 'Postgres 模式下暂未实现该功能' });
+                return;
+            }
+            const deletedCount = await Base.cleanupExpiredNotifications();
             res.json({
                 success: true,
                 message: '过期通知清理完成',
@@ -349,7 +412,7 @@ class NotificationController {
      */
     static async getNotificationSettings(req, res) {
         try {
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,
@@ -421,7 +484,7 @@ class NotificationController {
                 });
                 return;
             }
-            const userId = req.user?.id;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(401).json({
                     success: false,

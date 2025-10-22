@@ -35,8 +35,7 @@ function runModerationTests() {
       `--timeout=${testConfig.timeout}`,
       `--retries=${testConfig.retries}`,
       `--workers=${testConfig.workers}`,
-      `--reporter=${testConfig.reporter}`,
-      `--output-dir=${testConfig.outputDir}`
+      `--reporter=${testConfig.reporter}`
     ];
     
     const specArgs = testSpecs.join(' ');

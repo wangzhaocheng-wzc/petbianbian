@@ -37,6 +37,11 @@ const PoopAnalysis: React.FC = () => {
   };
 
   const handleSaveRecord = async (record: PoopRecord) => {
+    console.log('🔍 开始保存记录:', record);
+    console.log('🔍 记录ID:', record.id);
+    console.log('🔍 用户备注:', record.userNotes);
+    console.log('🔍 症状:', record.symptoms);
+    
     try {
       const response = await AnalysisService.updateAnalysisRecord(record.id, {
         userNotes: record.userNotes,
@@ -44,11 +49,15 @@ const PoopAnalysis: React.FC = () => {
         isShared: false
       });
       
+      console.log('🔍 保存响应:', response);
+      
       if (response.success) {
-        console.log('记录保存成功');
+        console.log('✅ 记录保存成功');
+      } else {
+        console.error('❌ 保存失败:', response.message);
       }
     } catch (error) {
-      console.error('保存记录失败:', error);
+      console.error('❌ 保存记录失败:', error);
       throw error;
     }
   };

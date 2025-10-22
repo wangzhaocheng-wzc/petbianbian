@@ -28,8 +28,8 @@ const createNotificationValidation = [
         .withMessage('消息内容不能超过1000个字符'),
     (0, express_validator_1.body)('petId')
         .optional()
-        .isMongoId()
-        .withMessage('宠物ID格式无效'),
+        .isUUID()
+        .withMessage('宠物ID必须是UUID格式'),
     (0, express_validator_1.body)('priority')
         .optional()
         .isIn(['low', 'normal', 'high', 'urgent'])
@@ -46,16 +46,15 @@ const createNotificationValidation = [
 const markMultipleAsReadValidation = [
     (0, express_validator_1.body)('notificationIds')
         .isArray({ min: 1 })
-        .withMessage('通知ID列表不能为空')
-        .custom((value) => {
-        return value.every((id) => typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/));
-    })
-        .withMessage('通知ID格式无效')
+        .withMessage('通知ID列表不能为空'),
+    (0, express_validator_1.body)('notificationIds.*')
+        .isUUID()
+        .withMessage('通知ID必须是UUID格式')
 ];
 const mongoIdValidation = [
     (0, express_validator_1.param)('notificationId')
-        .isMongoId()
-        .withMessage('通知ID格式无效')
+        .isUUID()
+        .withMessage('通知ID必须是UUID格式')
 ];
 const updateSettingsValidation = [
     (0, express_validator_1.body)('inApp.enabled')

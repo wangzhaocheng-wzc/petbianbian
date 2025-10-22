@@ -1,4 +1,6 @@
 import mongoose, { Document } from 'mongoose';
+import { IUser } from './User';
+import { IPet } from './Pet';
 export interface IAlertRule extends Document {
     userId: mongoose.Types.ObjectId;
     petId?: mongoose.Types.ObjectId;
@@ -41,6 +43,8 @@ export interface IAlertRule extends Document {
     };
     createdAt: Date;
     updatedAt: Date;
+    user?: IUser;
+    pet?: IPet;
 }
 export declare const AlertRule: mongoose.Model<IAlertRule, {}, {}, {}, mongoose.Document<unknown, {}, IAlertRule> & IAlertRule & {
     _id: mongoose.Types.ObjectId;

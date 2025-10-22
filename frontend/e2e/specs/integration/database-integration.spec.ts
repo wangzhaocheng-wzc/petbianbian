@@ -200,12 +200,12 @@ test.describe('数据库集成测试', () => {
       }
       
       // 验证数据完整性
-      const dataIntegrity = await this.verifyDataIntegrity(page, userData, [pet1Data, pet2Data]);
-      expect(dataIntegrity.isValid).toBeTruthy();
-      expect(dataIntegrity.userExists).toBeTruthy();
-      expect(dataIntegrity.petsCount).toBe(2);
-      expect(dataIntegrity.recordsCount).toBe(3);
-      expect(dataIntegrity.statisticsMatch).toBeTruthy();
+      const dataIntegrity = await verifyDataIntegrity(page, userData, [pet1Data, pet2Data]);
+       expect(dataIntegrity.isValid).toBeTruthy();
+       expect(dataIntegrity.userExists).toBeTruthy();
+       expect(dataIntegrity.petsCount).toBe(2);
+       expect(dataIntegrity.recordsCount).toBe(3);
+       expect(dataIntegrity.statisticsMatch).toBeTruthy();
     });
 
     test('数据导出功能验证', async ({ page }) => {
@@ -435,7 +435,7 @@ test.describe('数据库集成测试', () => {
   });
 
   // 辅助方法
-  async verifyDataIntegrity(page: any, userData: any, pets: any[]) {
+  async function verifyDataIntegrity(page: any, userData: any, pets: any[]) {
     const integrity = {
       isValid: true,
       userExists: false,

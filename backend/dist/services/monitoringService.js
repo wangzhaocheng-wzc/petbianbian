@@ -38,6 +38,7 @@ const prom_client_1 = require("prom-client");
 const os = __importStar(require("os"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const postgres_1 = require("../config/postgres");
 // 启用默认指标收集
 (0, prom_client_1.collectDefaultMetrics)();
 // 自定义指标
@@ -146,8 +147,15 @@ class MonitoringService {
         // 检查数据库连接
         let databaseStatus = 'disconnected';
         try {
-            if (mongoose.connection.readyState === 1) {
-                databaseStatus = 'connected';
+            const dbPrimary = process.env.DB_PRIMARY || 'mongo';
+            if (dbPrimary === 'postgres') {
+                const pg = await (0, postgres_1.getPostgresStatus)();
+                databaseStatus = pg === 'connected' ? 'connected' : 'disconnected';
+            }
+            else {
+                if (mongoose.connection.readyState === 1) {
+                    databaseStatus = 'connected';
+                }
             }
         }
         catch (error) {

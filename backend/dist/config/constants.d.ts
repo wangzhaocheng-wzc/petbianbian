@@ -5,9 +5,10 @@ export declare const APP_CONFIG: {
     JWT_SECRET: string;
     JWT_EXPIRES_IN: string;
     REFRESH_TOKEN_EXPIRES_IN: string;
+    BASE_URL: string;
     MAX_FILE_SIZE: number;
     ALLOWED_IMAGE_TYPES: string[];
-    UPLOAD_PATHS: {
+    UPLOAD_PATH: {
         AVATARS: string;
         ANALYSIS: string;
         COMMUNITY: string;
@@ -15,14 +16,11 @@ export declare const APP_CONFIG: {
     AI_SERVICE: {
         URL: string;
         KEY: string;
-        TIMEOUT: number;
     };
     PAGINATION: {
-        DEFAULT_PAGE: number;
-        DEFAULT_LIMIT: number;
-        MAX_LIMIT: number;
+        DEFAULT_PAGE_SIZE: number;
+        MAX_PAGE_SIZE: number;
     };
-    BCRYPT_ROUNDS: number;
     RATE_LIMIT: {
         WINDOW_MS: number;
         MAX_REQUESTS: number;

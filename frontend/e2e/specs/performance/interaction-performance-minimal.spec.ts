@@ -41,22 +41,23 @@ test.describe('最小化交互性能测试', () => {
     // 等待页面加载完成
     await page.waitForLoadState('networkidle');
     
-    // 测试点击响应时间（如果有导航元素）
+    // 检查是否存在可见的按钮
+    const visibleButtonCount = await page.locator('button:visible').count();
+    if (visibleButtonCount === 0) {
+      console.log('没有找到可点击的按钮，跳过点击测试');
+      return; // 无按钮时跳过性能断言
+    }
+    const visibleButton = page.locator('button:visible').first();
+    
+    // 测试点击响应时间
     const clickTime = await SimplePerformanceMonitor.measureOperation(async () => {
-      // 尝试点击一个通用的元素，如果不存在就跳过
-      try {
-        await page.click('button', { timeout: 1000 });
-      } catch (error) {
-        console.log('没有找到可点击的按钮，跳过点击测试');
-      }
+      await visibleButton.click();
     });
     
     console.log(`点击响应时间: ${clickTime}ms`);
     
-    // 如果找到了按钮并点击了，验证响应时间
-    if (clickTime > 0) {
-      expect(clickTime).toBeLessThan(PERFORMANCE_THRESHOLDS.clickResponse);
-    }
+    // 有实际可点击按钮时，验证响应时间
+    expect(clickTime).toBeLessThan(PERFORMANCE_THRESHOLDS.clickResponse);
   });
 
   test('内存使用基础测试', async ({ page }) => {

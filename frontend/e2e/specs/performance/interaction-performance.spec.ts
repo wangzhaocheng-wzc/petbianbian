@@ -36,8 +36,7 @@ const PERFORMANCE_THRESHOLDS = {
   dataLoad: 1500, // 数据加载时间 (ms)
   complexOperation: 3000, // 复杂操作时间 (ms)
 };
-clas
-s InteractionPerformanceMonitor {
+class InteractionPerformanceMonitor {
   private page: Page;
   private metrics: InteractionMetrics[] = [];
   private benchmarks: PerformanceBenchmark[] = [];

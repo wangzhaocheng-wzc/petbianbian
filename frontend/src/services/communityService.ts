@@ -23,7 +23,7 @@ const api = axios.create({
 
 // 请求拦截器 - 添加认证token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
+  const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -45,7 +45,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
         try {
           console.log('Community service: 尝试刷新token...');
@@ -53,8 +53,8 @@ api.interceptors.response.use(
             refreshToken
           });
           
-          const newAccessToken = response.data.data.accessToken;
-          localStorage.setItem('accessToken', newAccessToken);
+          const newAccessToken = response.data.data.access_token;
+          localStorage.setItem('access_token', newAccessToken);
           
           // 重试原请求
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -63,8 +63,8 @@ api.interceptors.response.use(
           console.log('Community service: Token刷新失败:', refreshError);
           // 只有在刷新token失败时才清除认证状态
           if (refreshError.response?.status === 401 || refreshError.response?.status === 403) {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
             // 不在这里触发登出事件，由主要的认证服务处理
           }
           return Promise.reject(refreshError);
@@ -72,7 +72,7 @@ api.interceptors.response.use(
       } else {
         console.log('Community service: 没有refresh token');
         // 没有refresh token时，清除访问token
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem('access_token');
         // 不在这里触发登出事件，由主要的认证服务处理
         return Promise.reject(error);
       }

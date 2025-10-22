@@ -16,7 +16,8 @@ export class CacheService {
    */
   async set(key: string, value: any, ttl?: number): Promise<boolean> {
     try {
-      if (!redisClient.isOpen) {
+      const client = redisClient;
+      if (!client || !client.isOpen) {
         console.warn('Redis client not connected, skipping cache set');
         return false;
       }
@@ -24,7 +25,7 @@ export class CacheService {
       const serializedValue = JSON.stringify(value);
       const expiration = ttl || this.defaultTTL;
       
-      await redisClient.setEx(key, expiration, serializedValue);
+      await client.setEx(key, expiration, serializedValue);
       return true;
     } catch (error) {
       console.error('Cache set error:', error);
@@ -37,12 +38,13 @@ export class CacheService {
    */
   async get<T>(key: string): Promise<T | null> {
     try {
-      if (!redisClient.isOpen) {
+      const client = redisClient;
+      if (!client || !client.isOpen) {
         console.warn('Redis client not connected, skipping cache get');
         return null;
       }
 
-      const value = await redisClient.get(key);
+      const value = await client.get(key);
       if (!value) {
         return null;
       }
@@ -59,12 +61,13 @@ export class CacheService {
    */
   async del(key: string): Promise<boolean> {
     try {
-      if (!redisClient.isOpen) {
+      const client = redisClient;
+      if (!client || !client.isOpen) {
         console.warn('Redis client not connected, skipping cache delete');
         return false;
       }
 
-      const result = await redisClient.del(key);
+      const result = await client.del(key);
       return result > 0;
     } catch (error) {
       console.error('Cache delete error:', error);
@@ -77,17 +80,18 @@ export class CacheService {
    */
   async delPattern(pattern: string): Promise<number> {
     try {
-      if (!redisClient.isOpen) {
+      const client = redisClient;
+      if (!client || !client.isOpen) {
         console.warn('Redis client not connected, skipping cache pattern delete');
         return 0;
       }
 
-      const keys = await redisClient.keys(pattern);
+      const keys = await client.keys(pattern);
       if (keys.length === 0) {
         return 0;
       }
 
-      const result = await redisClient.del(keys);
+      const result = await client.del(keys);
       return result;
     } catch (error) {
       console.error('Cache pattern delete error:', error);
@@ -100,11 +104,12 @@ export class CacheService {
    */
   async exists(key: string): Promise<boolean> {
     try {
-      if (!redisClient.isOpen) {
+      const client = redisClient;
+      if (!client || !client.isOpen) {
         return false;
       }
 
-      const result = await redisClient.exists(key);
+      const result = await client.exists(key);
       return result === 1;
     } catch (error) {
       console.error('Cache exists error:', error);
@@ -117,11 +122,12 @@ export class CacheService {
    */
   async expire(key: string, ttl: number): Promise<boolean> {
     try {
-      if (!redisClient.isOpen) {
+      const client = redisClient;
+      if (!client || !client.isOpen) {
         return false;
       }
 
-      const result = await redisClient.expire(key, ttl);
+      const result = await client.expire(key, ttl);
       return result === 1;
     } catch (error) {
       console.error('Cache expire error:', error);
@@ -134,13 +140,14 @@ export class CacheService {
    */
   async getStats(): Promise<any> {
     try {
-      if (!redisClient.isOpen) {
+      const client = redisClient;
+      if (!client || !client.isOpen) {
         return null;
       }
 
-      const info = await redisClient.info('memory');
+      const info = await client.info('memory');
       return {
-        connected: redisClient.isOpen,
+        connected: client.isOpen,
         memory: info,
       };
     } catch (error) {
@@ -154,11 +161,12 @@ export class CacheService {
    */
   async clear(): Promise<boolean> {
     try {
-      if (!redisClient.isOpen) {
+      const client = redisClient;
+      if (!client || !client.isOpen) {
         return false;
       }
 
-      await redisClient.flushAll();
+      await client.flushAll();
       return true;
     } catch (error) {
       console.error('Cache clear error:', error);
