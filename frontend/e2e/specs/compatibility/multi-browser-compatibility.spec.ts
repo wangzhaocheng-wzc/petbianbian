@@ -1,8 +1,8 @@
 import { test, expect, devices } from '@playwright/test';
-import { AuthPage } from '../page-objects/auth-page';
-import { PetsPage } from '../page-objects/pets-page';
-import { AnalysisPage } from '../page-objects/analysis-page';
-import { TestDataManager } from '../utils/test-data-manager';
+import { AuthPage } from '../../page-objects/auth-page';
+import { PetsPage } from '../../page-objects/pets-page';
+import { AnalysisPage } from '../../page-objects/analysis-page';
+import { TestDataManager } from '../../utils/test-data-manager';
 
 // 浏览器兼容性测试套件
 test.describe('多浏览器兼容性测试', () => {

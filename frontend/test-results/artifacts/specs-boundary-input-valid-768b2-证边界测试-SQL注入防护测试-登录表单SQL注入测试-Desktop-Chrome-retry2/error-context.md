@@ -1,0 +1,61 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "🐾 宠物健康助手" [ref=e8] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e9]:
+        - link "首页" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11] [cursor=pointer]
+          - text: 首页
+        - generic [ref=e14]:
+          - link "登录" [ref=e15] [cursor=pointer]:
+            - /url: /login
+          - link "注册" [ref=e16] [cursor=pointer]:
+            - /url: /register
+  - main [ref=e17]:
+    - generic [ref=e19]:
+      - generic [ref=e20]:
+        - img [ref=e22]
+        - heading "宠物健康助手" [level=1] [ref=e27]
+        - heading "登录您的账户" [level=2] [ref=e28]
+        - paragraph [ref=e29]:
+          - text: 还没有账户？
+          - link "立即注册" [ref=e30] [cursor=pointer]:
+            - /url: /register
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]: 邮箱地址
+            - generic [ref=e36]:
+              - generic:
+                - img
+              - textbox "邮箱地址" [ref=e37]
+          - generic [ref=e38]:
+            - generic [ref=e39]: 密码
+            - generic [ref=e40]:
+              - generic:
+                - img
+              - textbox "密码" [ref=e41]
+              - button [ref=e42] [cursor=pointer]:
+                - img [ref=e43] [cursor=pointer]
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - checkbox "记住我" [ref=e48]
+            - generic [ref=e49]: 记住我
+          - link "忘记密码？" [ref=e51] [cursor=pointer]:
+            - /url: "#"
+        - button "登录" [ref=e53] [cursor=pointer]:
+          - img [ref=e54] [cursor=pointer]
+          - text: 登录
+      - paragraph [ref=e58]:
+        - text: 登录即表示您同意我们的
+        - link "服务条款" [ref=e59] [cursor=pointer]:
+          - /url: "#"
+        - text: 和
+        - link "隐私政策" [ref=e60] [cursor=pointer]:
+          - /url: "#"
+```

@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "🐾 宠物健康助手" [ref=e8] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e9]:
+        - link "首页" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11] [cursor=pointer]
+          - text: 首页
+        - generic [ref=e14]:
+          - link "登录" [ref=e15] [cursor=pointer]:
+            - /url: /login
+          - link "注册" [ref=e16] [cursor=pointer]:
+            - /url: /register
+  - main [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - heading "🐾 关爱宠物健康，从便便开始" [level=1] [ref=e20]
+        - paragraph [ref=e21]: 通过AI智能分析，帮助您更好地了解宠物的健康状况
+        - link "开始分析" [ref=e22] [cursor=pointer]:
+          - /url: /analysis
+          - img [ref=e23] [cursor=pointer]
+          - text: 开始分析
+      - generic [ref=e26]:
+        - link "便便健康分析 上传宠物便便照片，AI智能分析健康状况" [ref=e27] [cursor=pointer]:
+          - /url: /analysis
+          - img [ref=e29] [cursor=pointer]
+          - heading "便便健康分析" [level=3] [ref=e32] [cursor=pointer]
+          - paragraph [ref=e33] [cursor=pointer]: 上传宠物便便照片，AI智能分析健康状况
+        - link "健康记录追踪 记录和统计宠物排便情况，追踪健康趋势" [ref=e34] [cursor=pointer]:
+          - /url: /records
+          - img [ref=e36] [cursor=pointer]
+          - heading "健康记录追踪" [level=3] [ref=e38] [cursor=pointer]
+          - paragraph [ref=e39] [cursor=pointer]: 记录和统计宠物排便情况，追踪健康趋势
+        - link "宠物社区 与其他养宠人士分享经验，交流心得" [ref=e40] [cursor=pointer]:
+          - /url: /community
+          - img [ref=e42] [cursor=pointer]
+          - heading "宠物社区" [level=3] [ref=e47] [cursor=pointer]
+          - paragraph [ref=e48] [cursor=pointer]: 与其他养宠人士分享经验，交流心得
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]: 1000+
+          - generic [ref=e53]: 分析次数
+        - generic [ref=e54]:
+          - generic [ref=e55]: 500+
+          - generic [ref=e56]: 注册用户
+        - generic [ref=e57]:
+          - generic [ref=e58]: 95%
+          - generic [ref=e59]: 准确率
+        - generic [ref=e60]:
+          - generic [ref=e61]: 24/7
+          - generic [ref=e62]: 在线服务
+```

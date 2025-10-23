@@ -1,0 +1,60 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "🐾 宠物健康助手" [ref=e8] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e9]:
+        - link "首页" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11] [cursor=pointer]
+          - text: 首页
+        - generic [ref=e14]:
+          - link "登录" [ref=e15] [cursor=pointer]:
+            - /url: /login
+          - link "注册" [ref=e16] [cursor=pointer]:
+            - /url: /register
+  - main [ref=e17]:
+    - generic [ref=e19]:
+      - generic [ref=e20]:
+        - img [ref=e22]
+        - heading "注册账户" [level=2] [ref=e27]
+        - paragraph [ref=e28]:
+          - text: 或者
+          - link "登录现有账户" [ref=e29] [cursor=pointer]:
+            - /url: /login
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]: 用户名
+            - generic [ref=e34]:
+              - generic:
+                - img
+              - textbox "用户名" [ref=e35]
+          - generic [ref=e36]:
+            - generic [ref=e37]: 邮箱地址
+            - generic [ref=e38]:
+              - generic:
+                - img
+              - textbox "邮箱地址" [ref=e39]
+          - generic [ref=e40]:
+            - generic [ref=e41]: 密码
+            - generic [ref=e42]:
+              - generic:
+                - img
+              - textbox "密码" [ref=e43]
+              - button [ref=e44] [cursor=pointer]:
+                - img [ref=e45] [cursor=pointer]
+          - generic [ref=e48]:
+            - generic [ref=e49]: 确认密码
+            - generic [ref=e50]:
+              - generic:
+                - img
+              - textbox "确认密码" [ref=e51]
+              - button [ref=e52] [cursor=pointer]:
+                - img [ref=e53] [cursor=pointer]
+        - button "注册" [ref=e57] [cursor=pointer]
+        - generic [ref=e63]: 或者
+```

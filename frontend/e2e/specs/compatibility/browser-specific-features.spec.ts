@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TestDataManager } from '../utils/test-data-manager';
+import { TestDataManager } from '../../utils/test-data-manager';
 
 // 浏览器特定功能和API测试
 test.describe('浏览器特定功能测试', () => {

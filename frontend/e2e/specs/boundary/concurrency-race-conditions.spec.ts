@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { AuthPage } from '../page-objects/auth-page';
-import { PetsPage } from '../page-objects/pets-page';
-import { AnalysisPage } from '../page-objects/analysis-page';
-import { CommunityPage } from '../page-objects/community-page';
-import { TestDataManager } from '../utils/test-data-manager';
-import { DataBoundaryUtils } from '../utils/data-boundary-utils';
+import { AuthPage } from '../../page-objects/auth-page';
+import { PetsPage } from '../../page-objects/pets-page';
+import { AnalysisPage } from '../../page-objects/analysis-page';
+import { CommunityPage } from '../../page-objects/community-page';
+import { TestDataManager } from '../../utils/test-data-manager';
+import { DataBoundaryUtils } from '../../utils/data-boundary-utils';
 
 test.describe('并发和竞态条件测试', () => {
   let authPage: AuthPage;

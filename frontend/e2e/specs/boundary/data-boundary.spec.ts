@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { AuthPage } from '../page-objects/auth-page';
-import { PetsPage } from '../page-objects/pets-page';
-import { AnalysisPage } from '../page-objects/analysis-page';
-import { CommunityPage } from '../page-objects/community-page';
-import { TestDataManager } from '../utils/test-data-manager';
-import { BoundaryTestingUtils } from '../utils/boundary-testing-utils';
+import { AuthPage } from '../../page-objects/auth-page';
+import { PetsPage } from '../../page-objects/pets-page';
+import { AnalysisPage } from '../../page-objects/analysis-page';
+import { CommunityPage } from '../../page-objects/community-page';
+import { TestDataManager } from '../../utils/test-data-manager';
+import { BoundaryTestingUtils } from '../../utils/boundary-testing-utils';
 
 test.describe('数据边界测试', () => {
   let authPage: AuthPage;

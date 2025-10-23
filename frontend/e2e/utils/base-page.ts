@@ -19,7 +19,7 @@ export class BasePage {
    * 导航到指定路径
    */
   async goto(path: string = '/'): Promise<void> {
-    await this.page.goto(`${this.baseURL}${path}`);
+    await this.page.goto(path);
     await this.waitForPageLoad();
   }
 
@@ -139,237 +139,41 @@ export class BasePage {
       },
       { timeout }
     );
-    return await response.json();
+    return await response.json().catch(() => response.text());
   }
 
   /**
-   * 模拟移动端触摸操作
+   * 等待导航完成
    */
-  async touchTap(selector: string): Promise<void> {
-    const element = await this.waitForElement(selector);
-    await element.tap();
+  async waitForNavigation(timeout: number = this.timeout): Promise<void> {
+    await this.page.waitForLoadState('load', { timeout });
   }
 
   /**
-   * 滚动到元素位置
+   * 等待认证状态变化（用于登录/登出后验证）
    */
-  async scrollToElement(selector: string): Promise<void> {
-    const element = this.page.locator(selector);
-    await element.scrollIntoViewIfNeeded();
+  async waitForAuthStateChange(targetState: 'logged-in' | 'logged-out', timeout: number = 15000): Promise<void> {
+    if (targetState === 'logged-in') {
+      await this.page.locator('[data-testid="user-menu"]').waitFor({ state: 'visible', timeout });
+    } else {
+      await this.page.locator('[data-testid="login-form"]').waitFor({ state: 'visible', timeout });
+    }
   }
 
   /**
-   * 获取当前页面URL
+   * 等待加载完成标志消失
    */
-  getCurrentURL(): string {
-    return this.page.url();
-  }
-
-  /**
-   * 获取页面标题
-   */
-  async getPageTitle(): Promise<string> {
-    return await this.page.title();
-  }
-
-  /**
-   * 检查页面是否包含文本
-   */
-  async hasText(text: string): Promise<boolean> {
+  async waitForLoadingComplete(loadingSelector: string, timeout: number = 15000): Promise<void> {
+    const loading = this.page.locator(loadingSelector);
     try {
-      await expect(this.page).toContainText(text);
-      return true;
+      await loading.waitFor({ state: 'hidden', timeout });
     } catch {
-      return false;
-    }
-  }
-
-  /**
-   * 等待页面导航完成
-   */
-  async waitForNavigation(): Promise<void> {
-    await this.page.waitForURL('**', { waitUntil: 'networkidle' });
-  }
-
-  /**
-   * 处理弹窗对话框
-   */
-  async handleDialog(accept: boolean = true, promptText?: string): Promise<void> {
-    this.page.on('dialog', async dialog => {
-      if (promptText && dialog.type() === 'prompt') {
-        await dialog.accept(promptText);
-      } else if (accept) {
-        await dialog.accept();
-      } else {
-        await dialog.dismiss();
-      }
-    });
-  }
-
-  /**
-   * 清除所有cookies
-   */
-  async clearCookies(): Promise<void> {
-    await this.page.context().clearCookies();
-  }
-
-  /**
-   * 设置视口大小
-   */
-  async setViewportSize(width: number, height: number): Promise<void> {
-    await this.page.setViewportSize({ width, height });
-  }
-
-  /**
-   * 模拟网络条件
-   */
-  async simulateNetworkConditions(offline: boolean = false, downloadThroughput?: number): Promise<void> {
-    await this.page.route('**/*', route => {
-      if (offline) {
-        route.abort();
-      } else {
-        route.continue();
-      }
-    });
-  }
-
-  /**
-   * 验证页面状态
-   */
-  async verifyPageState(expectedUrl?: string, expectedTitle?: string): Promise<void> {
-    if (expectedUrl) {
-      await expect(this.page).toHaveURL(new RegExp(expectedUrl));
-    }
-    if (expectedTitle) {
-      await expect(this.page).toHaveTitle(expectedTitle);
-    }
-  }
-
-  /**
-   * 等待加载指示器消失
-   */
-  async waitForLoadingComplete(loadingSelector: string = '[data-testid="loading"]'): Promise<void> {
-    try {
-      await this.page.locator(loadingSelector).waitFor({ state: 'hidden', timeout: this.timeout });
-    } catch {
-      // 如果没有找到加载指示器，继续执行
-    }
-  }
-
-  /**
-   * 错误恢复 - 刷新页面并重试操作
-   */
-  async retryWithRefresh<T>(operation: () => Promise<T>, maxRetries: number = 2): Promise<T> {
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        return await operation();
-      } catch (error) {
-        if (i === maxRetries - 1) throw error;
-        
-        console.log(`操作失败，刷新页面重试 (${i + 1}/${maxRetries})`);
-        await this.page.reload({ waitUntil: 'networkidle' });
-        await this.waitForPageLoad();
+      // 如果一直显示，尝试读取相关错误信息
+      const errorElement = this.page.locator('[data-testid="auth-error"]');
+      if (await errorElement.isVisible()) {
+        const errorText = await errorElement.textContent();
+        throw new Error(`加载未完成，错误提示: ${errorText}`);
       }
     }
-    throw new Error('重试次数已用完');
-  }
-
-  /**
-   * 捕获页面错误信息
-   */
-  async capturePageErrors(): Promise<string[]> {
-    const errors: string[] = [];
-    
-    this.page.on('pageerror', error => {
-      errors.push(`页面错误: ${error.message}`);
-    });
-    
-    this.page.on('requestfailed', request => {
-      errors.push(`请求失败: ${request.url()} - ${request.failure()?.errorText}`);
-    });
-    
-    return errors;
-  }
-
-  /**
-   * 验证表单验证错误
-   */
-  async getFormErrors(errorSelector: string = '.error-message, .text-red-500'): Promise<string[]> {
-    const errorElements = this.page.locator(errorSelector);
-    const count = await errorElements.count();
-    const errors: string[] = [];
-    
-    for (let i = 0; i < count; i++) {
-      const errorText = await errorElements.nth(i).textContent();
-      if (errorText) {
-        errors.push(errorText.trim());
-      }
-    }
-    
-    return errors;
-  }
-
-  /**
-   * 等待并验证成功消息
-   */
-  async waitForSuccessMessage(messageSelector: string = '[data-testid="success-message"]', timeout: number = 10000): Promise<string> {
-    const element = await this.waitForElement(messageSelector, timeout);
-    return await element.textContent() || '';
-  }
-
-  /**
-   * 等待并验证错误消息
-   */
-  async waitForErrorMessage(messageSelector: string = '[data-testid="error-message"]', timeout: number = 10000): Promise<string> {
-    const element = await this.waitForElement(messageSelector, timeout);
-    return await element.textContent() || '';
-  }
-
-  /**
-   * 检查页面是否已加载完成
-   */
-  async isPageLoaded(): Promise<boolean> {
-    try {
-      await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-      await this.page.waitForLoadState('networkidle', { timeout: 5000 });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * 获取页面性能指标
-   */
-  async getPerformanceMetrics(): Promise<any> {
-    return await this.page.evaluate(() => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      return {
-        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
-        loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
-        firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 0
-      };
-    });
-  }
-
-  /**
-   * 设置默认超时时间
-   */
-  setTimeout(timeout: number): void {
-    this.timeout = timeout;
-  }
-
-  /**
-   * 获取当前超时时间
-   */
-  getTimeout(): number {
-    return this.timeout;
-  }
-
-  /**
-   * 获取页面对象（用于需要直接访问page的场景）
-   */
-  getPage(): Page {
-    return this.page;
   }
 }
