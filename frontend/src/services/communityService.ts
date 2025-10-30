@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/utils/constants';
 import {
   CreatePostRequest,
   UpdatePostRequest,
@@ -10,8 +11,6 @@ import {
   CommentResponse,
   LikeResponse
 } from '../../../shared/types';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // 创建axios实例
 const api = axios.create({

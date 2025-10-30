@@ -9,6 +9,7 @@ const normalizePet = (pet: any): Pet => {
   return {
     ...pet,
     id,
+    externalId: pet?.externalId ?? undefined,
   } as Pet;
 };
 

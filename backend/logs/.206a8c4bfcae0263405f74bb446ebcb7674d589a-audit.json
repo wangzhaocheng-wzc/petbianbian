@@ -6,16 +6,6 @@
     "auditLog": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\.206a8c4bfcae0263405f74bb446ebcb7674d589a-audit.json",
     "files": [
         {
-            "date": 1760063973770,
-            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\application-2025-10-10.log",
-            "hash": "7ccd3534cb7d5a7a0ac196ed27d24af6a2946e8c36535b442acb2b14cde13fde"
-        },
-        {
-            "date": 1760175165659,
-            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\application-2025-10-11.log",
-            "hash": "99a022fdfd1ff51a8dc1036257efc58462d0e9df41ad060ef6ef8f2d2a9db08b"
-        },
-        {
             "date": 1760513488677,
             "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\application-2025-10-15.log",
             "hash": "3bd834aa630331e6f934b34ac2f0ac367cd000b986093ca9d00a26c8de5a5e42"
@@ -49,6 +39,21 @@
             "date": 1761183767470,
             "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\application-2025-10-23.log",
             "hash": "486ad1b4b0af1bb1fcbea6334ae32b63eea90426dcd5e627bc8c661fbef2be19"
+        },
+        {
+            "date": 1761546711865,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\application-2025-10-27.log",
+            "hash": "a6c15384576627afa8ba728677719837a6a7b9f18e2318d9d0d9a8323452cc08"
+        },
+        {
+            "date": 1761639156695,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\application-2025-10-28.log",
+            "hash": "7b238f5c3207a3330caa587a8b448831d90af3f36ed6979c24bd5032283393f6"
+        },
+        {
+            "date": 1761701705003,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\application-2025-10-29.log",
+            "hash": "39cc3138dcecc3e942247de58b4e91b6d4c4a13fb99d68efe180516f0f819154"
         }
     ],
     "hashType": "sha256"

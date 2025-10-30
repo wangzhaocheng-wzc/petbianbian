@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { MonitoringService } from '../services/monitoringService';
+import { Logger } from '../utils/logger';
 
 const monitoringService = MonitoringService.getInstance();
 
@@ -167,5 +168,45 @@ export const getPerformanceStats = (req: Request, res: Response) => {
       message: '获取性能统计失败',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
+  }
+};
+
+// 接收前端图片URL重写事件（公共端点）
+export const logImageUrlRewrite = (req: Request, res: Response) => {
+  try {
+    const {
+      original,
+      resolved,
+      reason,
+      frontendOrigin,
+      backendOrigin,
+      timestamp
+    } = req.body || {};
+
+    // 记录请求计数
+    monitoringService.recordRequest('/api/monitoring/image-url-rewrite');
+
+    // 基础校验与安全过滤（避免日志污染）
+    const safeReason = typeof reason === 'string' ? reason : 'unknown';
+    const payload = {
+      original: typeof original === 'string' ? original : 'invalid',
+      resolved: typeof resolved === 'string' ? resolved : 'invalid',
+      reason: safeReason,
+      frontendOrigin: typeof frontendOrigin === 'string' ? frontendOrigin : 'unknown',
+      backendOrigin: typeof backendOrigin === 'string' ? backendOrigin : 'unknown',
+      timestamp: typeof timestamp === 'number' ? timestamp : Date.now(),
+    };
+
+    // 记录到应用日志
+    Logger.info('Image URL rewrite', {
+      type: 'monitoring',
+      payload,
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    monitoringService.recordError('/api/monitoring/image-url-rewrite', error as Error);
+    Logger.error('Image URL rewrite log error', { error: error as any });
+    res.status(500).json({ success: false, message: '日志记录失败' });
   }
 };

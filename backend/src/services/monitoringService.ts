@@ -49,6 +49,32 @@ export const cpuUsage = new Gauge({
   help: 'CPU usage percentage'
 });
 
+// Image URL 重写相关指标
+export const imageUrlRewriteTotal = new Counter({
+  name: 'image_url_rewrite_total',
+  help: 'Total number of image URL rewrite events',
+  labelNames: ['origin', 'type', 'model']
+});
+
+export const imageUrlRewriteDurationMs = new Histogram({
+  name: 'image_url_rewrite_duration_ms',
+  help: 'Processing time in ms per image URL rewrite event',
+  labelNames: ['origin', 'type', 'model'],
+  buckets: [10, 25, 50, 100, 200, 500, 1000, 2000, 5000]
+});
+
+export const imageUrlGovernanceRemaining = new Gauge({
+  name: 'image_url_governance_remaining',
+  help: 'Remaining items to be processed in image URL governance',
+  labelNames: ['model']
+});
+
+export const imageUrlGovernanceProcessedTotal = new Counter({
+  name: 'image_url_governance_processed_total',
+  help: 'Total items processed in image URL governance',
+  labelNames: ['model']
+});
+
 // 监控中间件
 export const monitoringMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
@@ -140,6 +166,35 @@ export class MonitoringService {
     return MonitoringService.instance;
   }
   
+  // 记录图片URL重写事件
+  public recordImageUrlRewrite(
+    origin: 'frontend' | 'backend',
+    type: string,
+    model?: string,
+    durationMs?: number
+  ) {
+    const modelName = model || 'unknown';
+    imageUrlRewriteTotal.inc({ origin, type, model: modelName });
+    if (typeof durationMs === 'number' && durationMs >= 0) {
+      imageUrlRewriteDurationMs.observe({ origin, type, model: modelName }, durationMs);
+    }
+  }
+
+  // 记录治理进度（处理量与剩余量）
+  public recordGovernanceProgress(
+    processedByModel: Record<string, number>,
+    remainingByModel?: Record<string, number>
+  ) {
+    for (const [model, count] of Object.entries(processedByModel || {})) {
+      if (count && count > 0) {
+        imageUrlGovernanceProcessedTotal.inc({ model }, count);
+      }
+    }
+    for (const [model, remaining] of Object.entries(remainingByModel || {})) {
+      imageUrlGovernanceRemaining.set({ model }, remaining);
+    }
+  }
+
   // 获取Prometheus指标
   public getMetrics(): Promise<string> {
     return register.metrics();

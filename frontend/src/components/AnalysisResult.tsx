@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { resolveImageUrl } from '@/utils/imageUrlResolver';
 import { PoopRecord } from '../../../shared/types';
 import { 
   CheckCircle, 
@@ -199,11 +200,11 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
         {/* 图片展示 */}
         <div className="mb-4">
           <img
-            src={record.imageUrl}
+            src={resolveImageUrl(record.imageUrl)}
             alt="便便分析图片"
             className="w-full h-48 object-cover rounded-lg border border-gray-200"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+              (e.target as HTMLImageElement).src = '/pwa-192x192.png';
             }}
           />
         </div>

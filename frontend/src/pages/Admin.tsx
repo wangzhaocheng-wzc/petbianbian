@@ -8,6 +8,8 @@ import ReportsList from '../components/admin/ReportsList';
 import UserManagement from '../components/admin/UserManagement';
 import SystemMonitoring from '../components/admin/SystemMonitoring';
 import ContentManagement from '../components/admin/ContentManagement';
+import DataGovernancePanel from '../components/admin/DataGovernancePanel';
+import GovernanceAnalyticsPanel from '../components/admin/GovernanceAnalyticsPanel';
 
 const Admin: React.FC = () => {
   const { user } = useAuth();
@@ -48,6 +50,7 @@ const Admin: React.FC = () => {
     { id: 'dashboard', name: '概览', icon: TrendingUp },
     { id: 'monitoring', name: '系统监控', icon: Activity },
     { id: 'content', name: '内容管理', icon: FileText },
+    { id: 'governance', name: '数据治理', icon: Shield },
     { id: 'pending', name: '待审核', icon: Eye, badge: stats?.pending.total },
     { id: 'reports', name: '举报管理', icon: AlertTriangle, badge: stats?.pending.reports },
     { id: 'users', name: '用户管理', icon: Users }
@@ -194,6 +197,12 @@ const Admin: React.FC = () => {
                 {activeTab === 'dashboard' && <ModerationDashboard stats={stats} />}
                 {activeTab === 'monitoring' && <SystemMonitoring />}
                 {activeTab === 'content' && <ContentManagement />}
+                {activeTab === 'governance' && (
+                  <div className="space-y-8">
+                    <DataGovernancePanel />
+                    <GovernanceAnalyticsPanel />
+                  </div>
+                )}
                 {activeTab === 'pending' && <PendingContent onUpdate={loadStats} />}
                 {activeTab === 'reports' && <ReportsList onUpdate={loadStats} />}
                 {activeTab === 'users' && <UserManagement />}

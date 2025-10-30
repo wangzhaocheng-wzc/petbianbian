@@ -6,7 +6,12 @@ export const connectDB = async (): Promise<void> => {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/pet-health';
     
     await mongoose.connect(mongoURI, {
-      // 移除已弃用的选项，使用默认配置
+      // 加速不可用Mongo的失败以便快速回退到内存库
+      // 降低服务器选择超时，避免长时间阻塞启动
+      serverSelectionTimeoutMS: 3000,
+      connectTimeoutMS: 3000,
+      // 在单节点本地开发场景下直连更快
+      directConnection: true,
     });
     
     console.log('MongoDB 连接成功');
@@ -25,7 +30,33 @@ export const connectDB = async (): Promise<void> => {
     
   } catch (error) {
     console.error('MongoDB 连接失败:', error);
-    process.exit(1);
+    // 尝试启动内存 MongoDB 作为开发环境回退
+    try {
+      console.log('尝试启动内存 MongoDB 以提供临时开发数据库...');
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      const mem = await MongoMemoryServer.create({
+        instance: { dbName: 'pet-health' },
+      });
+      const uri = mem.getUri();
+      // 保存到全局，便于优雅关闭
+      (global as any).__IN_MEMORY_MONGO__ = mem;
+
+      await mongoose.connect(uri);
+      console.log('内存 MongoDB 启动并连接成功');
+
+      await createDatabaseIndexes();
+
+      mongoose.connection.on('error', (err) => {
+        console.error('MongoDB 连接错误:', err);
+      });
+      
+      mongoose.connection.on('disconnected', () => {
+        console.log('MongoDB 连接断开');
+      });
+    } catch (memError) {
+      console.error('启动内存 MongoDB 失败:', memError);
+      process.exit(1);
+    }
   }
 };
 
@@ -99,6 +130,12 @@ export const closeDB = async (): Promise<void> => {
   try {
     await mongoose.connection.close();
     console.log('MongoDB 连接已关闭');
+    const mem = (global as any).__IN_MEMORY_MONGO__;
+    if (mem) {
+      await mem.stop();
+      (global as any).__IN_MEMORY_MONGO__ = undefined;
+      console.log('内存 MongoDB 已停止');
+    }
   } catch (error) {
     console.error('关闭MongoDB连接时出错:', error);
   }

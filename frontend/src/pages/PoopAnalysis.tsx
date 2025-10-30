@@ -7,6 +7,7 @@ import { HealthStatusVisualization, SaveShareActions } from '../components/analy
 import { usePets } from '../hooks/usePets';
 import { useMobile } from '../hooks/useMobile';
 import { PoopRecord } from '../../../shared/types';
+import { resolveImageUrl } from '@/utils/imageUrlResolver';
 import { AnalysisService } from '../services/analysisService';
 import TouchButton from '../components/common/TouchButton';
 
@@ -22,7 +23,8 @@ const PoopAnalysis: React.FC = () => {
   useEffect(() => {
     // 如果只有一只宠物，自动选择
     if (pets.length === 1) {
-      setSelectedPetId(pets[0].id);
+      const defaultId = pets[0].externalId ?? pets[0].id;
+      setSelectedPetId(defaultId);
     }
   }, [pets]);
 
@@ -169,9 +171,9 @@ const PoopAnalysis: React.FC = () => {
                   {pets.map((pet) => (
                     <button
                       key={pet.id}
-                      onClick={() => setSelectedPetId(pet.id)}
+                      onClick={() => setSelectedPetId(pet.externalId ?? pet.id)}
                       className={`p-3 sm:p-4 rounded-lg border-2 transition-all min-h-[80px] touch:min-h-[88px] ${
-                        selectedPetId === pet.id
+                        selectedPetId === (pet.externalId ?? pet.id)
                           ? 'border-orange-500 bg-orange-50'
                           : 'border-gray-200 hover:border-gray-300 active:border-gray-400'
                       }`}
@@ -286,9 +288,12 @@ const PoopAnalysis: React.FC = () => {
                   {recentAnalyses.map((analysis) => (
                     <div key={analysis.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                       <img
-                        src={analysis.imageUrl}
+                        src={resolveImageUrl(analysis.imageUrl)}
                         alt="分析图片"
                         className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover flex-shrink-0"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/pwa-192x192.png';
+                        }}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1 flex-wrap">

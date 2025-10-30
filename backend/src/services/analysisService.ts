@@ -3,6 +3,7 @@ import { PoopRecord, IPoopRecord } from '../models/PoopRecord';
 import { Logger } from '../utils/logger';
 import { AIAnalysisResult } from './aiService';
 import { upsertPoopRecord, deletePoopRecord } from './pgSyncService';
+import { getPostgresPool } from '../config/postgres';
 
 interface CreateAnalysisParams {
   userId: string;
@@ -49,13 +50,44 @@ interface AnalysisStatistics {
 
 export class AnalysisService {
   /**
+   * 解析并映射传入的用户/宠物ID到Mongo ObjectId
+   * - 如果本身是合法的ObjectId字符串，直接转换
+   * - 如果是Postgres的UUID，尝试从Postgres查找对应的external_id并转换
+   */
+  private static async resolveMongoObjectId(id: string, entity: 'user' | 'pet'): Promise<mongoose.Types.ObjectId> {
+    // 先尝试直接作为ObjectId
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      return new mongoose.Types.ObjectId(id);
+    }
+
+    // 非ObjectId，尝试通过Postgres external_id映射
+    try {
+      const pool = await getPostgresPool();
+      const table = entity === 'user' ? 'users' : 'pets';
+      const { rows } = await pool.query(`SELECT external_id FROM ${table} WHERE id = $1 LIMIT 1`, [id]);
+      const externalId: string | undefined = rows[0]?.external_id;
+      if (externalId && mongoose.Types.ObjectId.isValid(externalId)) {
+        return new mongoose.Types.ObjectId(externalId);
+      }
+      throw new Error(`无法通过Postgres映射${entity}ID: ${id}`);
+    } catch (err) {
+      Logger.error('解析Mongo ObjectId失败:', err);
+      throw err;
+    }
+  }
+
+  /**
    * 创建分析记录
    */
   static async createAnalysisRecord(params: CreateAnalysisParams): Promise<IPoopRecord> {
     try {
+      // 将传入的用户/宠物ID解析为Mongo ObjectId（支持从Postgres UUID映射）
+      const mongoUserId = await AnalysisService.resolveMongoObjectId(params.userId, 'user');
+      const mongoPetId = await AnalysisService.resolveMongoObjectId(params.petId, 'pet');
+
       const record = new PoopRecord({
-        userId: params.userId,
-        petId: params.petId,
+        userId: mongoUserId,
+        petId: mongoPetId,
         imageUrl: params.imageUrl,
         analysis: {
           healthStatus: params.result.healthStatus,
@@ -66,7 +98,7 @@ export class AnalysisService {
           detectedFeatures: params.result.detectedFeatures
         },
         timestamp: new Date(),
-        shared: false
+        isShared: false
       });
 
       await record.save();
@@ -168,7 +200,7 @@ export class AnalysisService {
         { _id: id, userId },
         {
           $set: {
-            shared: true,
+            isShared: true,
             shareType: params.shareType,
             shareWith: params.shareWith || []
           }

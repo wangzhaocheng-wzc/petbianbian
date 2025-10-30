@@ -14,6 +14,7 @@ import {
   Download
 } from 'lucide-react';
 import { HealthRecord } from '../services/recordsService';
+import { resolveImageUrl } from '@/utils/imageUrlResolver';
 
 interface RecordDetailProps {
   record: HealthRecord;
@@ -176,12 +177,15 @@ const RecordDetail: React.FC<RecordDetailProps> = ({
                 <h3 className="text-lg font-medium text-gray-900 mb-3">分析图片</h3>
                 <div className="relative">
                   <img
-                    src={record.imageUrl}
+                    src={resolveImageUrl(record.imageUrl)}
                     alt="分析图片"
                     className="w-full rounded-lg shadow-sm"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/pwa-192x192.png';
+                    }}
                   />
                   <button
-                    onClick={() => window.open(record.imageUrl, '_blank')}
+                    onClick={() => window.open(resolveImageUrl(record.imageUrl), '_blank')}
                     className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-lg hover:bg-opacity-100"
                     title="下载图片"
                   >

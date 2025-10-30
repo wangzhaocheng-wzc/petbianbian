@@ -22,6 +22,7 @@ import monitoringRoutes from './routes/monitoring';
 import logsRoutes from './routes/logs';
 import alertRoutes from './routes/alerts';
 import notificationRoutes from './routes/notifications';
+import governanceRoutes from './routes/governance';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { monitoringMiddleware } from './services/monitoringService';
 import { errorTrackingMiddleware } from './services/errorTrackingService';
@@ -31,6 +32,7 @@ import { Logger } from './utils/logger';
 import { connectRedis, disconnectRedis } from './config/redis';
 import { connectPostgres, getPostgresStatus } from './config/postgres';
 import { createDatabaseIndexes } from './utils/database';
+import { startGovernanceReportScheduler } from './services/imageUrlGovernanceService';
 
 dotenv.config();
 
@@ -45,7 +47,9 @@ app.use(helmet());
 // 更灵活的 CORS 配置，支持本机与局域网预览地址
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
   'http://localhost:3000',
   process.env.FRONTEND_URL || '',
 ].filter(Boolean);
@@ -55,8 +59,8 @@ app.use(cors({
     // 允许非浏览器请求（如curl、服务器端）
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    // 允许常见的局域网IP访问前端开发服务器（端口5173）
-    if (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:5173$/.test(origin)) return callback(null, true);
+    // 允许常见的局域网IP访问前端开发服务器（端口5173/5174）
+    if (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:517(3|4)$/.test(origin)) return callback(null, true);
     callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
@@ -100,6 +104,7 @@ app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/governance', governanceRoutes);
 
 // 健康检查
 app.get('/api/health', async (req, res) => {
@@ -174,6 +179,13 @@ const startServer = async () => {
       Logger.info(`服务器运行在端口 ${PORT}`);
       Logger.info(`健康检查: http://localhost:${PORT}/api/health`);
       Logger.info(`主数据库: ${DB_PRIMARY === 'postgres' ? 'Postgres' : 'Mongo'}`);
+      // 启动每日数据治理预览报告任务
+      try {
+        startGovernanceReportScheduler();
+        Logger.info('每日数据治理预览报告定时任务已启动');
+      } catch (err) {
+        Logger.warn('启动数据治理定时任务失败', err as any);
+      }
     });
   } catch (error) {
     Logger.error('服务器启动失败:', error);

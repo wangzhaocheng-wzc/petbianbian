@@ -134,6 +134,21 @@
             "date": 1761183767492,
             "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\security-2025-10-23.log",
             "hash": "92173ab616fe6651b0807a27334e9f693d929a820fb39e9d02f7a8c4ef649a31"
+        },
+        {
+            "date": 1761546711921,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\security-2025-10-27.log",
+            "hash": "0febd314e1fd672967a779244daff9bf57e695996deb7e1a231289e4ff4b693c"
+        },
+        {
+            "date": 1761639156717,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\security-2025-10-28.log",
+            "hash": "36e55d785577571f489e9af1b3abc1dc2782f22892611b35433a6e608adff0b9"
+        },
+        {
+            "date": 1761701705032,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\security-2025-10-29.log",
+            "hash": "9a2571d853b910ec48b0ecd3a6cb19e9cbe07586aec1a0301c44900fccac164e"
         }
     ],
     "hashType": "sha256"

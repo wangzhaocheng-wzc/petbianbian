@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
 import mongoose from 'mongoose';
 import { FileService } from '../services/fileService';
+import { APP_CONFIG } from '../config/constants';
 import { AIService, AIAnalysisResult } from '../services/aiService';
 import { AnalysisService } from '../services/analysisService';
 import { Logger } from '../utils/logger';
@@ -26,11 +28,19 @@ export class AnalysisController {
         return;
       }
 
-      // 保存图片
-      const imageUrl = await FileService.saveImage(file.buffer, file.originalname, 'analysis');
+      // 兼容 diskStorage 与 memoryStorage：读取图片缓冲
+      const imageBuffer = (file as any).buffer || await fs.promises.readFile((file as any).path);
+
+      // 确定图片URL：若为diskStorage已落盘则直接使用其生成的文件名，否则走FileService保存
+      let imageUrl: string;
+      if ((file as any).filename) {
+        imageUrl = FileService.generateFileUrl((file as any).filename, 'analysis');
+      } else {
+        imageUrl = await FileService.saveImage(imageBuffer, file.originalname, 'analysis');
+      }
 
       // 预处理图片
-      const processedImage = await AIService.preprocessImage(file.buffer);
+      const processedImage = await AIService.preprocessImage(imageBuffer);
 
       // 验证图片内容
       const isValidContent = await AIService.validatePoopContent(processedImage);

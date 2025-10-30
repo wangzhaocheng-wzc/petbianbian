@@ -6,36 +6,6 @@
     "auditLog": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\.b8c67f1667f229a7963b7b8b2f1136befcca2a01-audit.json",
     "files": [
         {
-            "date": 1758522086575,
-            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-09-22.log",
-            "hash": "12c4cb0b57d82c359ba3271de475a2e9a2257cc1f2941626a99caa635b27063d"
-        },
-        {
-            "date": 1758592943370,
-            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-09-23.log",
-            "hash": "98da11741817f24fbc754b1302db3f5f032db53de9841cf88cd4b161b46e1213"
-        },
-        {
-            "date": 1758767059767,
-            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-09-25.log",
-            "hash": "b0c8af54c84b8e202c6318d3c9f10fb7ca0b85eef63e93922fb1393205adae2a"
-        },
-        {
-            "date": 1758853890031,
-            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-09-26.log",
-            "hash": "1f8e7236e8dc38b9813af6627cbf93b33457e7637c2b4d61302e3a7f98ab17fd"
-        },
-        {
-            "date": 1759031640542,
-            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-09-28.log",
-            "hash": "f3ad7c993933fd267efff21976e18e5cce189147f4325941896fca3f982fb2ed"
-        },
-        {
-            "date": 1759109566438,
-            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-09-29.log",
-            "hash": "1c90d5cc6ab0f3a7b29b328780fda12c5e65e78f7f6a7b4650bbf249c941ab0a"
-        },
-        {
             "date": 1759202857793,
             "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-09-30.log",
             "hash": "7c7aab7d0007db5d93c992a9e79cec37c951c1f48cb203cf12d6d0417eb61421"
@@ -74,6 +44,21 @@
             "date": 1761097935493,
             "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-10-22.log",
             "hash": "7abc5da4764553a61be63f733f02913cadbbe5089afcdc4f14f735ad16badb6a"
+        },
+        {
+            "date": 1761546711880,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-10-27.log",
+            "hash": "47219bbf235797e428d61b1ee66f3af1180ed5754ac538124f3ab32549a21032"
+        },
+        {
+            "date": 1761639164215,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-10-28.log",
+            "hash": "ad167b0e7cdd0a7be259bc5fe25742115a2798b82b6bbd25eada16517a0fb200"
+        },
+        {
+            "date": 1761702672869,
+            "name": "C:\\Users\\86137\\Desktop\\xm\\pet\\backend\\logs\\error-2025-10-29.log",
+            "hash": "12c2c1c241a21a102323d220470e10c44d5a41b0b4e376fe50eb60aae76abc42"
         }
     ],
     "hashType": "sha256"

@@ -48,7 +48,7 @@ export class FileService {
    * 生成文件URL
    */
   static generateFileUrl(filename: string, type: 'avatars' | 'analysis' | 'community'): string {
-    const baseUrl = APP_CONFIG.BASE_URL || 'http://localhost:5000';
+    const baseUrl = APP_CONFIG.BASE_URL || `http://localhost:${APP_CONFIG.PORT}`;
     return `${baseUrl}/uploads/${type}/${filename}`;
   }
 

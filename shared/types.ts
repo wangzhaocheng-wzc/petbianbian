@@ -60,6 +60,7 @@ export interface AuthResponse {
 
 export interface Pet {
   id: string;
+  externalId?: string;
   name: string;
   type: 'dog' | 'cat' | 'other';
   breed?: string;

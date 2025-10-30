@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { resolveImageUrl } from '@/utils/imageUrlResolver';
 import { PoopRecord, Pet } from '../../../../shared/types';
 import { AnalysisInterface } from '../AnalysisInterface';
 import { AnalysisService } from '../../services/analysisService';
@@ -242,12 +243,12 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
           <h3 className="text-lg font-medium text-gray-900 mb-4">分析图片</h3>
           <div className="relative">
             <img
-              src={record.imageUrl}
+              src={resolveImageUrl(record.imageUrl)}
               alt="便便分析图片"
               className="w-full h-64 sm:h-80 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => setShowFullImage(true)}
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                (e.target as HTMLImageElement).src = '/pwa-192x192.png';
               }}
             />
             <button
@@ -341,7 +342,7 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
           <div className="relative max-w-full max-h-full p-4">
             <img
-              src={record.imageUrl}
+              src={resolveImageUrl(record.imageUrl)}
               alt="便便分析图片"
               className="max-w-full max-h-full object-contain"
             />

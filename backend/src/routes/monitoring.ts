@@ -5,7 +5,8 @@ import {
   getSystemInfo,
   getRealtimeStats,
   getErrorStats,
-  getPerformanceStats
+  getPerformanceStats,
+  logImageUrlRewrite,
 } from '../controllers/monitoringController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -16,6 +17,9 @@ router.get('/health', getHealthCheck);
 
 // Prometheus指标 - 公开接口（通常由监控系统调用）
 router.get('/metrics', getMetrics);
+
+// 图片URL重写事件上报 - 公开接口（仅收集最小信息）
+router.post('/image-url-rewrite', logImageUrlRewrite);
 
 // 以下接口需要认证
 router.use(authenticateToken);
