@@ -4,9 +4,9 @@ import { AnalysisResult } from './AnalysisResult';
 import { HealthVisualization } from './HealthVisualization';
 import { AnalysisService } from '../services/analysisService';
 import TouchButton from './common/TouchButton';
+import { useI18n } from '../i18n/I18nProvider';
 import { 
   Save, 
-  Download, 
   Edit3, 
   Trash2,
   TrendingUp,
@@ -46,6 +46,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
   onViewHistory,
   onShareToCommunity
 }) => {
+  const { t, language } = useI18n();
   const [isSaved, setIsSaved] = useState(!isNew);
   const [isSharing, setIsSharing] = useState(false);
   const [statistics, setStatistics] = useState<AnalysisStatisticsResponse['data'] | null>(null);
@@ -109,25 +110,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
     }
   };
 
-  const handleExportRecord = async () => {
-    try {
-      const blob = await AnalysisService.exportRecords(record.petId, 'pdf', {
-        startDate: new Date(record.timestamp).toISOString().split('T')[0],
-        endDate: new Date(record.timestamp).toISOString().split('T')[0]
-      });
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${pet.name}-分析报告-${new Date(record.timestamp).toLocaleDateString()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('导出记录失败:', error);
-    }
-  };
+  // 导出功能已移除
 
   const getHealthStatusSummary = () => {
     const { healthStatus } = record.analysis;
@@ -136,29 +119,29 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
       case 'healthy':
         return {
           icon: <CheckCircle className="w-6 h-6 text-green-500" />,
-          title: '健康状态良好',
-          description: '您的宠物便便状态正常，继续保持良好的饮食和生活习惯。',
+          title: t('healthStatus.healthy.title'),
+          description: t('healthStatus.healthy.description'),
           color: 'bg-green-50 border-green-200 text-green-800'
         };
       case 'warning':
         return {
           icon: <AlertCircle className="w-6 h-6 text-yellow-500" />,
-          title: '需要关注',
-          description: '检测到一些需要注意的情况，建议观察几天并调整饮食。',
+          title: t('healthStatus.warning.title'),
+          description: t('healthStatus.warning.description'),
           color: 'bg-yellow-50 border-yellow-200 text-yellow-800'
         };
       case 'concerning':
         return {
           icon: <AlertCircle className="w-6 h-6 text-red-500" />,
-          title: '建议就医',
-          description: '检测到异常情况，建议尽快咨询兽医进行专业诊断。',
+          title: t('healthStatus.concerning.title'),
+          description: t('healthStatus.concerning.description'),
           color: 'bg-red-50 border-red-200 text-red-800'
         };
       default:
         return {
           icon: <Eye className="w-6 h-6 text-gray-500" />,
-          title: '分析完成',
-          description: '已完成分析，请查看详细结果。',
+          title: t('analysis.results.completed'),
+          description: t('analysis.results.description'),
           color: 'bg-gray-50 border-gray-200 text-gray-800'
         };
     }
@@ -181,7 +164,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
               </h2>
               <div className="flex items-center space-x-2 text-sm">
                 <Activity className="w-4 h-4" />
-                <span>{record.analysis.confidence}% 置信度</span>
+                <span>{record.analysis.confidence}% {t('analysis.results.confidence')}</span>
               </div>
             </div>
             <p className="text-sm sm:text-base mb-4">
@@ -198,7 +181,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
                   variant={isSaved ? "outline" : "primary"}
                   icon={isSaved ? BookmarkPlus : Save}
                 >
-                  {isSaved ? '已保存' : '保存记录'}
+                  {isSaved ? t('analysis.results.saved') : t('analysisResult.saveRecord')}
                 </TouchButton>
               )}
               
@@ -209,7 +192,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
                 variant="outline"
                 icon={Users}
               >
-                分享到社区
+                {t('analysisResult.shareToCommunity')}
               </TouchButton>
               
               {onRetakePhoto && (
@@ -219,7 +202,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
                   variant="outline"
                   icon={Camera}
                 >
-                  重新拍照
+                  {t('analysis.results.retakePhoto')}
                 </TouchButton>
               )}
               
@@ -229,7 +212,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
                 variant="ghost"
                 icon={showActions ? RefreshCw : BarChart3}
               >
-                {showActions ? '收起' : '更多操作'}
+                {showActions ? t('analysis.actions.collapse') : t('analysis.actions.moreActions')}
               </TouchButton>
             </div>
           </div>
@@ -239,17 +222,9 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
       {/* 扩展操作面板 */}
       {showActions && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">操作选项</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('analysis.actions.title')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <TouchButton
-              onClick={handleExportRecord}
-              variant="outline"
-              size="sm"
-              icon={Download}
-              fullWidth
-            >
-              导出报告
-            </TouchButton>
+            {/* 导出功能已移除 */}
             
             {onEdit && (
               <TouchButton
@@ -259,7 +234,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
                 icon={Edit3}
                 fullWidth
               >
-                编辑记录
+                {t('analysisResult.editRecord')}
               </TouchButton>
             )}
             
@@ -271,7 +246,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
                 icon={TrendingUp}
                 fullWidth
               >
-                查看历史
+                {t('analysis.results.viewHistory')}
               </TouchButton>
             )}
             
@@ -284,7 +259,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
                 fullWidth
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
-                删除记录
+                {t('analysisResult.deleteRecord')}
               </TouchButton>
             )}
           </div>
@@ -297,7 +272,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
           <div className="flex items-start space-x-3">
             <Lightbulb className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
-              <h3 className="text-lg font-medium text-blue-900 mb-2">个性化健康建议</h3>
+              <h3 className="text-lg font-medium text-blue-900 mb-2">{t('analysisResult.healthAdviceTitle')}</h3>
               <div className="space-y-2">
                 {healthAdvice.advice.map((advice: string, index: number) => (
                   <p key={index} className="text-sm text-blue-800 flex items-start">
@@ -312,10 +287,10 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
                   <div className="flex items-center space-x-2">
                     <Clock className="w-4 h-4 text-blue-600" />
                     <span className="text-sm font-medium text-blue-900">
-                      建议处理时间: {
-                        healthAdvice.urgency === 'urgent' ? '立即处理' :
-                        healthAdvice.urgency === 'consult' ? '1-2天内咨询' :
-                        '持续观察'
+                      {t('analysis.detail.urgencyLabel')}: {
+                        healthAdvice.urgency === 'urgent' ? t('analysis.detail.urgency.urgent') :
+                        healthAdvice.urgency === 'consult' ? t('analysis.detail.urgency.consult') :
+                        t('analysis.detail.urgency.monitor')
                       }
                     </span>
                   </div>
@@ -357,7 +332,7 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
 
       {/* 相关宠物信息 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">宠物信息</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('petInfo.title')}</h3>
         <div className="flex items-start space-x-4">
           {pet.avatar ? (
             <img
@@ -373,9 +348,19 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
           <div className="flex-1 min-w-0">
             <h4 className="text-lg font-medium text-gray-900">{pet.name}</h4>
             <div className="mt-1 space-y-1 text-sm text-gray-600">
-              <p>品种: {pet.breed || '未知'} • 类型: {pet.type === 'dog' ? '狗' : pet.type === 'cat' ? '猫' : '其他'}</p>
-              {pet.age && <p>年龄: {Math.floor(pet.age / 12)}岁{pet.age % 12}个月</p>}
-              {pet.weight && <p>体重: {pet.weight}kg</p>}
+              <p>
+                {t('petInfo.breed')}: {pet.breed || t('petInfo.unknown')} • {t('petInfo.type')}: {pet.type === 'dog' ? t('petInfo.typeDog') : pet.type === 'cat' ? t('petInfo.typeCat') : t('petInfo.typeOther')}
+              </p>
+              {pet.age && (
+                <p>
+                  {t('petInfo.age')}: {Math.floor(pet.age / 12)}{t('petInfo.ageYears')}{pet.age % 12}{t('petInfo.ageMonths')}
+                </p>
+              )}
+              {pet.weight && (
+                <p>
+                  {t('petInfo.weight')}: {pet.weight}{t('petInfo.weightUnit')}
+                </p>
+              )}
             </div>
             {pet.description && (
               <p className="mt-2 text-sm text-gray-700">{pet.description}</p>
@@ -385,4 +370,4 @@ export const AnalysisInterface: React.FC<AnalysisInterfaceProps> = ({
       </div>
     </div>
   );
-}; 
+};

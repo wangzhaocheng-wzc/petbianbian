@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ComparisonService } from '../services/comparisonService';
+import { getPostgresPool } from '../config/postgres';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -192,45 +193,75 @@ export const getPetsForComparison = async (req: AuthenticatedRequest, res: Respo
       });
     }
 
-    const Pet = require('../models/Pet').default;
-    const { PoopRecord } = require('../models/PoopRecord');
+    const pool = await getPostgresPool();
 
-    // 获取用户的所有宠物
-    const pets = await Pet.find({
-      ownerId: userId,
-      isActive: true
-    }).select('name type breed age weight avatar createdAt');
+    // 将令牌中的ID映射到 Postgres 用户ID（优先视为PG id，其次尝试 external_id）
+    let ownerIdForPg: string | null = null;
+    try {
+      const r1 = await pool.query('SELECT id FROM users WHERE id = $1 LIMIT 1', [String(userId)]);
+      if (r1.rows[0]?.id) {
+        ownerIdForPg = r1.rows[0].id;
+      } else {
+        const r2 = await pool.query('SELECT id FROM users WHERE external_id = $1 LIMIT 1', [String(userId)]);
+        if (r2.rows[0]?.id) {
+          ownerIdForPg = r2.rows[0].id;
+        }
+      }
+    } catch (e) {
+      console.error('用户ID映射失败:', e);
+    }
 
-    // 获取每个宠物的记录数量
-    const petsWithRecordCount = await Promise.all(
-      pets.map(async (pet: any) => {
-        const recordCount = await PoopRecord.countDocuments({
-          petId: pet._id
-        });
+    if (!ownerIdForPg) {
+      return res.status(404).json({
+        success: false,
+        message: '宠物不存在或无权限访问'
+      });
+    }
 
-        const lastRecord = await PoopRecord.findOne({
-          petId: pet._id
-        }).sort({ timestamp: -1 }).select('timestamp');
-
-        return {
-          id: pet._id.toString(),
-          name: pet.name,
-          type: pet.type,
-          breed: pet.breed,
-          age: pet.age,
-          weight: pet.weight,
-          avatar: pet.avatar,
-          recordCount,
-          lastRecordDate: lastRecord?.timestamp,
-          createdAt: pet.createdAt
-        };
-      })
+    const result = await pool.query(
+      `SELECT p.id, p.name, p.type, p.breed, p.age, p.weight, p.avatar_url, p.created_at,
+              COALESCE(r.cnt, 0) AS record_count, r.last_ts AS last_record_date
+         FROM pets p
+         LEFT JOIN (
+           SELECT pet_id, COUNT(*) AS cnt, MAX(timestamp) AS last_ts
+             FROM poop_records
+            GROUP BY pet_id
+         ) r ON r.pet_id = p.id
+        WHERE p.owner_id = $1 AND p.is_active = true
+        ORDER BY p.created_at DESC`,
+      [ownerIdForPg]
     );
 
+    type PetForComparison = {
+      id: string;
+      name: string;
+      type: string;
+      breed: string | null;
+      age: number | null;
+      weight: number | null;
+      avatar: string | null;
+      recordCount: number;
+      lastRecordDate: Date | string | null;
+      createdAt: Date | string;
+    };
+
+    const pets: PetForComparison[] = result.rows.map((row: any) => ({
+      id: String(row.id),
+      name: String(row.name),
+      type: String(row.type),
+      breed: row.breed ?? null,
+      age: row.age ?? null,
+      weight: row.weight ?? null,
+      avatar: row.avatar_url ?? null,
+      recordCount: Number(row.record_count || 0),
+      lastRecordDate: row.last_record_date || null,
+      createdAt: row.created_at
+    }));
+
     // 按记录数量排序，有记录的宠物优先
-    petsWithRecordCount.sort((a, b) => {
+    pets.sort((a, b) => {
       if (a.recordCount === 0 && b.recordCount === 0) {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.createdAt as any).getTime() - new Date(a.createdAt as any).getTime();
       }
       if (a.recordCount === 0) return 1;
       if (b.recordCount === 0) return -1;
@@ -241,8 +272,8 @@ export const getPetsForComparison = async (req: AuthenticatedRequest, res: Respo
       success: true,
       message: '获取宠物列表成功',
       data: {
-        pets: petsWithRecordCount,
-        total: petsWithRecordCount.length
+        pets,
+        total: pets.length
       }
     });
 

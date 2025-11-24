@@ -10,6 +10,8 @@ interface CreateAnalysisParams {
   petId: string;
   imageUrl: string;
   result: AIAnalysisResult;
+  userNotes?: string;
+  symptoms?: string[] | string;
 }
 
 interface AnalysisQuery {
@@ -79,8 +81,95 @@ export class AnalysisService {
   /**
    * 创建分析记录
    */
-  static async createAnalysisRecord(params: CreateAnalysisParams): Promise<IPoopRecord> {
+  static async createAnalysisRecord(params: CreateAnalysisParams): Promise<any> {
     try {
+      const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+
+      // 在 Postgres 主库模式下，直接写入 poop_records 表
+      if (dbPrimary === 'postgres') {
+        const pool = await getPostgresPool();
+
+        // 症状入库处理：字符串按逗号拆分为数组
+        const symptomsArray = Array.isArray(params.symptoms)
+          ? params.symptoms
+          : (typeof params.symptoms === 'string'
+              ? params.symptoms.split(',').map(s => s.trim()).filter(Boolean)
+              : []);
+
+        const detectedFeaturesObj = params.result.detectedFeatures
+          ? {
+              color: params.result.detectedFeatures.color ?? null,
+              texture: params.result.detectedFeatures.texture ?? null,
+              consistency: params.result.detectedFeatures.consistency ?? null,
+              size: params.result.detectedFeatures.size ?? null,
+            }
+          : null;
+
+        const insertSql = `
+          INSERT INTO poop_records (
+            user_id, pet_id, image_url,
+            shape, health_status, confidence, details,
+            recommendations, detected_features,
+            user_notes, symptoms,
+            is_shared, timestamp, created_at, updated_at
+          ) VALUES (
+            $1, $2, $3,
+            $4, $5, $6, $7,
+            $8, $9,
+            $10, $11,
+            $12, now(), now(), now()
+          ) RETURNING
+            id, user_id, pet_id, image_url,
+            shape, health_status, confidence, details,
+            recommendations, detected_features,
+            user_notes, symptoms,
+            is_shared, timestamp, created_at, updated_at
+        `;
+
+        const values = [
+          params.userId,
+          params.petId,
+          params.imageUrl,
+          params.result.shape,
+          params.result.healthStatus,
+          params.result.confidence,
+          params.result.details,
+          params.result.recommendations || [],
+          detectedFeaturesObj ? JSON.stringify(detectedFeaturesObj) : null,
+          params.userNotes || null,
+          symptomsArray,
+          false,
+        ];
+
+        const { rows } = await pool.query(insertSql, values);
+        const row = rows[0];
+
+        // 返回与前端 PoopRecord 兼容的结构
+        return {
+          id: row.id,
+          userId: row.user_id,
+          petId: row.pet_id,
+          imageUrl: row.image_url,
+          thumbnailUrl: row.thumbnail_url || undefined,
+          analysis: {
+            shape: row.shape,
+            healthStatus: row.health_status,
+            confidence: row.confidence,
+            details: row.details || '',
+            recommendations: row.recommendations || [],
+            detectedFeatures: (typeof row.detected_features === 'string'
+              ? JSON.parse(row.detected_features)
+              : (row.detected_features || {})),
+          },
+          userNotes: row.user_notes || undefined,
+          symptoms: row.symptoms || [],
+          timestamp: row.timestamp,
+          isShared: row.is_shared,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+        };
+      }
+
       // 将传入的用户/宠物ID解析为Mongo ObjectId（支持从Postgres UUID映射）
       const mongoUserId = await AnalysisService.resolveMongoObjectId(params.userId, 'user');
       const mongoPetId = await AnalysisService.resolveMongoObjectId(params.petId, 'pet');
@@ -97,6 +186,12 @@ export class AnalysisService {
           recommendations: params.result.recommendations,
           detectedFeatures: params.result.detectedFeatures
         },
+        userNotes: params.userNotes,
+        symptoms: Array.isArray(params.symptoms)
+          ? params.symptoms
+          : (typeof params.symptoms === 'string'
+              ? params.symptoms.split(',').map(s => s.trim()).filter(Boolean)
+              : undefined),
         timestamp: new Date(),
         isShared: false
       });

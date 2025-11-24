@@ -63,6 +63,12 @@ export const connectDB = async (): Promise<void> => {
 // 创建数据库索引以优化查询性能
 export const createDatabaseIndexes = async (): Promise<void> => {
   try {
+    const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+    if (dbPrimary === 'postgres') {
+      // 在 Postgres 主库模式下，Mongo 仅作为兼容数据源，索引创建可跳过以避免远端集群不可用导致的启动阻塞
+      console.log('Postgres 模式：跳过 Mongo 索引创建');
+      return;
+    }
     const db = mongoose.connection.db;
     
     // 用户集合索引

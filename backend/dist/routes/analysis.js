@@ -22,8 +22,6 @@ router.put('/record/:id', analysisController_1.AnalysisController.updateAnalysis
 router.post('/record/:id/share', analysisController_1.AnalysisController.shareAnalysisRecord);
 // 删除分析记录
 router.delete('/record/:id', analysisController_1.AnalysisController.deleteAnalysisRecord);
-// 导出分析记录
-router.get('/export/:petId', analysisController_1.AnalysisController.exportAnalysisRecordsCSV);
 // 批量删除记录
 router.post('/batch-delete', analysisController_1.AnalysisController.batchDeleteRecords);
 exports.default = router;

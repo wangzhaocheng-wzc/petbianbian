@@ -7,6 +7,7 @@ import { useMobile } from '../hooks/useMobile';
 import { CommunityPost, PostsListRequest } from '../../../shared/types';
 import PullToRefresh from './mobile/PullToRefresh';
 import TouchButton from './common/TouchButton';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface PostListProps {
   onCreatePost?: () => void;
@@ -23,6 +24,7 @@ export const PostList: React.FC<PostListProps> = ({
 }) => {
   const { user } = useAuth();
   const { isMobile } = useMobile();
+  const { t } = useI18n();
   const {
     posts,
     loading,
@@ -47,10 +49,10 @@ export const PostList: React.FC<PostListProps> = ({
 
   // 排序选项
   const sortOptions = [
-    { value: 'latest', label: '最新发布' },
-    { value: 'popular', label: '最多点赞' },
-    { value: 'views', label: '最多浏览' },
-    { value: 'comments', label: '最多评论' }
+    { value: 'latest', label: t('community.postList.sort.latest') },
+    { value: 'popular', label: t('community.postList.sort.popular') },
+    { value: 'views', label: t('community.postList.sort.views') },
+    { value: 'comments', label: t('community.postList.sort.comments') }
   ];
 
   // 获取帖子列表
@@ -102,7 +104,7 @@ export const PostList: React.FC<PostListProps> = ({
   // 处理点赞
   const handleLike = async (postId: string) => {
     if (!user) {
-      alert('请先登录');
+      alert(t('community.loginRequired'));
       return;
     }
     try {
@@ -123,12 +125,12 @@ export const PostList: React.FC<PostListProps> = ({
       const url = `${window.location.origin}/community/posts/${postId}`;
       if (navigator.share) {
         await navigator.share({
-          title: '分享帖子',
+          title: t('community.actions.share'),
           url: url
         });
       } else {
         await navigator.clipboard.writeText(url);
-        alert('链接已复制到剪贴板');
+        alert(t('community.share.copied'));
       }
     } catch (error) {
       console.error('分享失败:', error);
@@ -181,7 +183,7 @@ export const PostList: React.FC<PostListProps> = ({
           disabled={pagination.current === 1}
           className="px-3 py-1 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          上一页
+          {t('community.postList.pagination.prev')}
         </button>
         
         {pages}
@@ -191,7 +193,7 @@ export const PostList: React.FC<PostListProps> = ({
           disabled={pagination.current === pagination.total}
           className="px-3 py-1 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          下一页
+          {t('community.postList.pagination.next')}
         </button>
       </div>
     );
@@ -210,7 +212,7 @@ export const PostList: React.FC<PostListProps> = ({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="搜索帖子..."
+                placeholder={t('community.postList.search.placeholder')}
                 className="w-full pl-10 pr-16 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 touch:text-base"
               />
               <Search size={20} className="absolute left-3 top-3.5 text-gray-400" />
@@ -218,7 +220,7 @@ export const PostList: React.FC<PostListProps> = ({
                 onClick={handleSearch}
                 className="absolute right-2 top-2 px-3 py-1.5 bg-orange-600 text-white text-sm rounded hover:bg-orange-700 active:bg-orange-800"
               >
-                搜索
+                {t('community.postList.search.action')}
               </button>
             </div>
           </div>
@@ -231,7 +233,7 @@ export const PostList: React.FC<PostListProps> = ({
               size="md"
               icon={Filter}
             >
-              <span className="hidden xs:inline">筛选</span>
+              <span className="hidden xs:inline">{t('community.postList.actions.filter')}</span>
             </TouchButton>
 
             <TouchButton
@@ -242,7 +244,7 @@ export const PostList: React.FC<PostListProps> = ({
               icon={RefreshCw}
               loading={loading}
             >
-              <span className="hidden xs:inline">刷新</span>
+              <span className="hidden xs:inline">{t('community.postList.actions.refresh')}</span>
             </TouchButton>
 
             {user && onCreatePost && (
@@ -252,8 +254,8 @@ export const PostList: React.FC<PostListProps> = ({
                 size="md"
                 icon={Plus}
               >
-                <span className="hidden xs:inline">发布帖子</span>
-                <span className="xs:hidden">发布</span>
+                <span className="hidden xs:inline">{t('community.postList.actions.create')}</span>
+                <span className="xs:hidden">{t('community.postList.actions.createShort')}</span>
               </TouchButton>
             )}
           </div>
@@ -266,7 +268,7 @@ export const PostList: React.FC<PostListProps> = ({
               {/* 分类筛选 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  分类
+                  {t('community.editor.fields.category.label')}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {categories.map(category => (
@@ -279,7 +281,7 @@ export const PostList: React.FC<PostListProps> = ({
                           : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                       }`}
                     >
-                      {category.label} ({category.count})
+                      {t(`community.categories.${category.name}`)} ({category.count})
                     </button>
                   ))}
                 </div>
@@ -288,7 +290,7 @@ export const PostList: React.FC<PostListProps> = ({
               {/* 排序选择 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  排序方式
+                  {t('community.postList.sortLabel')}
                 </label>
                 <select
                   value={filters.sort}
@@ -329,18 +331,18 @@ export const PostList: React.FC<PostListProps> = ({
             {loading && posts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="animate-spin w-8 h-8 border-2 border-orange-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p className="text-gray-500">加载中...</p>
+                <p className="text-gray-500">{t('community.postList.state.loading')}</p>
               </div>
             ) : posts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">暂无帖子</p>
+                <p className="text-gray-500 mb-4">{t('community.postList.state.empty')}</p>
                 {user && onCreatePost && (
                   <TouchButton
                     onClick={onCreatePost}
                     variant="primary"
                     icon={Plus}
                   >
-                    发布第一个帖子
+                    {t('community.postList.state.emptyCta')}
                   </TouchButton>
                 )}
               </div>
@@ -366,18 +368,18 @@ export const PostList: React.FC<PostListProps> = ({
           {loading && posts.length === 0 ? (
             <div className="text-center py-12">
               <div className="animate-spin w-8 h-8 border-2 border-orange-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-gray-500">加载中...</p>
+              <p className="text-gray-500">{t('community.postList.state.loading')}</p>
             </div>
           ) : posts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">暂无帖子</p>
+              <p className="text-gray-500 mb-4">{t('community.postList.state.empty')}</p>
               {user && onCreatePost && (
                 <TouchButton
                   onClick={onCreatePost}
                   variant="primary"
                   icon={Plus}
                 >
-                  发布第一个帖子
+                  {t('community.postList.state.emptyCta')}
                 </TouchButton>
               )}
             </div>

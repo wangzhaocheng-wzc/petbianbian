@@ -21,7 +21,7 @@ export declare class StatisticsController {
      */
     static getMultiPetSummary(req: Request, res: Response): Promise<void>;
     /**
-     * 获取用户整体统计概览
+     * 用户整体统计概览
      */
     static getUserOverview(req: Request, res: Response): Promise<void>;
     private static calculateUserPeriodStats;

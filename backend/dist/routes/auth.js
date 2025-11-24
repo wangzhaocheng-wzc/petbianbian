@@ -61,9 +61,12 @@ const generateTokens = (userId, email) => {
 // 用户注册
 router.post('/register', validation_1.validateUserRegistration, async (req, res) => {
     try {
+        const DB_PRIMARY = process.env.DB_PRIMARY || 'postgres';
         const { username, email, password } = req.body;
         const pgStatus = await (0, postgres_1.getPostgresStatus)();
-        if (pgStatus === 'connected') {
+        // 仅当主库为 Postgres 且 PG 已连接时走 PG 实现；
+        // 当主库为 Mongo 时，即使 PG 可用也优先使用 Mongo
+        if (DB_PRIMARY === 'postgres' && pgStatus === 'connected') {
             // 使用现有的PG实现
             if (await (0, pgUserService_1.usernameExists)(username)) {
                 return res.status(400).json({
@@ -152,9 +155,12 @@ router.post('/register', validation_1.validateUserRegistration, async (req, res)
 // 用户登录
 router.post('/login', validation_1.validateUserLogin, async (req, res) => {
     try {
+        const DB_PRIMARY = process.env.DB_PRIMARY || 'postgres';
         const { email, password } = req.body;
         const pgStatus = await (0, postgres_1.getPostgresStatus)();
-        if (pgStatus === 'connected') {
+        // 仅当主库为 Postgres 且 PG 已连接时走 PG 实现；
+        // 当主库为 Mongo 时，即使 PG 可用也优先使用 Mongo
+        if (DB_PRIMARY === 'postgres' && pgStatus === 'connected') {
             // 使用现有的PG实现
             const auth = await (0, pgUserService_1.getUserAuthByEmail)(email);
             if (!auth || !auth.agg.isActive) {

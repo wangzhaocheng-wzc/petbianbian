@@ -1,6 +1,18 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MODERATION_STATUS = exports.POST_CATEGORIES = exports.PET_TYPES = exports.HEALTH_STATUS = exports.POOP_TYPES = exports.APP_CONFIG = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
+const fs_1 = __importDefault(require("fs"));
+const envLocal = '.env.local';
+if (fs_1.default.existsSync(envLocal)) {
+    dotenv_1.default.config({ path: envLocal });
+}
+else {
+    dotenv_1.default.config();
+}
 // 应用常量配置
 exports.APP_CONFIG = {
     // 服务器配置
@@ -13,7 +25,7 @@ exports.APP_CONFIG = {
     JWT_EXPIRES_IN: '15m',
     REFRESH_TOKEN_EXPIRES_IN: '7d',
     // 文件上传配置
-    BASE_URL: process.env.BASE_URL || 'http://localhost:5000',
+    BASE_URL: process.env.BASE_URL || 'http://localhost:5001',
     MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
     ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
     UPLOAD_PATH: {
@@ -22,8 +34,10 @@ exports.APP_CONFIG = {
         COMMUNITY: 'uploads/community'
     },
     AI_SERVICE: {
-        URL: process.env.AI_SERVICE_URL || 'http://localhost:8000',
-        KEY: process.env.AI_SERVICE_KEY || 'default-key'
+        URL: process.env.AI_SERVICE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+        KEY: process.env.AI_SERVICE_KEY || process.env.DASHSCOPE_API_KEY || '',
+        ANALYSIS_PATH: process.env.AI_SERVICE_ANALYSIS_PATH || '/chat/completions',
+        MODEL: process.env.AI_MODEL || 'qwen-plus'
     },
     PAGINATION: {
         DEFAULT_PAGE_SIZE: 10,

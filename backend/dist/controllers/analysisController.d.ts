@@ -32,13 +32,5 @@ export declare class AnalysisController {
      * 获取分析统计
      */
     static getAnalysisStatistics(req: Request, res: Response): Promise<void>;
-    /**
-     * 导出分析记录为CSV
-     */
-    static exportAnalysisRecordsCSV(req: Request, res: Response): Promise<void>;
-    /**
-     * 导出分析记录为PDF
-     */
-    static exportAnalysisRecordsPDF(req: Request, res: Response): Promise<void>;
 }
 //# sourceMappingURL=analysisController.d.ts.map

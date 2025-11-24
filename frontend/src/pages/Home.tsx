@@ -1,25 +1,27 @@
 import { Link } from 'react-router-dom'
 import { Camera, BarChart3, Users } from 'lucide-react'
+import { useI18n } from '../i18n/I18nProvider'
 
 export default function Home() {
+  const { t } = useI18n()
   const features = [
     {
-      name: '便便健康分析',
-      description: '上传宠物便便照片，AI智能分析健康状况',
+      name: t('home.features.analysis.name'),
+      description: t('home.features.analysis.description'),
       icon: Camera,
       href: '/analysis',
       color: 'bg-blue-500'
     },
     {
-      name: '健康记录追踪',
-      description: '记录和统计宠物排便情况，追踪健康趋势',
+      name: t('home.features.records.name'),
+      description: t('home.features.records.description'),
       icon: BarChart3,
       href: '/records',
       color: 'bg-green-500'
     },
     {
-      name: '宠物社区',
-      description: '与其他养宠人士分享经验，交流心得',
+      name: t('home.features.community.name'),
+      description: t('home.features.community.description'),
       icon: Users,
       href: '/community',
       color: 'bg-purple-500'
@@ -31,17 +33,17 @@ export default function Home() {
       {/* Hero Section */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          🐾 关爱宠物健康，从便便开始
+          {t('home.hero.title')}
         </h1>
         <p className="text-xl text-gray-600 mb-8">
-          通过AI智能分析，帮助您更好地了解宠物的健康状况
+          {t('home.hero.subtitle')}
         </p>
         <Link
           to="/analysis"
           className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
         >
           <Camera className="w-5 h-5 mr-2" />
-          开始分析
+          {t('home.hero.cta')}
         </Link>
       </div>
 
@@ -74,19 +76,19 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
           <div>
             <div className="text-3xl font-bold text-primary-600">1000+</div>
-            <div className="text-gray-600">分析次数</div>
+            <div className="text-gray-600">{t('home.stats.analysisCount')}</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-primary-600">500+</div>
-            <div className="text-gray-600">注册用户</div>
+            <div className="text-gray-600">{t('home.stats.registeredUsers')}</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-primary-600">95%</div>
-            <div className="text-gray-600">准确率</div>
+            <div className="text-gray-600">{t('home.stats.accuracy')}</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-primary-600">24/7</div>
-            <div className="text-gray-600">在线服务</div>
+            <div className="text-gray-600">{t('home.stats.onlineService')}</div>
           </div>
         </div>
       </div>

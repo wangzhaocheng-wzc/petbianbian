@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Search, AlertCircle } from 'lucide-react';
 import { Pet } from '../../../shared/types';
 import { usePets } from '../hooks/usePets';
@@ -11,6 +11,7 @@ const Pets: React.FC = () => {
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<Pet | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // 过滤宠物列表
   const filteredPets = pets.filter(pet =>
@@ -40,17 +41,30 @@ const Pets: React.FC = () => {
   };
 
   const handleFormSubmit = async (data: any) => {
+    let ok = false;
     if (editingPet) {
-      return await updatePet(editingPet.id, data);
+      ok = await updatePet(editingPet.id, data);
     } else {
-      return await createPet(data);
+      ok = await createPet(data);
     }
+    if (ok) {
+      setSuccessMessage(editingPet ? '宠物信息更新成功' : '宠物添加成功');
+    }
+    return ok;
   };
 
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingPet(null);
   };
+
+  // 成功提示自动消失
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -97,6 +111,21 @@ const Pets: React.FC = () => {
               <button
                 onClick={clearError}
                 className="ml-auto text-red-500 hover:text-red-700"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 成功提示 */}
+        {successMessage && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <span className="text-green-700">{successMessage}</span>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="ml-auto text-green-600 hover:text-green-800"
               >
                 ×
               </button>

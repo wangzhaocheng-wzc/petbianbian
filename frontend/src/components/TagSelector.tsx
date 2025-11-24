@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { X, Plus } from 'lucide-react';
 
 interface TagSelectorProps {
@@ -25,16 +25,22 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // 默认标签建议
-  const defaultSuggestions = [
-    '健康', '疾病', '营养', '训练', '行为', '美容', '医疗',
-    '疫苗', '驱虫', '绝育', '怀孕', '幼犬', '老年犬',
-    '金毛', '拉布拉多', '泰迪', '比熊', '柯基', '哈士奇',
-    '英短', '美短', '布偶', '暹罗', '波斯', '加菲',
-    '求助', '分享', '经验', '推荐', '咨询'
-  ];
+  // 默认标签建议（稳定引用避免依赖每次变化）
+  const DEFAULT_TAG_SUGGESTIONS = useMemo(
+    () => [
+      '健康', '疾病', '营养', '训练', '行为', '美容', '医疗',
+      '疫苗', '驱虫', '绝育', '怀孕', '幼犬', '老年犬',
+      '金毛', '拉布拉多', '泰迪', '比熊', '柯基', '哈士奇',
+      '英短', '美短', '布偶', '暹罗', '波斯', '加菲',
+      '求助', '分享', '经验', '推荐', '咨询'
+    ],
+    []
+  );
 
-  const allSuggestions = [...suggestions, ...defaultSuggestions];
+  const allSuggestions = useMemo(
+    () => [...suggestions, ...DEFAULT_TAG_SUGGESTIONS],
+    [suggestions, DEFAULT_TAG_SUGGESTIONS]
+  );
 
   // 过滤建议标签
   useEffect(() => {
@@ -43,11 +49,21 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
         !tags.includes(suggestion)
       );
-      setFilteredSuggestions(filtered.slice(0, 8)); // 最多显示8个建议
-      setShowSuggestions(filtered.length > 0);
+      const nextFiltered = filtered.slice(0, 8); // 最多显示8个建议
+      setFilteredSuggestions(prev => {
+        // 避免不必要的状态更新导致重复渲染
+        const sameLength = prev.length === nextFiltered.length;
+        const sameItems = sameLength && prev.every((v, i) => v === nextFiltered[i]);
+        return sameItems ? prev : nextFiltered;
+      });
+      setShowSuggestions(prev => {
+        const nextShow = nextFiltered.length > 0;
+        return prev === nextShow ? prev : nextShow;
+      });
     } else {
-      setFilteredSuggestions([]);
-      setShowSuggestions(false);
+      // 输入为空时也避免重复设置相同值
+      setFilteredSuggestions(prev => (prev.length === 0 ? prev : []));
+      setShowSuggestions(prev => (prev === false ? prev : false));
     }
   }, [inputValue, tags, allSuggestions]);
 

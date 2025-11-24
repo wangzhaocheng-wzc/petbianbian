@@ -17,17 +17,16 @@ const ensureUploadDir = (dirPath) => {
 const storage = multer_1.default.diskStorage({
     destination: (req, file, cb) => {
         let uploadDir = 'uploads';
-        // 根据请求路径确定上传目录
-        if (req.path.includes('/avatar')) {
+        const url = `${req.baseUrl || ''}${req.path || ''}`;
+        if (url.includes('/avatar')) {
             uploadDir = path_1.default.join('uploads', 'avatars');
         }
-        else if (req.path.includes('/analysis')) {
+        else if (url.includes('/analysis')) {
             uploadDir = path_1.default.join('uploads', 'analysis');
         }
-        else if (req.path.includes('/community')) {
+        else if (url.includes('/community')) {
             uploadDir = path_1.default.join('uploads', 'community');
         }
-        // 确保目录存在
         ensureUploadDir(uploadDir);
         cb(null, uploadDir);
     },

@@ -7,6 +7,10 @@ export declare const databaseConnections: Gauge<string>;
 export declare const errorRate: Counter<"type" | "endpoint">;
 export declare const memoryUsage: Gauge<"type">;
 export declare const cpuUsage: Gauge<string>;
+export declare const imageUrlRewriteTotal: Counter<"model" | "type" | "origin">;
+export declare const imageUrlRewriteDurationMs: Histogram<"model" | "type" | "origin">;
+export declare const imageUrlGovernanceRemaining: Gauge<"model">;
+export declare const imageUrlGovernanceProcessedTotal: Counter<"model">;
 export declare const monitoringMiddleware: (req: Request, res: Response, next: NextFunction) => void;
 export declare const collectSystemMetrics: () => void;
 export interface HealthCheck {
@@ -32,6 +36,8 @@ export declare class MonitoringService {
     private requestCounts;
     private errorCounts;
     static getInstance(): MonitoringService;
+    recordImageUrlRewrite(origin: 'frontend' | 'backend', type: string, model?: string, durationMs?: number): void;
+    recordGovernanceProgress(processedByModel: Record<string, number>, remainingByModel?: Record<string, number>): void;
     getMetrics(): Promise<string>;
     getHealthCheck(): Promise<HealthCheck>;
     recordRequest(endpoint: string): void;

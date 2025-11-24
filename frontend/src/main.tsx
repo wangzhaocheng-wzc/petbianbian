@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
+import { LanguageProvider } from './i18n/I18nProvider'
 
 // 性能监控和优化工具
 import { performanceMonitor } from './utils/performance'
@@ -22,7 +23,9 @@ if (import.meta.env.PROD) {
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>,
+  <LanguageProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </LanguageProvider>,
 )

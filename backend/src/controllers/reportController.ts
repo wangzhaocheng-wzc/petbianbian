@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ReportService } from '../services/reportService';
+import { getPostgresPool } from '../config/postgres';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -109,7 +110,12 @@ export const downloadHealthReportPDF = async (req: AuthenticatedRequest, res: Re
 
     // 获取宠物信息用于文件名
     const Pet = require('../models/Pet').default;
-    const pet = await Pet.findById(petId);
+    const pool = await getPostgresPool();
+const petRes = await pool.query(
+  'SELECT id, name FROM pets WHERE id = $1 LIMIT 1',
+  [petId]
+);
+const pet = petRes.rows[0];
     const petName = pet ? pet.name : 'pet';
     const timestamp = new Date().toISOString().split('T')[0];
     const filename = `${petName}-健康报告-${timestamp}.pdf`;

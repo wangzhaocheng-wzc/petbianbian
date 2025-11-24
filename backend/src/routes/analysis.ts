@@ -30,8 +30,6 @@ router.post('/record/:id/share', AnalysisController.shareAnalysisRecord);
 // 删除分析记录
 router.delete('/record/:id', AnalysisController.deleteAnalysisRecord);
 
-// 导出分析记录
-router.get('/export/:petId', AnalysisController.exportAnalysisRecordsCSV);
 
 // 批量删除记录
 router.post('/batch-delete', AnalysisController.batchDeleteRecords);

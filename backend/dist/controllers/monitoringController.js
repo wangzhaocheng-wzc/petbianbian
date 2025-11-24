@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPerformanceStats = exports.getErrorStats = exports.getRealtimeStats = exports.getSystemInfo = exports.getMetrics = exports.getHealthCheck = void 0;
+exports.logImageUrlRewrite = exports.getPerformanceStats = exports.getErrorStats = exports.getRealtimeStats = exports.getSystemInfo = exports.getMetrics = exports.getHealthCheck = void 0;
 const monitoringService_1 = require("../services/monitoringService");
+const logger_1 = require("../utils/logger");
 const monitoringService = monitoringService_1.MonitoringService.getInstance();
 // 获取健康检查信息
 const getHealthCheck = async (req, res) => {
@@ -170,4 +171,33 @@ const getPerformanceStats = (req, res) => {
     }
 };
 exports.getPerformanceStats = getPerformanceStats;
+// 接收前端图片URL重写事件（公共端点）
+const logImageUrlRewrite = (req, res) => {
+    try {
+        const { original, resolved, reason, frontendOrigin, backendOrigin, timestamp } = req.body || {};
+        // 记录请求计数
+        monitoringService.recordRequest('/api/monitoring/image-url-rewrite');
+        // 基础校验与安全过滤（避免日志污染）
+        const safeReason = typeof reason === 'string' ? reason : 'unknown';
+        const payload = {
+            original: typeof original === 'string' ? original : 'invalid',
+            resolved: typeof resolved === 'string' ? resolved : 'invalid',
+            reason: safeReason,
+            frontendOrigin: typeof frontendOrigin === 'string' ? frontendOrigin : 'unknown',
+            backendOrigin: typeof backendOrigin === 'string' ? backendOrigin : 'unknown',
+            timestamp: typeof timestamp === 'number' ? timestamp : Date.now(),
+        };
+        // 记录到应用日志（归类为 API 日志类型）
+        logger_1.Logger.api('Image URL rewrite', {
+            payload,
+        });
+        res.json({ success: true });
+    }
+    catch (error) {
+        monitoringService.recordError('/api/monitoring/image-url-rewrite', error);
+        logger_1.Logger.error('Image URL rewrite log error', { error: error });
+        res.status(500).json({ success: false, message: '日志记录失败' });
+    }
+};
+exports.logImageUrlRewrite = logImageUrlRewrite;
 //# sourceMappingURL=monitoringController.js.map

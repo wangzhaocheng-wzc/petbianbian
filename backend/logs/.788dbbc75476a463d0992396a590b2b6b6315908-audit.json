@@ -1,0 +1,40 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "/Users/wik/Desktop/xm/petbianbian/backend/logs/.788dbbc75476a463d0992396a590b2b6b6315908-audit.json",
+    "files": [
+        {
+            "date": 1762164682558,
+            "name": "/Users/wik/Desktop/xm/petbianbian/backend/logs/error-2025-11-03.log",
+            "hash": "81253d7a0368745e98369b8c5fda6fda7e66ad231eacb9fdafde83ac3b97d69e"
+        },
+        {
+            "date": 1762219851872,
+            "name": "/Users/wik/Desktop/xm/petbianbian/backend/logs/error-2025-11-04.log",
+            "hash": "018261b657a30741b0b7e12f0b50806c8711919c2447ec082e22e5030c72c57c"
+        },
+        {
+            "date": 1762398313258,
+            "name": "/Users/wik/Desktop/xm/petbianbian/backend/logs/error-2025-11-06.log",
+            "hash": "f3f62530cb512e775efeacb15dad7617b63af0b27138459d5a5067d557fe1a54"
+        },
+        {
+            "date": 1762484395110,
+            "name": "/Users/wik/Desktop/xm/petbianbian/backend/logs/error-2025-11-07.log",
+            "hash": "0bb3f21a727d3e32aaca4c6619c2a99db433a27c7238eec7da2137652cacb3cb"
+        },
+        {
+            "date": 1763016901759,
+            "name": "/Users/wik/Desktop/xm/petbianbian/backend/logs/error-2025-11-13.log",
+            "hash": "030109f3f5d775d6296a5a1656ac6794a0fdb7d27d380eb0545bae3fc3cf1fe7"
+        },
+        {
+            "date": 1763050248037,
+            "name": "/Users/wik/Desktop/xm/petbianbian/backend/logs/error-2025-11-14.log",
+            "hash": "6a379aa86153439d6701334a65b31ba8b82c8294932ae3b1d4c96acdf45fc084"
+        }
+    ],
+    "hashType": "sha256"
+}

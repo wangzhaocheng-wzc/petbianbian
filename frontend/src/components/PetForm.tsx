@@ -170,11 +170,12 @@ const PetForm: React.FC<PetFormProps> = ({ pet, isOpen, onClose, onSubmit, loadi
         const formData = new FormData();
         formData.append('file', file);
         
+        const accessToken = localStorage.getItem('access_token');
         const response = await fetch(`${API_BASE_URL}/upload/avatar`, {
           method: 'POST',
           body: formData,
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('ACCESS_TOKEN')}`
+            ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
           }
         });
         

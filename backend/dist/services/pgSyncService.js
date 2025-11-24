@@ -116,34 +116,60 @@ const upsertPet = async (ownerExternalId, pet) => {
         if (!ownerId)
             return;
         const now = new Date();
-        await pool.query(`INSERT INTO pets (owner_id, name, type, breed, gender, age, weight, avatar_url, description, is_active, external_id, created_at, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
-       ON CONFLICT (external_id) DO UPDATE SET
-         owner_id = EXCLUDED.owner_id,
-         name = EXCLUDED.name,
-         type = EXCLUDED.type,
-         breed = EXCLUDED.breed,
-         gender = EXCLUDED.gender,
-         age = EXCLUDED.age,
-         weight = EXCLUDED.weight,
-         avatar_url = EXCLUDED.avatar_url,
-         description = EXCLUDED.description,
-         is_active = EXCLUDED.is_active,
-         updated_at = now()`, [
-            ownerId,
-            pet.name,
-            pet.type,
-            pet.breed || null,
-            pet.gender || null,
-            pet.age ?? null,
-            pet.weight ?? null,
-            pet.avatar || null,
-            pet.description || null,
-            pet.isActive !== false,
-            String(pet._id),
-            pet.createdAt || now,
-            pet.updatedAt || now,
-        ]);
+        // 先尝试查找是否已存在 external_id 对应的记录
+        const existing = await pool.query('SELECT id FROM pets WHERE external_id = $1 LIMIT 1', [String(pet._id)]);
+        if (existing.rows[0]?.id) {
+            // 存在则更新
+            await pool.query(`UPDATE pets SET
+           owner_id = $1,
+           name = $2,
+           type = $3,
+           breed = $4,
+           gender = $5,
+           age = $6,
+           weight = $7,
+           avatar_url = $8,
+           description = $9,
+           is_active = $10,
+           updated_at = now()
+         WHERE external_id = $11`, [
+                ownerId,
+                pet.name,
+                pet.type,
+                pet.breed || null,
+                pet.gender || null,
+                pet.age ?? null,
+                pet.weight ?? null,
+                pet.avatar || null,
+                pet.description || null,
+                pet.isActive !== false,
+                String(pet._id),
+            ]);
+        }
+        else {
+            // 不存在则插入
+            await pool.query(`INSERT INTO pets (
+           owner_id, name, type, breed, gender, age, weight, avatar_url, description,
+           is_active, external_id, created_at, updated_at
+         ) VALUES (
+           $1,$2,$3,$4,$5,$6,$7,$8,$9,
+           $10,$11,$12,$13
+         )`, [
+                ownerId,
+                pet.name,
+                pet.type,
+                pet.breed || null,
+                pet.gender || null,
+                pet.age ?? null,
+                pet.weight ?? null,
+                pet.avatar || null,
+                pet.description || null,
+                pet.isActive !== false,
+                String(pet._id),
+                pet.createdAt || now,
+                pet.updatedAt || now,
+            ]);
+        }
     }
     catch (err) {
         console.error('Postgres upsertPet 失败:', err);

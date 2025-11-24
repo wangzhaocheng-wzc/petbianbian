@@ -4,10 +4,12 @@ import { useAuth } from '../hooks/useAuth'
 import { usePets } from '../hooks/usePets'
 import PetForm from '../components/PetForm'
 import { Pet } from '../../../shared/types'
+import { useI18n } from '../i18n/I18nProvider'
 
 
 
 export default function Profile() {
+  const { t, language } = useI18n()
   const [activeTab, setActiveTab] = useState('pets')
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingPet, setEditingPet] = useState<Pet | null>(null)
@@ -41,7 +43,7 @@ export default function Profile() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">加载中...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     )
@@ -52,7 +54,7 @@ export default function Profile() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <p className="text-gray-600">无法获取用户信息</p>
+          <p className="text-gray-600">{t('profile.errorNoUser')}</p>
         </div>
       </div>
     )
@@ -60,12 +62,12 @@ export default function Profile() {
 
   // 格式化加入日期
   const formatJoinDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('zh-CN')
+    return new Date(date).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US')
   }
 
   const tabs = [
-    { id: 'pets', name: '我的宠物' },
-    { id: 'settings', name: '账户设置' }
+    { id: 'pets', name: t('profile.tabs.myPets') },
+    { id: 'settings', name: t('profile.tabs.account') }
   ]
 
   return (
@@ -79,26 +81,26 @@ export default function Profile() {
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900">{user.username}</h1>
             <p className="text-gray-600">{user.email}</p>
-            <p className="text-sm text-gray-500">加入时间：{formatJoinDate(user.createdAt)}</p>
+            <p className="text-sm text-gray-500">{t('profile.joinedAt')}: {formatJoinDate(user.createdAt)}</p>
           </div>
           <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
             <Edit3 className="w-4 h-4 mr-2" />
-            编辑资料
+            {t('profile.editProfile')}
           </button>
         </div>
         
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <div className="text-2xl font-bold text-orange-600">{user.stats.totalAnalysis}</div>
-            <div className="text-sm text-gray-600">分析次数</div>
+            <div className="text-sm text-gray-600">{t('profile.stats.analysisCount')}</div>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <div className="text-2xl font-bold text-orange-600">{pets.length}</div>
-            <div className="text-sm text-gray-600">宠物数量</div>
+            <div className="text-sm text-gray-600">{t('profile.stats.petCount')}</div>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <div className="text-2xl font-bold text-orange-600">{user.stats.totalPosts}</div>
-            <div className="text-sm text-gray-600">社区发帖</div>
+            <div className="text-sm text-gray-600">{t('profile.stats.posts')}</div>
           </div>
         </div>
       </div>
@@ -127,30 +129,30 @@ export default function Profile() {
           {activeTab === 'pets' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-medium text-gray-900">我的宠物</h2>
+                <h2 className="text-lg font-medium text-gray-900">{t('profile.myPetsTitle')}</h2>
                 <button 
                   onClick={handleAddPet}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
                 >
                   <PlusCircle className="w-4 h-4 mr-2" />
-                  添加宠物
+                  {t('profile.addPet')}
                 </button>
               </div>
               
               {petsLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                  <p className="text-gray-600">加载宠物信息中...</p>
+                  <p className="text-gray-600">{t('profile.loadingPets')}</p>
                 </div>
               ) : pets.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600 mb-4">您还没有添加宠物</p>
+                  <p className="text-gray-600 mb-4">{t('profile.noPets')}</p>
                   <button 
                     onClick={handleAddPet}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
                   >
                     <PlusCircle className="w-4 h-4 mr-2" />
-                    添加第一只宠物
+                    {t('profile.addFirstPet')}
                   </button>
                 </div>
               ) : (
@@ -170,7 +172,7 @@ export default function Profile() {
                         <div className="flex-1">
                           <h3 className="text-lg font-medium text-gray-900">{pet.name}</h3>
                           <p className="text-sm text-gray-600">
-                            {pet.breed || '未知品种'} · {pet.age ? `${Math.floor(pet.age / 12)}岁` : '年龄未知'}
+                            {pet.breed || t('profile.unknownBreed')} · {pet.age ? `${Math.floor(pet.age / 12)}${t('petInfo.ageYears')}` : t('profile.unknownAge')}
                           </p>
                         </div>
                         <button className="text-gray-400 hover:text-gray-600">
@@ -179,12 +181,12 @@ export default function Profile() {
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="text-gray-500">类型：</span>
+                          <span className="text-gray-500">{t('petInfo.type')}：</span>
                           <span className="text-gray-900 capitalize">{pet.type}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">体重：</span>
-                          <span className="text-gray-900">{pet.weight ? `${pet.weight}kg` : '未知'}</span>
+                          <span className="text-gray-500">{t('petInfo.weight')}：</span>
+                          <span className="text-gray-900">{pet.weight ? `${pet.weight}${t('petInfo.weightUnit')}` : t('petInfo.unknown')}</span>
                         </div>
                       </div>
                     </div>
@@ -196,12 +198,12 @@ export default function Profile() {
 
           {activeTab === 'settings' && (
             <div className="space-y-6">
-              <h2 className="text-lg font-medium text-gray-900">账户设置</h2>
+              <h2 className="text-lg font-medium text-gray-900">{t('profile.accountSettings')}</h2>
               
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    用户名
+                    {t('profile.fields.username')}
                   </label>
                   <input
                     type="text"
@@ -212,7 +214,7 @@ export default function Profile() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    邮箱
+                    {t('profile.fields.email')}
                   </label>
                   <input
                     type="email"
@@ -223,7 +225,7 @@ export default function Profile() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    密码
+                    {t('profile.fields.password')}
                   </label>
                   <input
                     type="password"
@@ -234,7 +236,7 @@ export default function Profile() {
                 
                 <div className="pt-4">
                   <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
-                    保存设置
+                    {t('profile.saveSettings')}
                   </button>
                 </div>
               </div>

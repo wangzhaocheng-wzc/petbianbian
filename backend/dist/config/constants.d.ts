@@ -16,6 +16,8 @@ export declare const APP_CONFIG: {
     AI_SERVICE: {
         URL: string;
         KEY: string;
+        ANALYSIS_PATH: string;
+        MODEL: string;
     };
     PAGINATION: {
         DEFAULT_PAGE_SIZE: number;

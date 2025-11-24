@@ -11,6 +11,7 @@ import {
   Lightbulb,
   Clock
 } from 'lucide-react';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface HealthStatusVisualizationProps {
   record: PoopRecord;
@@ -29,6 +30,7 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (interactive) {
@@ -49,10 +51,10 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
         bgColor: 'bg-green-50',
         borderColor: 'border-green-200',
         ringColor: 'ring-green-500',
-        title: '健康状态',
-        subtitle: '一切正常',
-        description: '便便状态健康，继续保持良好习惯',
-        recommendation: '保持当前的饮食和生活习惯',
+        title: t('healthStatus.healthy.title'),
+        subtitle: t('healthStatus.healthy.subtitle'),
+        description: t('healthStatus.healthy.description'),
+        recommendation: t('healthStatus.healthy.recommendation'),
         urgency: 'none',
         riskLevel: 'low'
       },
@@ -62,10 +64,10 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
         bgColor: 'bg-yellow-50',
         borderColor: 'border-yellow-200',
         ringColor: 'ring-yellow-500',
-        title: '需要关注',
-        subtitle: '轻微异常',
-        description: '检测到需要注意的情况',
-        recommendation: '观察几天并适当调整饮食',
+        title: t('healthStatus.warning.title'),
+        subtitle: t('healthStatus.warning.subtitle'),
+        description: t('healthStatus.warning.description'),
+        recommendation: t('healthStatus.warning.recommendation'),
         urgency: 'monitor',
         riskLevel: 'medium'
       },
@@ -75,10 +77,10 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
         bgColor: 'bg-red-50',
         borderColor: 'border-red-200',
         ringColor: 'ring-red-500',
-        title: '建议就医',
-        subtitle: '异常状态',
-        description: '检测到明显异常情况',
-        recommendation: '建议尽快咨询兽医',
+        title: t('healthStatus.concerning.title'),
+        subtitle: t('healthStatus.concerning.subtitle'),
+        description: t('healthStatus.concerning.description'),
+        recommendation: t('healthStatus.concerning.recommendation'),
         urgency: 'consult',
         riskLevel: 'high'
       }
@@ -162,7 +164,7 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
 
   return (
     <div className={`relative ${className}`}>
-      {/* 主要状态显示 */}
+      {/* Main status display */}
       <div
         className={`
           ${config.bgColor} ${config.borderColor} border-2 rounded-xl 
@@ -174,7 +176,7 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
         onMouseLeave={() => interactive && setShowTooltip(false)}
       >
         <div className="flex items-start space-x-4">
-          {/* 状态图标 */}
+          {/* Status icon */}
           <div className="flex-shrink-0 relative">
             <IconComponent className={`${sizeConfig.iconSize} ${config.color}`} />
             {interactive && animationPhase === 2 && (
@@ -184,7 +186,7 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
             )}
           </div>
 
-          {/* 状态信息 */}
+          {/* Status info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-2">
               <div>
@@ -196,7 +198,7 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
                 </p>
               </div>
               
-              {/* 置信度徽章 */}
+              {/* Confidence badge */}
               <div className={`
                 rounded-full font-medium ${sizeConfig.badgeSize}
                 ${getConfidenceColor(record.analysis.confidence)}
@@ -211,51 +213,51 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
                   {config.description}
                 </p>
 
-                {/* 详细信息网格 */}
+                {/* Details grid */}
                 <div className="grid grid-cols-2 gap-3">
-                  {/* 形状类型 */}
+                  {/* Shape type */}
                   <div className="flex items-center space-x-2">
                     <Activity className="w-4 h-4 text-gray-400" />
                     <div>
-                      <p className="text-xs text-gray-500">形状类型</p>
+                      <p className="text-xs text-gray-500">{t('analysis.detail.shapeType')}</p>
                       <p className="text-sm font-medium text-gray-900">
                         {record.analysis.shapeDescription || record.analysis.shape}
                       </p>
                     </div>
                   </div>
 
-                  {/* 风险等级 */}
+                  {/* Risk level */}
                   <div className="flex items-center space-x-2">
                     <Shield className="w-4 h-4 text-gray-400" />
                     <div>
-                      <p className="text-xs text-gray-500">风险等级</p>
+                      <p className="text-xs text-gray-500">{t('analysis.detail.riskLevelLabel')}</p>
                       <div className="flex items-center space-x-2">
                         {getRiskLevelIndicator()}
-                        <span className="text-sm font-medium text-gray-900 capitalize">
-                          {config.riskLevel}
+                        <span className="text-sm font-medium text-gray-900">
+                          {t(`analysis.detail.riskLevels.${config.riskLevel}`)}
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 建议 */}
+                {/* Recommendation */}
                 <div className="mt-4 p-3 bg-white bg-opacity-50 rounded-lg">
                   <div className="flex items-start space-x-2">
                     <Lightbulb className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">建议</p>
+                      <p className="text-xs text-gray-500 mb-1">{t('analysis.detail.recommendationLabel')}</p>
                       <p className="text-sm text-gray-700">{config.recommendation}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* 紧急程度指示器 */}
+                {/* Urgency indicator */}
                 {config.urgency !== 'none' && (
                   <div className="mt-3 flex items-center space-x-2 text-sm">
                     {getUrgencyIcon()}
                     <span className="text-gray-600">
-                      {config.urgency === 'consult' ? '建议咨询兽医' : '持续观察'}
+                      {config.urgency === 'consult' ? t('analysis.detail.urgency.consult') : t('analysis.detail.urgency.monitor')}
                     </span>
                   </div>
                 )}
@@ -265,19 +267,19 @@ export const HealthStatusVisualization: React.FC<HealthStatusVisualizationProps>
         </div>
       </div>
 
-      {/* 交互式提示框 */}
+      {/* Interactive tooltip */}
       {interactive && showTooltip && (
         <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Info className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium text-gray-900">详细分析</span>
+              <span className="text-sm font-medium text-gray-900">{t('analysis.detail.title')}</span>
             </div>
             <p className="text-sm text-gray-700">{record.analysis.details}</p>
             
             {record.analysis.recommendations.length > 0 && (
               <div className="mt-3">
-                <p className="text-xs text-gray-500 mb-1">健康建议:</p>
+                <p className="text-xs text-gray-500 mb-1">{t('analysisResult.healthAdviceTitle')}</p>
                 <ul className="space-y-1">
                   {record.analysis.recommendations.slice(0, 2).map((rec, index) => (
                     <li key={index} className="text-xs text-gray-600 flex items-start">

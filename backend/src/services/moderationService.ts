@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { getPostgresPool } from '../config/postgres';
 import ModerationRule, { IModerationRule } from '../models/ModerationRule';
 import ContentReport, { IContentReport } from '../models/ContentReport';
 import CommunityPost from '../models/CommunityPost';
@@ -13,16 +14,17 @@ export interface ModerationResult {
   triggeredRules: string[];
 }
 
-export interface ContentAnalysis {
-  content: string;
-  type: 'post' | 'comment';
-  userId: mongoose.Types.ObjectId;
-  metadata?: {
-    title?: string;
-    tags?: string[];
-    images?: string[];
-  };
-}
+  export interface ContentAnalysis {
+    content: string;
+    type: 'post' | 'comment';
+    userId: mongoose.Types.ObjectId;
+    metadata?: {
+      title?: string;
+      tags?: string[];
+      images?: string[];
+      pgUserId?: string; // PG 模式下用于频率检查的用户ID
+    };
+  }
 
 class ModerationService {
   private sensitiveWords: Set<string> = new Set();
@@ -31,7 +33,13 @@ class ModerationService {
 
   constructor() {
     this.initializeDefaultRules();
-    this.loadRules();
+    // 在 Postgres 模式下暂时跳过 Mongo 规则加载
+    const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+    if (dbPrimary !== 'postgres') {
+      this.loadRules();
+    } else {
+      Logger.info('Postgres 模式：跳过基于 Mongo 的审核规则加载，使用默认规则');
+    }
   }
 
   // 初始化默认敏感词和规则
@@ -64,6 +72,13 @@ class ModerationService {
   // 从数据库加载审核规则
   async loadRules() {
     try {
+      const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+      if (dbPrimary === 'postgres') {
+        // TODO: 后续将从 Postgres 读取规则，这里先使用默认内置规则
+        this.rules = [];
+        Logger.info('Postgres 模式：暂未从数据库加载审核规则，使用内置默认规则');
+        return;
+      }
       this.rules = await ModerationRule.find({ isActive: true }).sort({ severity: -1, createdAt: -1 });
       
       // 更新敏感词库
@@ -127,8 +142,8 @@ class ModerationService {
         this.updateResult(result, 'low', 'flag');
       }
 
-      // 检查发布频率
-      const frequencyResult = await this.checkFrequency(analysis.userId, analysis.type);
+      // 检查发布频率（PG 模式支持通过 metadata.pgUserId 进行检查）
+      const frequencyResult = await this.checkFrequency(analysis.userId, analysis.type, analysis.metadata?.pgUserId);
       if (frequencyResult.violation) {
         result.reasons.push(frequencyResult.violation);
         result.triggeredRules.push('frequency_filter');
@@ -206,23 +221,42 @@ class ModerationService {
   }
 
   // 检查发布频率
-  private async checkFrequency(userId: mongoose.Types.ObjectId, type: 'post' | 'comment'): Promise<{ violation?: string }> {
+  private async checkFrequency(userId: mongoose.Types.ObjectId, type: 'post' | 'comment', pgUserId?: string): Promise<{ violation?: string }> {
     try {
       const timeWindow = 10; // 10分钟
       const maxFrequency = type === 'post' ? 3 : 10; // 帖子3个，评论10个
       const since = new Date(Date.now() - timeWindow * 60 * 1000);
+      const dbPrimary = process.env.DB_PRIMARY || 'postgres';
 
       let count = 0;
-      if (type === 'post') {
-        count = await CommunityPost.countDocuments({
-          userId,
-          createdAt: { $gte: since }
-        });
+      if (dbPrimary === 'postgres' && pgUserId) {
+        const pool = await getPostgresPool();
+        if (type === 'post') {
+          const r = await pool.query(
+            `SELECT COUNT(*)::int AS cnt FROM community_posts WHERE user_id = $1 AND created_at >= NOW() - INTERVAL '${timeWindow} minutes'`,
+            [pgUserId]
+          );
+          count = r.rows[0]?.cnt || 0;
+        } else {
+          const r = await pool.query(
+            `SELECT COUNT(*)::int AS cnt FROM comments WHERE user_id = $1 AND created_at >= NOW() - INTERVAL '${timeWindow} minutes'`,
+            [pgUserId]
+          );
+          count = r.rows[0]?.cnt || 0;
+        }
       } else {
-        count = await Comment.countDocuments({
-          userId,
-          createdAt: { $gte: since }
-        });
+        // Mongo 回退
+        if (type === 'post') {
+          count = await CommunityPost.countDocuments({
+            userId,
+            createdAt: { $gte: since }
+          });
+        } else {
+          count = await Comment.countDocuments({
+            userId,
+            createdAt: { $gte: since }
+          });
+        }
       }
 
       if (count >= maxFrequency) {

@@ -202,21 +202,14 @@ export class MonitoringService {
   
   // 健康检查
   public async getHealthCheck(): Promise<HealthCheck> {
-    const mongoose = require('mongoose');
     const redis = require('../config/redis');
     
     // 检查数据库连接
     let databaseStatus: 'connected' | 'disconnected' | 'error' = 'disconnected';
     try {
-      const dbPrimary = process.env.DB_PRIMARY || 'mongo';
-      if (dbPrimary === 'postgres') {
-        const pg = await getPostgresStatus();
-        databaseStatus = pg === 'connected' ? 'connected' : 'disconnected';
-      } else {
-        if (mongoose.connection.readyState === 1) {
-          databaseStatus = 'connected';
-        }
-      }
+      const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+      const pg = await getPostgresStatus();
+      databaseStatus = pg === 'connected' ? 'connected' : 'disconnected';
     } catch (error) {
       databaseStatus = 'error';
     }

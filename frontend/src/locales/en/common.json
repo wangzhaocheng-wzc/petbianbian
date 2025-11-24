@@ -1,0 +1,554 @@
+{
+  "appName": "Pet Health Assistant",
+  "menu": "Menu",
+  "openMenu": "Open menu",
+  "closeMenu": "Close menu",
+  "login": "Log In",
+  "register": "Sign Up",
+  "logout": "Log Out",
+  "languages": {
+    "label": "Language",
+    "zh": "Chinese",
+    "en": "English"
+  },
+  "recordsList": {
+    "toolbar": {
+      "searchPlaceholder": "Search records...",
+      "filter": "Filter",
+      "deleteSelected": "Delete selected ({count})"
+    },
+    "filters": {
+      "healthStatus": "Health Status",
+      "all": "All",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "clear": "Clear Filters"
+    },
+    "loading": "Loading...",
+    "empty": "No records",
+    "columns": {
+      "pet": "Pet",
+      "healthStatus": "Health Status",
+      "confidence": "Confidence",
+      "time": "Time",
+      "notes": "Notes",
+      "actions": "Actions"
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {{page}} of {{totalPages}}",
+      "range": "Showing {{from}} to {{to}}, total {{total}} records"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "analysis": "Poop Analysis",
+    "pets": "My Pets",
+    "records": "Health Records",
+    "statistics": "Statistics",
+    "comparison": "Pet Comparison",
+    "community": "Community",
+    "profile": "Profile",
+    "admin": "Admin"
+  },
+  "common": {
+    "loading": "Loading...",
+    "pet": "Pet"
+  },
+  
+  "recent": {
+    "title": "Recent Analyses"
+  },
+  "tips": {
+    "title": "Health Tips",
+    "normal": "Healthy poop is brown, formed, neither too hard nor too soft",
+    "change": "Changes in color or shape may reflect health conditions",
+    "consult": "Persistent abnormalities warrant consulting a veterinarian"
+  },
+  "shapeRef": {
+    "title": "Poop Shape Reference",
+    "type12": "Type 1-2:",
+    "type34": "Type 3-4:",
+    "type57": "Type 5-7:",
+    "hard": "Too Hard",
+    "normal": "Normal",
+    "soft": "Too Soft"
+  },
+  "analysisResult": {
+    "healthAdviceTitle": "Health Advice",
+    "userNotesTitle": "User Notes",
+    "relatedSymptomsTitle": "Related Symptoms",
+    "environmentInfoTitle": "Environment",
+    "shareModalTitle": "Share Analysis Record",
+    "shareLinkLabel": "Share Link",
+    "copy": "Copy",
+    "copied": "Copied",
+    "shareTo": "Share To",
+    "wechat": "WeChat",
+    "community": "Community",
+    "email": "Email",
+    "weibo": "Weibo",
+    "qq": "QQ",
+    "shareToOtherPlatforms": "Share to Other Platforms",
+    "shareHintTitle": "Sharing Tips",
+    "shareHint": "Shared records include analysis and advice, excluding personal information.",
+    "shareHintLong": "Shared records include analysis and advice, excluding your personal privacy. Sharing helps other pet owners understand similar health situations.",
+    "communityHint": "Sharing to the community helps other pet owners learn from similar cases",
+    "sharePreviewTitle": "My pet health analysis result",
+    "shareToCommunity": "Share to Pet Community",
+    "cancel": "Cancel",
+    "close": "Close",
+    "emailSubjectPrefix": "Health Analysis Report for",
+    "saveRecord": "Save Record",
+    "shareRecord": "Share Record",
+    "editRecord": "Edit Record",
+    "deleteRecord": "Delete Record"
+  },
+  "healthStatus": {
+    "healthy": {
+      "title": "Healthy Status",
+      "subtitle": "All good",
+      "description": "Poop looks healthy; keep good habits",
+      "recommendation": "Maintain current diet and lifestyle"
+    },
+    "warning": {
+      "title": "Needs Attention",
+      "subtitle": "Minor abnormality",
+      "description": "Some signs need attention",
+      "recommendation": "Observe for a few days and adjust diet"
+    },
+    "concerning": {
+      "title": "Vet Recommended",
+      "subtitle": "Abnormal state",
+      "description": "Clear abnormal signs detected",
+      "recommendation": "Consult a veterinarian soon"
+    }
+  },
+  "status": {
+    "healthy": "Healthy",
+    "warning": "Warning",
+    "concerning": "Concerning",
+    "unknown": "Unknown"
+  },
+  "analysis": {
+    "header": {
+      "title": "Poop Health Analysis",
+      "viewRecords": "View Records",
+      "selectPet": "Select Pet",
+      "pleaseSelectPet": "Please select a pet",
+      "noPetsTip": "You haven't added any pets yet. Please add pet info first",
+      "selectPetTip": "Select a pet to analyze its health",
+      "addPet": "Add Pet"
+    },
+    "upload": {
+      "subtitle": "Upload your pet's poop photo and AI will analyze health",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Record the pet's status, diet, etc. for today...",
+      "notesHelper": "Detailed notes help improve analysis accuracy",
+      "symptomsLabel": "Related Symptoms (optional)",
+      "symptomsPlaceholder": "e.g., poor appetite, low energy; separate by commas",
+      "symptomsHelper": "Record any other symptoms as well",
+      "submit": "Start Analysis",
+      "uploading": "Analyzing...",
+      "result": {
+        "detailsLabel": "Detailed Analysis"
+      },
+      "warningContent": "Abnormalities detected. Please consult a veterinarian soon.",
+      "error": {
+        "noFile": "Please select a photo to analyze",
+        "noPet": "Please select a pet first",
+        "analysisFailed": "Analysis failed",
+        "uploadFailed": "Upload failed, please try again later"
+      }
+    },
+    "results": {
+      "title": "Analysis Results",
+      "saved": "Saved",
+      "saving": "Saving...",
+      "save": "Save",
+      "share": "Share",
+      "confidence": "Confidence",
+      "locationRecorded": "Location recorded",
+      "noImage": "No image",
+      "retakePhoto": "Retake Photo",
+      "quickActions": "Quick Actions",
+      "viewHistory": "View History",
+      "shareResult": "Share Result",
+      "viewDetails": "View Details",
+      "completed": "Analysis Completed",
+      "description": "The analysis is complete. Check detailed results."
+    },
+    "detail": {
+      "title": "Detailed Analysis",
+      "reanalyze": "Reanalyze",
+      "healthStatusLabel": "Health Status",
+      "shapeType": "Shape Type",
+      "detectedFeatures": "Detected Features",
+      "color": "Color",
+      "texture": "Texture",
+      "consistency": "Consistency",
+      "size": "Size",
+      "recommendationLabel": "Recommendation",
+      "statusLabel": "Status",
+      "riskLevelLabel": "Risk Level",
+      "urgencyLabel": "Suggested timing",
+      "urgency": {
+        "urgent": "Immediate action",
+        "consult": "Consult a veterinarian",
+        "monitor": "Monitor"
+      },
+      "riskLevels": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    },
+    "actions": {
+      "title": "Action Options",
+      "collapse": "Collapse",
+      "moreActions": "More Actions"
+    },
+    "dateLocale_zh": "zh-CN",
+    "dateLocale_en": "en-US"
+  }
+  ,
+  "reports": {
+    "display": {
+      "title": "Pet Health Report",
+      "basicInfo": "Basic Info",
+      "petName": "Pet Name",
+      "petType": "Pet Type",
+      "ageWeight": "Age & Weight",
+      "periodLabel": "Report Period",
+      "periodDays": "days",
+      "totalRecords": "Total Records",
+      "averagePerWeek": "Average per week {{count}}",
+      "healthyRate": "Healthy Rate",
+      "healthyCountLabel": "{{count}} healthy records",
+      "warningRate": "Warning Rate",
+      "warningCountLabel": "{{count}} warning records",
+      "concerningRate": "Concerning Rate",
+      "concerningCountLabel": "{{count}} concerning records",
+      "healthAssessmentTitle": "Health Assessment",
+      "currentStatus": "Current Status",
+      "healthTrend": "Health Trend",
+      "riskLevel": "Risk Level",
+      "urgency": "Urgency",
+      "recommendationsTitle": "Recommendations",
+      "healthDistribution": "Health Status Distribution",
+      "shapeDistribution": "Poop Shape Distribution",
+      "healthTrendTitle": "Health Trend",
+      "recentRecordsTitle": "Recent Records",
+      "suggestionPrefix": "Suggestion:",
+      "legendHealthy": "Healthy",
+      "legendWarning": "Warning",
+      "legendConcerning": "Concerning"
+    },
+    "generator": {
+      "title": "Generate Health Report",
+      "petLabel": "Pet",
+      "reportRange": "Report Time Range",
+      "generateData": "Generate Report Data",
+      "successGenerated": "Health report generated successfully!",
+      "errorGenerating": "Failed to generate health report, please retry",
+      "guideTitle": "Report Guide",
+      "guideGenerateData": "• Generate report data: display detailed health analysis",
+      "daysSuffix": "days"
+    }
+  },
+  "petInfo": {
+    "title": "Pet Information",
+    "breed": "Breed",
+    "type": "Type",
+    "typeDog": "Dog",
+    "typeCat": "Cat",
+    "typeOther": "Other",
+    "unknown": "Unknown",
+    "age": "Age",
+    "ageYears": "years",
+    "ageMonths": "months",
+    "weight": "Weight",
+    "weightUnit": "kg"
+  },
+  "fileUpload": {
+    "useCameraButton": "Use camera to take photo",
+    "uploading": "Uploading...",
+    "dropHere": "Release to upload",
+    "clickToSelect": "Tap to select file",
+    "dragOrClick": "Drag files here or click to select",
+    "supportedFormatsAndMax": "Supported JPG, PNG, WebP, GIF. Max {{max}}",
+    "maxFiles": "(Up to {{count}} files)",
+    "useCameraTip": "Or use the camera button above",
+    "selectedFiles": "Selected files"
+  },
+  "healthVisualization": {
+    "noData": "No statistics available",
+    "headerTitle": "Health Status Analysis",
+    "daysSuffix": "days",
+    "totalAnalysis": "Total Analyses",
+    "healthyLabel": "Healthy",
+    "warningLabel": "Needs Attention",
+    "concerningLabel": "Concerning",
+    "assessmentTitle": "Health Assessment",
+    "currentStatus": "Current Status",
+    "riskLevel": "Risk Level",
+    "risk": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    },
+    "trendTitle": "Health Trends",
+    "legend": {
+      "healthy": "Healthy",
+      "warning": "Warning",
+      "concerning": "Concerning"
+    },
+    "trend": {
+      "improving": "Improving",
+      "declining": "Declining",
+      "stable": "Stable"
+    },
+    "urgency": {
+      "urgent": "Urgent",
+      "consult": "Consult Recommended",
+      "monitor": "Monitor",
+      "none": "No Concern"
+    },
+    "recommendationsTitle": "Health Recommendations",
+    "lastUpdated": "Last Updated"
+  },
+  "home": {
+    "hero": {
+      "title": "🐾 Care for pet health, starting with poop",
+      "subtitle": "AI analysis helps you understand your pet's health",
+      "cta": "Start Analysis"
+    },
+    "features": {
+      "analysis": {
+        "name": "Poop Health Analysis",
+        "description": "Upload poop photos; AI analyzes health status"
+      },
+      "records": {
+        "name": "Health Records Tracking",
+        "description": "Log and analyze poop records; track health trends"
+      },
+      "community": {
+        "name": "Pet Community",
+        "description": "Share experiences and connect with other owners"
+      }
+    },
+    "stats": {
+      "analysisCount": "Analyses",
+      "registeredUsers": "Registered Users",
+      "accuracy": "Accuracy",
+      "onlineService": "Online Service"
+    }
+  },
+  "community": {
+    "title": "Pet Community",
+    "subtitle": "Share pet care experiences and interact with others",
+    "loginRequired": "Please log in first",
+    "postList": {
+      "sort": {
+        "latest": "Latest",
+        "popular": "Top Likes",
+        "views": "Most Views",
+        "comments": "Most Comments"
+      },
+      "sortLabel": "Sort By",
+      "pagination": {
+        "prev": "Previous",
+        "next": "Next"
+      },
+      "search": {
+        "placeholder": "Search posts...",
+        "action": "Search"
+      },
+      "actions": {
+        "filter": "Filter",
+        "refresh": "Refresh",
+        "create": "Create Post",
+        "createShort": "Publish"
+      },
+      "state": {
+        "loading": "Loading...",
+        "empty": "No posts yet",
+        "emptyCta": "Create the first post"
+      },
+      "share": {
+        "copied": "Link copied to clipboard"
+      }
+    },
+    "categories": {
+      "all": "All",
+      "general": "General",
+      "health": "Health",
+      "help": "Q&A",
+      "experience": "Experience"
+    },
+    "flags": {
+      "sticky": "Pinned",
+      "featured": "Featured"
+    },
+    "user": {
+      "anonymous": "Anonymous",
+      "reputation": "Reputation {{value}}"
+    },
+    "pet": {
+      "about": "About",
+      "type": {
+        "dog": "Dog",
+        "cat": "Cat",
+        "other": "Other"
+      }
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "share": "Share",
+      "confirmDeletePost": "Are you sure you want to delete this post?",
+      "confirmDeleteComment": "Are you sure you want to delete this comment?",
+      "retry": "Retry",
+      "backToList": "Back to list",
+      "reply": "Reply",
+      "report": "Report",
+      "loginNow": "Log in now"
+    },
+    "states": {
+      "loading": "Loading...",
+      "notFound": "Post not found",
+      "moderationPending": "Pending Review",
+      "deletedComment": "This comment has been deleted",
+      "loadingComments": "Loading comments...",
+      "noComments": "No comments yet. Be the first to comment!",
+      "loadMoreComments": "Load more comments",
+      "publishing": "Publishing..."
+    },
+    "comments": {
+      "header": {
+        "one": "Comment ({{count}})",
+        "other": "Comments ({{count}})"
+      },
+      "placeholder": {
+        "write": "Write your comment...",
+        "reply": "Reply @{{username}}..."
+      },
+      "loginRequired": "Log in to comment",
+      "cancel": "Cancel",
+      "post": "Post Comment",
+      "posting": "Posting..."
+    },
+    "editor": {
+      "editTitle": "Edit Post",
+      "createTitle": "Create New Post",
+      "fields": {
+        "title": {
+          "label": "Title *",
+          "placeholder": "Enter post title..."
+        },
+        "content": {
+          "label": "Content *",
+          "placeholder": "Share your ideas, experiences, or questions..."
+        },
+        "category": {
+          "label": "Category"
+        },
+        "pet": {
+          "label": "Related Pet",
+          "selectOptional": "Select a pet (optional)"
+        },
+        "images": {
+          "label": "Images ({{current}}/{{max}})",
+          "upload": "Upload Images",
+          "uploading": "Uploading... ({{count}})"
+        },
+        "tags": {
+          "label": "Tags",
+          "placeholder": "Add relevant tags..."
+        }
+      },
+      "anonymousNote": "Post anonymously (username hidden; shown as \"Anonymous\")",
+      "requiredNote": "* Required fields",
+      "buttons": {
+        "preview": "Preview",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving...",
+        "update": "Update",
+        "publish": "Publish"
+      },
+      "errors": {
+        "titleRequired": "Title cannot be empty",
+        "titleTooLong": "Title cannot exceed 200 characters",
+        "contentRequired": "Content cannot be empty",
+        "contentTooLong": "Content cannot exceed 10000 characters",
+        "tagsTooMany": "Too many tags (max 10)",
+        "imagesTooMany": "Too many images (max 9)",
+        "invalidImage": "{{name}} is not a valid image",
+        "fileTooLarge": "{{name}} exceeds 10MB",
+        "uploadFailed": "Failed to upload {{name}}"
+      }
+    },
+    "imageUpload": {
+      "maxExceeded": "You can upload up to {{max}} images",
+      "status": {
+        "uploaded": "Uploaded {{current}} / {{max}} images",
+        "uploading": "Uploading..."
+      },
+      "hint": {
+        "title": "Add Images",
+        "description": "Supports JPG, PNG, WebP, GIF; up to {{max}} images"
+      },
+      "alt": {
+        "image": "Image {{index}}",
+        "uploadedImage": "Uploaded image {{index}}"
+      }
+    },
+    "preview": {
+      "title": "Post Preview",
+      "myPost": "My Post",
+      "justNow": "Just now",
+      "continueEdit": "Continue Editing",
+      "confirmPublish": "Confirm Publish",
+      "publishing": "Publishing...",
+      "tips": "This is a preview of your post. Publish if it looks good, or go back to edit."
+    },
+    "share": {
+      "copied": "Link copied to clipboard"
+    }
+  },
+  "profile": {
+    "errorNoUser": "Unable to retrieve user information",
+    "joinedAt": "Joined",
+    "editProfile": "Edit Profile",
+    "stats": {
+      "analysisCount": "Analyses",
+      "petCount": "Pets",
+      "posts": "Community Posts"
+    },
+    "tabs": {
+      "myPets": "My Pets",
+      "account": "Account Settings"
+    },
+    "myPetsTitle": "My Pets",
+    "addPet": "Add Pet",
+    "loadingPets": "Loading pet information...",
+    "noPets": "You have not added any pets",
+    "addFirstPet": "Add your first pet",
+    "unknownBreed": "Unknown Breed",
+    "unknownAge": "Age Unknown",
+    "accountSettings": "Account Settings",
+    "fields": {
+      "username": "Username",
+      "email": "Email",
+      "password": "Password"
+    },
+    "saveSettings": "Save Settings"
+  }
+}

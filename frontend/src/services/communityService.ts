@@ -147,13 +147,21 @@ export const communityService = {
   // 上传图片
   async uploadImage(file: File): Promise<{ success: boolean; data?: { url: string }; message?: string }> {
     const formData = new FormData();
-    formData.append('image', file);
-    
-    const response = await api.post('/upload/image', formData, {
+    // 后端 /api/upload/community 期望字段名为 'images'，支持多文件
+    formData.append('images', file);
+
+    const response = await api.post('/upload/community', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+
+    // 兼容后端返回的数据结构：{ data: { files: [{ url, ... }], count } }
+    const resp = response.data;
+    if (resp?.success && resp?.data?.files?.length) {
+      const first = resp.data.files[0];
+      return { success: true, data: { url: first.url } };
+    }
+    return resp;
   }
 };

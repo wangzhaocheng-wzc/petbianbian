@@ -11,6 +11,8 @@ const router = express_1.default.Router();
 router.get('/health', monitoringController_1.getHealthCheck);
 // Prometheus指标 - 公开接口（通常由监控系统调用）
 router.get('/metrics', monitoringController_1.getMetrics);
+// 图片URL重写事件上报 - 公开接口（仅收集最小信息）
+router.post('/image-url-rewrite', monitoringController_1.logImageUrlRewrite);
 // 以下接口需要认证
 router.use(auth_1.authenticateToken);
 // 系统信息

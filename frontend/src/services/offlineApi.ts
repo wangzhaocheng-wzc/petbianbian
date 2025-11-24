@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { OfflineStorage, OfflineQueue } from '../utils/offlineStorage';
+import { API_BASE_URL } from '@/utils/constants';
 
 // 离线API服务包装器
 export class OfflineApiService {
@@ -7,7 +8,7 @@ export class OfflineApiService {
   private baseURL: string;
 
   private constructor() {
-    this.baseURL = '/api';
+    this.baseURL = API_BASE_URL;
   }
 
   static getInstance(): OfflineApiService {

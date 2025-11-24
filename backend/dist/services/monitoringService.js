@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MonitoringService = exports.collectSystemMetrics = exports.monitoringMiddleware = exports.cpuUsage = exports.memoryUsage = exports.errorRate = exports.databaseConnections = exports.activeConnections = exports.httpRequestDuration = exports.httpRequestsTotal = void 0;
+exports.MonitoringService = exports.collectSystemMetrics = exports.monitoringMiddleware = exports.imageUrlGovernanceProcessedTotal = exports.imageUrlGovernanceRemaining = exports.imageUrlRewriteDurationMs = exports.imageUrlRewriteTotal = exports.cpuUsage = exports.memoryUsage = exports.errorRate = exports.databaseConnections = exports.activeConnections = exports.httpRequestDuration = exports.httpRequestsTotal = void 0;
 const prom_client_1 = require("prom-client");
 const os = __importStar(require("os"));
 const fs = __importStar(require("fs"));
@@ -74,6 +74,28 @@ exports.memoryUsage = new prom_client_1.Gauge({
 exports.cpuUsage = new prom_client_1.Gauge({
     name: 'cpu_usage_percent',
     help: 'CPU usage percentage'
+});
+// Image URL 重写相关指标
+exports.imageUrlRewriteTotal = new prom_client_1.Counter({
+    name: 'image_url_rewrite_total',
+    help: 'Total number of image URL rewrite events',
+    labelNames: ['origin', 'type', 'model']
+});
+exports.imageUrlRewriteDurationMs = new prom_client_1.Histogram({
+    name: 'image_url_rewrite_duration_ms',
+    help: 'Processing time in ms per image URL rewrite event',
+    labelNames: ['origin', 'type', 'model'],
+    buckets: [10, 25, 50, 100, 200, 500, 1000, 2000, 5000]
+});
+exports.imageUrlGovernanceRemaining = new prom_client_1.Gauge({
+    name: 'image_url_governance_remaining',
+    help: 'Remaining items to be processed in image URL governance',
+    labelNames: ['model']
+});
+exports.imageUrlGovernanceProcessedTotal = new prom_client_1.Counter({
+    name: 'image_url_governance_processed_total',
+    help: 'Total items processed in image URL governance',
+    labelNames: ['model']
 });
 // 监控中间件
 const monitoringMiddleware = (req, res, next) => {
@@ -136,27 +158,38 @@ class MonitoringService {
         }
         return MonitoringService.instance;
     }
+    // 记录图片URL重写事件
+    recordImageUrlRewrite(origin, type, model, durationMs) {
+        const modelName = model || 'unknown';
+        exports.imageUrlRewriteTotal.inc({ origin, type, model: modelName });
+        if (typeof durationMs === 'number' && durationMs >= 0) {
+            exports.imageUrlRewriteDurationMs.observe({ origin, type, model: modelName }, durationMs);
+        }
+    }
+    // 记录治理进度（处理量与剩余量）
+    recordGovernanceProgress(processedByModel, remainingByModel) {
+        for (const [model, count] of Object.entries(processedByModel || {})) {
+            if (count && count > 0) {
+                exports.imageUrlGovernanceProcessedTotal.inc({ model }, count);
+            }
+        }
+        for (const [model, remaining] of Object.entries(remainingByModel || {})) {
+            exports.imageUrlGovernanceRemaining.set({ model }, remaining);
+        }
+    }
     // 获取Prometheus指标
     getMetrics() {
         return prom_client_1.register.metrics();
     }
     // 健康检查
     async getHealthCheck() {
-        const mongoose = require('mongoose');
         const redis = require('../config/redis');
         // 检查数据库连接
         let databaseStatus = 'disconnected';
         try {
-            const dbPrimary = process.env.DB_PRIMARY || 'mongo';
-            if (dbPrimary === 'postgres') {
-                const pg = await (0, postgres_1.getPostgresStatus)();
-                databaseStatus = pg === 'connected' ? 'connected' : 'disconnected';
-            }
-            else {
-                if (mongoose.connection.readyState === 1) {
-                    databaseStatus = 'connected';
-                }
-            }
+            const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+            const pg = await (0, postgres_1.getPostgresStatus)();
+            databaseStatus = pg === 'connected' ? 'connected' : 'disconnected';
         }
         catch (error) {
             databaseStatus = 'error';

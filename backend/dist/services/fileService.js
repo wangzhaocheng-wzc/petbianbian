@@ -44,7 +44,7 @@ class FileService {
      * 生成文件URL
      */
     static generateFileUrl(filename, type) {
-        const baseUrl = constants_1.APP_CONFIG.BASE_URL || 'http://localhost:5000';
+        const baseUrl = constants_1.APP_CONFIG.BASE_URL || `http://localhost:${constants_1.APP_CONFIG.PORT}`;
         return `${baseUrl}/uploads/${type}/${filename}`;
     }
     /**

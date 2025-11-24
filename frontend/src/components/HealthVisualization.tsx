@@ -10,6 +10,7 @@ import {
   CheckCircle,
   Clock
 } from 'lucide-react';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface HealthVisualizationProps {
   statistics: AnalysisStatisticsResponse['data'];
@@ -20,10 +21,12 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
   statistics,
   className = ''
 }) => {
+  const { t, language } = useI18n();
+  const isZh = language?.startsWith('zh');
   if (!statistics) {
     return (
       <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
-        <p className="text-gray-500 text-center">暂无统计数据</p>
+        <p className="text-gray-500 text-center">{t('healthVisualization.noData')}</p>
       </div>
     );
   }
@@ -42,11 +45,11 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
   const getTrendText = (trend: string) => {
     switch (trend) {
       case 'improving':
-        return '改善中';
+        return t('healthVisualization.trend.improving');
       case 'declining':
-        return '下降中';
+        return t('healthVisualization.trend.declining');
       default:
-        return '稳定';
+        return t('healthVisualization.trend.stable');
     }
   };
 
@@ -79,13 +82,13 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
   const getUrgencyText = (urgency: string) => {
     switch (urgency) {
       case 'urgent':
-        return '紧急处理';
+        return t('healthVisualization.urgency.urgent');
       case 'consult':
-        return '建议咨询';
+        return t('healthVisualization.urgency.consult');
       case 'monitor':
-        return '持续观察';
+        return t('healthVisualization.urgency.monitor');
       default:
-        return '无需担心';
+        return t('healthVisualization.urgency.none');
     }
   };
 
@@ -94,10 +97,10 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
       {/* 头部 */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">健康状态分析</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('healthVisualization.headerTitle')}</h2>
           <div className="flex items-center text-sm text-gray-500">
             <Calendar className="w-4 h-4 mr-1" />
-            {statistics.period} ({statistics.days}天)
+            {statistics.period} ({statistics.days}{isZh ? '' : ' '}{t('healthVisualization.daysSuffix')})
           </div>
         </div>
       </div>
@@ -107,31 +110,31 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <div className="text-2xl font-bold text-gray-900">{statistics.totalAnalysis}</div>
-            <div className="text-sm text-gray-600">总分析次数</div>
+            <div className="text-sm text-gray-600">{t('healthVisualization.totalAnalysis')}</div>
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{statistics.healthyPercentage}%</div>
-            <div className="text-sm text-gray-600">健康状态</div>
+            <div className="text-sm text-gray-600">{t('healthVisualization.healthyLabel')}</div>
           </div>
           <div className="text-center p-4 bg-yellow-50 rounded-lg">
             <div className="text-2xl font-bold text-yellow-600">{statistics.warningPercentage}%</div>
-            <div className="text-sm text-gray-600">需要关注</div>
+            <div className="text-sm text-gray-600">{t('healthVisualization.warningLabel')}</div>
           </div>
           <div className="text-center p-4 bg-red-50 rounded-lg">
             <div className="text-2xl font-bold text-red-600">{statistics.concerningPercentage}%</div>
-            <div className="text-sm text-gray-600">异常状态</div>
+            <div className="text-sm text-gray-600">{t('healthVisualization.concerningLabel')}</div>
           </div>
         </div>
 
         {/* 健康评估 */}
         {statistics.healthAssessment && (
           <div className="mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">健康评估</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('healthVisualization.assessmentTitle')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* 当前状态 */}
               <div className="p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">当前状态</span>
+                  <span className="text-sm font-medium text-gray-700">{t('healthVisualization.currentStatus')}</span>
                   <div className="flex items-center">
                     {getTrendIcon(statistics.healthAssessment.trend)}
                     <span className="ml-1 text-sm text-gray-600">
@@ -145,7 +148,7 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
               {/* 风险等级 */}
               <div className="p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">风险等级</span>
+                  <span className="text-sm font-medium text-gray-700">{t('healthVisualization.riskLevel')}</span>
                   <div className="flex items-center">
                     {getUrgencyIcon(statistics.healthAssessment.urgency)}
                     <span className="ml-1 text-sm text-gray-600">
@@ -154,8 +157,8 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
                   </div>
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskLevelColor(statistics.healthAssessment.riskLevel)}`}>
-                  {statistics.healthAssessment.riskLevel === 'low' ? '低风险' : 
-                   statistics.healthAssessment.riskLevel === 'medium' ? '中风险' : '高风险'}
+                  {statistics.healthAssessment.riskLevel === 'low' ? t('healthVisualization.risk.low') : 
+                   statistics.healthAssessment.riskLevel === 'medium' ? t('healthVisualization.risk.medium') : t('healthVisualization.risk.high')}
                 </span>
               </div>
             </div>
@@ -164,7 +167,7 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
 
         {/* 趋势图表 */}
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">健康趋势</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('healthVisualization.trendTitle')}</h3>
           <div className="h-64 bg-gray-50 rounded-lg p-4">
             {/* 简单的条形图展示 */}
             <div className="h-full flex items-end justify-between space-x-1">
@@ -182,21 +185,21 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
                         <div 
                           className="w-full bg-red-400 rounded-t"
                           style={{ height: `${concerningHeight}px` }}
-                          title={`异常: ${trend.concerning}`}
+                          title={`${t('healthVisualization.legend.concerning')}: ${trend.concerning}`}
                         />
                       )}
                       {warningHeight > 0 && (
                         <div 
                           className="w-full bg-yellow-400"
                           style={{ height: `${warningHeight}px` }}
-                          title={`警告: ${trend.warning}`}
+                          title={`${t('healthVisualization.legend.warning')}: ${trend.warning}`}
                         />
                       )}
                       {healthyHeight > 0 && (
                         <div 
                           className="w-full bg-green-400 rounded-b"
                           style={{ height: `${healthyHeight}px` }}
-                          title={`健康: ${trend.healthy}`}
+                          title={`${t('healthVisualization.legend.healthy')}: ${trend.healthy}`}
                         />
                       )}
                       {total === 0 && (
@@ -204,7 +207,7 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
                       )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1 transform rotate-45 origin-left">
-                      {new Date(trend.date).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}
+                      {new Date(trend.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: '2-digit', day: '2-digit' })}
                     </div>
                   </div>
                 );
@@ -216,15 +219,15 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
           <div className="flex justify-center space-x-6 mt-4">
             <div className="flex items-center">
               <div className="w-3 h-3 bg-green-400 rounded mr-2"></div>
-              <span className="text-sm text-gray-600">健康</span>
+              <span className="text-sm text-gray-600">{t('healthVisualization.legend.healthy')}</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-yellow-400 rounded mr-2"></div>
-              <span className="text-sm text-gray-600">警告</span>
+              <span className="text-sm text-gray-600">{t('healthVisualization.legend.warning')}</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-red-400 rounded mr-2"></div>
-              <span className="text-sm text-gray-600">异常</span>
+              <span className="text-sm text-gray-600">{t('healthVisualization.legend.concerning')}</span>
             </div>
           </div>
         </div>
@@ -232,7 +235,7 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
         {/* 健康建议 */}
         {statistics.healthAssessment?.recommendations && statistics.healthAssessment.recommendations.length > 0 && (
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">健康建议</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('healthVisualization.recommendationsTitle')}</h3>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <ul className="space-y-2">
                 {statistics.healthAssessment.recommendations.map((recommendation, index) => (
@@ -249,7 +252,7 @@ export const HealthVisualization: React.FC<HealthVisualizationProps> = ({
         {/* 更新时间 */}
         <div className="mt-6 pt-4 border-t border-gray-100">
           <p className="text-xs text-gray-500 text-center">
-            最后更新: {new Date(statistics.lastUpdated).toLocaleString('zh-CN')}
+            {t('healthVisualization.lastUpdated')}: {new Date(statistics.lastUpdated).toLocaleString(isZh ? 'zh-CN' : 'en-US')}
           </p>
         </div>
       </div>

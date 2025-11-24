@@ -40,8 +40,8 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
-const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const fs_1 = __importDefault(require("fs"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const users_1 = __importDefault(require("./routes/users"));
 const pets_1 = __importDefault(require("./routes/pets"));
@@ -59,26 +59,43 @@ const monitoring_1 = __importDefault(require("./routes/monitoring"));
 const logs_1 = __importDefault(require("./routes/logs"));
 const alerts_1 = __importDefault(require("./routes/alerts"));
 const notifications_1 = __importDefault(require("./routes/notifications"));
+const governance_1 = __importDefault(require("./routes/governance"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const monitoringService_1 = require("./services/monitoringService");
 const errorTrackingService_1 = require("./services/errorTrackingService");
 const requestLogger_1 = require("./middleware/requestLogger");
-const database_1 = require("./utils/database");
 const logger_1 = require("./utils/logger");
 const redis_1 = require("./config/redis");
+const database_1 = require("./utils/database");
 const postgres_1 = require("./config/postgres");
-const database_2 = require("./utils/database");
-dotenv_1.default.config();
+const imageUrlGovernanceService_1 = require("./services/imageUrlGovernanceService");
+const envLocal = '.env.local';
+if (fs_1.default.existsSync(envLocal)) {
+    dotenv_1.default.config({ path: envLocal });
+}
+else {
+    dotenv_1.default.config();
+}
 const constants_1 = require("./config/constants");
 const app = (0, express_1.default)();
 const PORT = constants_1.APP_CONFIG.PORT;
-const DB_PRIMARY = process.env.DB_PRIMARY || 'mongo';
+const DB_PRIMARY = process.env.DB_PRIMARY || 'postgres';
 // 中间件
-app.use((0, helmet_1.default)());
+// 调整 Helmet 的跨源资源策略，允许前端 (5173) 加载后端静态资源（如 /uploads 下图片）
+app.use((0, helmet_1.default)({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginEmbedderPolicy: false
+}));
 // 更灵活的 CORS 配置，支持本机与局域网预览地址
 const allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:4173',
+    'http://localhost:4174',
     'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:4173',
+    'http://127.0.0.1:4174',
     'http://localhost:3000',
     process.env.FRONTEND_URL || '',
 ].filter(Boolean);
@@ -89,8 +106,8 @@ app.use((0, cors_1.default)({
             return callback(null, true);
         if (allowedOrigins.includes(origin))
             return callback(null, true);
-        // 允许常见的局域网IP访问前端开发服务器（端口5173）
-        if (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:5173$/.test(origin))
+        // 允许常见的局域网IP访问前端开发服务器与预览服务器（端口5173/5174/4173/4174）
+        if (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:(517(3|4)|417(3|4))$/.test(origin))
             return callback(null, true);
         callback(new Error(`Not allowed by CORS: ${origin}`));
     },
@@ -106,11 +123,14 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.use(monitoringService_1.monitoringMiddleware);
 // 请求日志中间件
 app.use(requestLogger_1.requestLoggerMiddleware);
-// 静态文件 - 添加CORS头部
+// 静态文件 - 添加CORS头部与缓存、方法支持
 app.use('/uploads', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET');
+    // 允许 GET/HEAD/OPTIONS，便于前端用 HEAD 探测图片是否存在
+    res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    // 为图片增加合理缓存，减少重复加载导致的闪烁（可按需调整）
+    res.header('Cache-Control', 'public, max-age=86400'); // 1天
     next();
 }, express_1.default.static('uploads'));
 // 路由
@@ -131,34 +151,32 @@ app.use('/api/monitoring', monitoring_1.default);
 app.use('/api/logs', logs_1.default);
 app.use('/api/alerts', alerts_1.default);
 app.use('/api/notifications', notifications_1.default);
+app.use('/api/governance', governance_1.default);
 // 健康检查
 app.get('/api/health', async (req, res) => {
     try {
         const cacheService = (await Promise.resolve().then(() => __importStar(require('./services/cacheService')))).default;
         const cacheStats = await cacheService.getStats();
         const pgStatus = await (0, postgres_1.getPostgresStatus)();
-        const mongoStatus = mongoose_1.default.connection.readyState === 1 ? 'connected' : 'disconnected';
-        const primaryDb = DB_PRIMARY === 'postgres' ? 'postgres' : 'mongo';
-        const primaryDbStatus = DB_PRIMARY === 'postgres' ? pgStatus : mongoStatus;
+        const primaryDb = 'postgres';
+        const primaryDbStatus = pgStatus;
         res.json({
             status: 'OK',
             timestamp: new Date().toISOString(),
             primary_db: primaryDb,
             primary_db_status: primaryDbStatus,
             cache: cacheStats?.connected ? 'connected' : 'disconnected',
-            postgres: pgStatus,
-            mongo: mongoStatus
+            postgres: pgStatus
         });
     }
     catch (error) {
         res.json({
             status: 'OK',
             timestamp: new Date().toISOString(),
-            primary_db: DB_PRIMARY === 'postgres' ? 'postgres' : 'mongo',
+            primary_db: 'postgres',
             primary_db_status: 'error',
             cache: 'error',
-            postgres: 'error',
-            mongo: mongoose_1.default.connection.readyState === 1 ? 'connected' : 'disconnected'
+            postgres: 'error'
         });
     }
 });
@@ -171,33 +189,34 @@ app.use(errorHandler_1.errorHandler);
 // 启动服务器
 const startServer = async () => {
     try {
-        if (DB_PRIMARY === 'mongo') {
-            await (0, database_1.connectDB)();
-        }
-        else {
-            // 切换为Postgres主数据库时，跳过Mongo连接
-            logger_1.Logger.info('跳过Mongo连接，主数据库设为 Postgres');
-        }
         await (0, postgres_1.connectPostgres)();
-        // 当主库设为 Postgres 且连接不可用时，启用内存 Mongo 作为后备
-        if (DB_PRIMARY === 'postgres') {
-            const status = await (0, postgres_1.getPostgresStatus)();
-            if (status !== 'connected') {
-                logger_1.Logger.warn('Postgres 未连接，启用内存 Mongo 作为后备');
-                const { MongoMemoryServer } = await Promise.resolve().then(() => __importStar(require('mongodb-memory-server')));
-                const mongoServer = await MongoMemoryServer.create();
-                const uri = mongoServer.getUri();
-                await mongoose_1.default.connect(uri);
-                await (0, database_2.createDatabaseIndexes)();
-                global.__IN_MEMORY_MONGO__ = mongoServer;
-                logger_1.Logger.info('内存 MongoDB 已启动并连接');
-            }
+        // 启用 Mongo（或内存 Mongo）以支持社区模块
+        // 即使主库为 Postgres，社区帖子与评论仍使用 Mongoose 模型
+        try {
+            await (0, database_1.connectDB)();
+            logger_1.Logger.info('社区模块：Mongo 已连接（必要时使用内存回退）');
+        }
+        catch (err) {
+            logger_1.Logger.warn('社区模块：Mongo 连接失败', err);
         }
         await (0, redis_1.connectRedis)();
         app.listen(PORT, () => {
             logger_1.Logger.info(`服务器运行在端口 ${PORT}`);
             logger_1.Logger.info(`健康检查: http://localhost:${PORT}/api/health`);
-            logger_1.Logger.info(`主数据库: ${DB_PRIMARY === 'postgres' ? 'Postgres' : 'Mongo'}`);
+            logger_1.Logger.info(`主数据库: Postgres`);
+            // 启动每日数据治理预览报告任务
+            try {
+                if (DB_PRIMARY !== 'postgres') {
+                    (0, imageUrlGovernanceService_1.startGovernanceReportScheduler)();
+                    logger_1.Logger.info('每日数据治理预览报告定时任务已启动');
+                }
+                else {
+                    logger_1.Logger.info('Postgres 模式下跳过数据治理定时任务（Mongo 依赖已禁用）');
+                }
+            }
+            catch (err) {
+                logger_1.Logger.warn('启动数据治理定时任务失败', err);
+            }
         });
     }
     catch (error) {
@@ -209,20 +228,7 @@ const startServer = async () => {
 process.on('SIGTERM', async () => {
     logger_1.Logger.info('收到SIGTERM信号，正在关闭服务器...');
     try {
-        if (DB_PRIMARY === 'mongo') {
-            await mongoose_1.default.connection.close();
-        }
-        // 如果启用了内存 Mongo，额外关闭
-        if (global.__IN_MEMORY_MONGO__) {
-            try {
-                await mongoose_1.default.connection.close();
-            }
-            catch { }
-            try {
-                await global.__IN_MEMORY_MONGO__.stop();
-            }
-            catch { }
-        }
+        await (0, database_1.closeDB)();
         await (0, redis_1.disconnectRedis)();
         logger_1.Logger.info('数据库和缓存连接已关闭');
         process.exit(0);
@@ -235,20 +241,7 @@ process.on('SIGTERM', async () => {
 process.on('SIGINT', async () => {
     logger_1.Logger.info('收到SIGINT信号，正在关闭服务器...');
     try {
-        if (DB_PRIMARY === 'mongo') {
-            await mongoose_1.default.connection.close();
-        }
-        // 如果启用了内存 Mongo，额外关闭
-        if (global.__IN_MEMORY_MONGO__) {
-            try {
-                await mongoose_1.default.connection.close();
-            }
-            catch { }
-            try {
-                await global.__IN_MEMORY_MONGO__.stop();
-            }
-            catch { }
-        }
+        await (0, database_1.closeDB)();
         await (0, redis_1.disconnectRedis)();
         logger_1.Logger.info('数据库和缓存连接已关闭');
         process.exit(0);

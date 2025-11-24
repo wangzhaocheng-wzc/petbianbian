@@ -100,11 +100,8 @@ frontend/e2e/specs/analysis/
 - ✅ 记录删除和恢复
 
 #### 分析报告生成和分享测试
-- ✅ 单次分析报告生成
 - ✅ 周期性健康报告（周报、月报）
 - ✅ 自定义报告模板
-- ✅ 多种格式导出（PDF、Word、Excel、HTML）
-- ✅ 分享报告给兽医
 - ✅ 生成分享链接
 
 #### 分析数据统计和可视化测试
@@ -246,8 +243,6 @@ node e2e/utils/cleanup-test-images.cjs stats
 ### 结果管理相关方法
 - `goToRecordsManagement()` - 导航到记录管理
 - `editRecordNotes()` - 编辑记录备注
-- `generateSingleReport()` - 生成单次报告
-- `exportReport()` - 导出报告
 - `shareReportToVet()` - 分享报告给兽医
 - `getBasicStatistics()` - 获取基本统计信息
 

@@ -105,3 +105,39 @@ node backend/tools/applySchema.js
 - 前端/后端的 `.dockerignore` 与 Nginx 容器配置
 
 本地运行不再依赖任何容器运行时，完整功能保持可用。
+
+## 密钥管理与注入（AI服务）
+
+后端支持通过环境变量注入 AI 服务密钥，避免将真实 Key 写入代码或示例文件。
+
+- 支持的变量名（后端已在 `constants.ts` 处理优先级）：
+  - 优先：`AI_SERVICE_KEY`
+  - 回退：`DASHSCOPE_API_KEY`
+
+### 本地永久注入（macOS 常用）
+- 如果使用 zsh（macOS 默认）：
+  - `echo "export DASHSCOPE_API_KEY='YOUR_DASHSCOPE_API_KEY'" >> ~/.zshrc`
+  - `source ~/.zshrc`
+  - 验证：`echo $DASHSCOPE_API_KEY`
+- 如果使用 bash：
+  - `echo "export DASHSCOPE_API_KEY='YOUR_DASHSCOPE_API_KEY'" >> ~/.bashrc`
+  - `source ~/.bashrc`
+
+### 本地临时注入（当前会话）
+- 在当前终端设置，仅该会话有效：
+  - `export DASHSCOPE_API_KEY='YOUR_DASHSCOPE_API_KEY'`
+  - 或 `export AI_SERVICE_KEY='YOUR_DASHSCOPE_API_KEY'`
+
+### 项目运行时对接
+- 推荐配置（DashScope 兼容模式）：
+  - `AI_SERVICE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1`
+  - `AI_SERVICE_ANALYSIS_PATH=/chat/completions`
+  - `AI_MODEL=qwen-plus`
+  - 密钥：优先读 `AI_SERVICE_KEY`，无则回退 `DASHSCOPE_API_KEY`
+- 示例运行（密钥从环境变量读取，无需明文传入命令）：
+  - `npm run dev`（或在根目录并行启动）
+
+### 生产与云环境建议
+- 使用 CI/CD 的 Secrets 注入（GitHub Actions/GitLab CI）。
+- 容器编排使用环境变量或 Kubernetes `Secret`（结合 `envFrom`/`valueFrom`）。
+- 不要将真实密钥写入仓库或镜像层；`.env.example` 保持占位符。

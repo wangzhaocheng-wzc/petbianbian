@@ -7,8 +7,7 @@ import { AIService, AIAnalysisResult } from '../services/aiService';
 import { AnalysisService } from '../services/analysisService';
 import { Logger } from '../utils/logger';
 import CommunityPost from '../models/CommunityPost';
-import PDFDocument from 'pdfkit';
-import path from 'path';
+import { getPostgresPool } from '../config/postgres';
 
 export class AnalysisController {
   /**
@@ -18,7 +17,7 @@ export class AnalysisController {
     try {
       const file = req.file;
       const userId = (req as any).user.userId;
-      const { petId } = req.body;
+      const { petId, notes, symptoms } = req.body;
 
       if (!file) {
         res.status(400).json({
@@ -34,7 +33,13 @@ export class AnalysisController {
       // 确定图片URL：若为diskStorage已落盘则直接使用其生成的文件名，否则走FileService保存
       let imageUrl: string;
       if ((file as any).filename) {
-        imageUrl = FileService.generateFileUrl((file as any).filename, 'analysis');
+        const dest: string = (file as any).destination || '';
+        const type: 'avatars' | 'analysis' | 'community' = dest.includes('avatars')
+          ? 'avatars'
+          : dest.includes('community')
+            ? 'community'
+            : 'analysis';
+        imageUrl = FileService.generateFileUrl((file as any).filename, type);
       } else {
         imageUrl = await FileService.saveImage(imageBuffer, file.originalname, 'analysis');
       }
@@ -60,7 +65,9 @@ export class AnalysisController {
         userId,
         petId,
         imageUrl,
-        result: analysisResult
+        result: analysisResult,
+        userNotes: notes,
+        symptoms
       });
 
       res.json({
@@ -176,23 +183,78 @@ export class AnalysisController {
       const userId = (req as any).user.userId;
       const { shareType, shareWith } = req.body;
 
-      const sharedRecord = await AnalysisService.shareAnalysisRecord(id, userId, {
-        shareType,
-        shareWith
-      });
-
-      if (!sharedRecord) {
-        res.status(404).json({
-          success: false,
-          message: '分析记录不存在'
-        });
+      const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+      const sharedRecord = dbPrimary === 'postgres'
+        ? null
+        : await AnalysisService.shareAnalysisRecord(id, userId, {
+            shareType,
+            shareWith
+          });
+      if (!sharedRecord && dbPrimary !== 'postgres') {
+        res.status(404).json({ success: false, message: '分析记录不存在' });
         return;
       }
 
-      res.json({
-        success: true,
-        data: sharedRecord
-      });
+      let createdPostId: string | undefined;
+      if (dbPrimary === 'postgres') {
+        const pool = await getPostgresPool();
+        const recRes = await pool.query(
+          `SELECT id, user_id, pet_id, image_url, shape, health_status, confidence, details, recommendations, detected_features, user_notes, symptoms, timestamp
+           FROM poop_records WHERE id = $1 LIMIT 1`,
+          [id]
+        );
+        const r = recRes.rows[0];
+        if (!r) {
+          res.status(404).json({ success: false, message: '分析记录不存在' });
+          return;
+        }
+
+        const petNameRes = await pool.query('SELECT name FROM pets WHERE id = $1 LIMIT 1', [r.pet_id]);
+        const petName = petNameRes.rows[0]?.name || '';
+        const title = petName ? `${petName} 的便便分析分享` : '便便分析分享';
+        const content = `${r.details || ''}\n健康状态: ${r.health_status || ''}\n置信度: ${r.confidence || 0}%`;
+
+        const postRes = await pool.query(
+          `INSERT INTO community_posts (user_id, pet_id, title, content, status, category, is_anonymous, views, shares, is_sticky, is_featured, moderation_status, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, 'published', 'health', false, 0, 0, false, false, 'approved', now(), now())
+           RETURNING id`,
+          [r.user_id, r.pet_id, title, content]
+        );
+        const postId = postRes.rows[0]?.id;
+        createdPostId = postId ? String(postId) : undefined;
+
+        if (createdPostId && r.image_url) {
+          await pool.query(
+            `INSERT INTO post_images (post_id, url, position) VALUES ($1, $2, 1)`,
+            [postId, r.image_url]
+          );
+        }
+      } else if (sharedRecord) {
+        const mongoUserId = new mongoose.Types.ObjectId(String(sharedRecord.userId));
+        const mongoPetId = sharedRecord.petId ? new mongoose.Types.ObjectId(String(sharedRecord.petId)) : undefined;
+        const title = '便便分析分享';
+        const content = sharedRecord.analysis?.details || '';
+        const images = sharedRecord.imageUrl ? [sharedRecord.imageUrl] : [];
+        const post = await CommunityPost.create({
+          userId: mongoUserId,
+          petId: mongoPetId,
+          title,
+          content,
+          images,
+          tags: [],
+          category: 'health',
+          status: 'published',
+          isAnonymous: false,
+          interactions: { likes: [], views: 0, shares: 0 },
+          comments: [],
+          isSticky: false,
+          isFeatured: false,
+          moderationStatus: 'approved'
+        });
+        createdPostId = String(post._id);
+      }
+
+      res.json({ success: true, data: { sharedRecord, communityPostId: createdPostId } });
 
     } catch (error) {
       Logger.error('分享分析记录失败:', error);
@@ -294,99 +356,5 @@ export class AnalysisController {
     }
   }
 
-  /**
-   * 导出分析记录为CSV
-   */
-  static async exportAnalysisRecordsCSV(req: Request, res: Response): Promise<void> {
-    try {
-      const { petId } = req.params;
-      const userId = (req as any).user.userId;
-      const { startDate, endDate } = req.query;
-
-      const { records } = await AnalysisService.getAnalysisRecords({
-        userId,
-        petId,
-        startDate: startDate ? new Date(startDate as string) : undefined,
-        endDate: endDate ? new Date(endDate as string) : undefined
-      });
-
-      // 生成CSV内容
-      let csvContent = '日期,健康状态,形状,置信度,详细信息,建议\n';
-      records.forEach(record => {
-        csvContent += `${new Date(record.createdAt).toLocaleDateString()},`;
-        csvContent += `${record.analysis.healthStatus},`;
-        csvContent += `${record.analysis.shape},`;
-        csvContent += `${record.analysis.confidence}%,`;
-        csvContent += `"${record.analysis.details}",`;
-        csvContent += `"${record.analysis.recommendations.join('; ')}"\n`;
-      });
-
-      // 设置响应头
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=analysis-records-${petId}-${Date.now()}.csv`);
-
-      // 发送CSV内容
-      res.send(csvContent);
-
-    } catch (error) {
-      Logger.error('导出分析记录失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '导出分析记录失败'
-      });
-    }
-  }
-
-  /**
-   * 导出分析记录为PDF
-   */
-  static async exportAnalysisRecordsPDF(req: Request, res: Response): Promise<void> {
-    try {
-      const { petId } = req.params;
-      const userId = (req as any).user.userId;
-      const { startDate, endDate } = req.query;
-
-      const { records } = await AnalysisService.getAnalysisRecords({
-        userId,
-        petId,
-        startDate: startDate ? new Date(startDate as string) : undefined,
-        endDate: endDate ? new Date(endDate as string) : undefined
-      });
-
-      // 创建PDF文档
-      const doc = new PDFDocument();
-      
-      // 设置响应头
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=analysis-records-${petId}-${Date.now()}.pdf`);
-
-      // 将PDF流式传输到响应
-      doc.pipe(res);
-
-      // 添加标题
-      doc.fontSize(20).text('便便分析记录报告', { align: 'center' });
-      doc.moveDown();
-
-      // 添加记录
-      records.forEach(record => {
-        doc.fontSize(14).text(`日期: ${new Date(record.createdAt).toLocaleDateString()}`);
-        doc.fontSize(12).text(`健康状态: ${record.analysis.healthStatus}`);
-        doc.text(`形状: ${record.analysis.shape}`);
-        doc.text(`置信度: ${record.analysis.confidence}%`);
-        doc.text(`详细信息: ${record.analysis.details}`);
-        doc.text(`建议: ${record.analysis.recommendations.join('; ')}`);
-        doc.moveDown();
-      });
-
-      // 结束PDF文档
-      doc.end();
-
-    } catch (error) {
-      Logger.error('导出分析记录失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '导出分析记录失败'
-      });
-    }
-  }
+  
 }

@@ -14,12 +14,12 @@ import {
   Edit3,
   Trash2,
   Save,
-  Download,
   Copy,
   MessageCircle,
   Heart,
   BookmarkPlus
 } from 'lucide-react';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface AnalysisResultProps {
   record: PoopRecord;
@@ -46,6 +46,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
   isNew = false,
   isSaved = false
 }) => {
+  const { t, language } = useI18n();
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
@@ -77,7 +78,8 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
   };
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleString('zh-CN', {
+    const locale = language === 'zh' ? 'zh-CN' : 'en-US';
+    return new Date(date).toLocaleString(locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -108,11 +110,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
     }
   };
 
-  const handleExportRecord = () => {
-    if (onExport) {
-      onExport(record);
-    }
-  };
+  // 导出功能已移除
 
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
@@ -123,7 +121,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
             {getHealthStatusIcon(record.analysis.healthStatus)}
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
-                {record.analysis.healthStatusDescription || '分析结果'}
+                {record.analysis.healthStatusDescription || t('analysis.results.title')}
               </h3>
               <p className="text-sm text-gray-500 flex items-center">
                 <Calendar className="w-4 h-4 mr-1" />
@@ -143,7 +141,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
                       ? 'text-green-500 bg-green-50' 
                       : 'text-gray-400 hover:text-green-500 hover:bg-green-50'
                   }`}
-                  title={isSaved ? '已保存' : '保存记录'}
+                  title={isSaved ? t('analysis.results.saved') : t('analysisResult.saveRecord')}
                   disabled={isSaved}
                 >
                   {isSaved ? <BookmarkPlus className="w-4 h-4" /> : <Save className="w-4 h-4" />}
@@ -154,28 +152,19 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
               <button
                 onClick={handleShare}
                 className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                title="分享记录"
+                title={t('analysisResult.shareRecord')}
               >
                 <Share2 className="w-4 h-4" />
               </button>
               
-              {/* 导出按钮 */}
-              {onExport && (
-                <button
-                  onClick={handleExportRecord}
-                  className="p-2 text-gray-400 hover:text-purple-500 hover:bg-purple-50 rounded-lg transition-colors"
-                  title="导出记录"
-                >
-                  <Download className="w-4 h-4" />
-                </button>
-              )}
+              {/* 导出功能已移除 */}
               
               {/* 编辑按钮 */}
               {onEdit && (
                 <button
                   onClick={() => onEdit(record)}
                   className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
-                  title="编辑记录"
+                  title={t('analysisResult.editRecord')}
                 >
                   <Edit3 className="w-4 h-4" />
                 </button>
@@ -186,7 +175,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
                 <button
                   onClick={() => onDelete(record.id)}
                   className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  title="删除记录"
+                  title={t('analysisResult.deleteRecord')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -201,7 +190,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
         <div className="mb-4">
           <img
             src={resolveImageUrl(record.imageUrl)}
-            alt="便便分析图片"
+            alt={t('analysis.results.title')}
             className="w-full h-48 object-cover rounded-lg border border-gray-200"
             onError={(e) => {
               (e.target as HTMLImageElement).src = '/pwa-192x192.png';
@@ -214,15 +203,15 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
           {/* 健康状态 */}
           <div className={`p-3 rounded-lg border ${getHealthStatusColor(record.analysis.healthStatus)}`}>
             <div className="flex items-center justify-between">
-              <span className="font-medium">健康状态</span>
-              <span className="text-sm">{record.analysis.confidence}% 置信度</span>
+              <span className="font-medium">{t('analysis.detail.healthStatusLabel')}</span>
+              <span className="text-sm">{record.analysis.confidence}% {t('analysis.results.confidence')}</span>
             </div>
             <p className="text-sm mt-1">{record.analysis.healthStatusDescription}</p>
           </div>
 
           {/* 形状类型 */}
           <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-            <span className="font-medium text-gray-700">形状类型</span>
+            <span className="font-medium text-gray-700">{t('analysis.detail.shapeType')}</span>
             <p className="text-sm text-gray-600 mt-1">
               {record.analysis.shapeDescription || record.analysis.shape}
             </p>
@@ -232,22 +221,22 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
         {/* 检测特征 */}
         {record.analysis.detectedFeatures && (
           <div className="mb-4">
-            <h4 className="font-medium text-gray-900 mb-2">检测特征</h4>
+            <h4 className="font-medium text-gray-900 mb-2">{t('analysis.detail.detectedFeatures')}</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="text-center p-2 bg-gray-50 rounded">
-                <p className="text-xs text-gray-500">颜色</p>
+                <p className="text-xs text-gray-500">{t('analysis.detail.color')}</p>
                 <p className="text-sm font-medium">{record.analysis.detectedFeatures.color}</p>
               </div>
               <div className="text-center p-2 bg-gray-50 rounded">
-                <p className="text-xs text-gray-500">质地</p>
+                <p className="text-xs text-gray-500">{t('analysis.detail.texture')}</p>
                 <p className="text-sm font-medium">{record.analysis.detectedFeatures.texture}</p>
               </div>
               <div className="text-center p-2 bg-gray-50 rounded">
-                <p className="text-xs text-gray-500">硬度</p>
+                <p className="text-xs text-gray-500">{t('analysis.detail.consistency')}</p>
                 <p className="text-sm font-medium">{record.analysis.detectedFeatures.consistency}</p>
               </div>
               <div className="text-center p-2 bg-gray-50 rounded">
-                <p className="text-xs text-gray-500">大小</p>
+                <p className="text-xs text-gray-500">{t('analysis.detail.size')}</p>
                 <p className="text-sm font-medium">{record.analysis.detectedFeatures.size}</p>
               </div>
             </div>
@@ -256,7 +245,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
 
         {/* 详细分析 */}
         <div className="mb-4">
-          <h4 className="font-medium text-gray-900 mb-2">详细分析</h4>
+          <h4 className="font-medium text-gray-900 mb-2">{t('analysis.detail.title')}</h4>
           <p className="text-gray-700 text-sm leading-relaxed">
             {record.analysis.details}
           </p>
@@ -265,7 +254,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
         {/* 健康建议 */}
         {record.analysis.recommendations && record.analysis.recommendations.length > 0 && (
           <div className="mb-4">
-            <h4 className="font-medium text-gray-900 mb-2">健康建议</h4>
+            <h4 className="font-medium text-gray-900 mb-2">{t('analysisResult.healthAdviceTitle')}</h4>
             <ul className="space-y-1">
               {record.analysis.recommendations.map((recommendation, index) => (
                 <li key={index} className="flex items-start text-sm text-gray-700">
@@ -280,7 +269,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
         {/* 用户备注 */}
         {record.userNotes && (
           <div className="mb-4">
-            <h4 className="font-medium text-gray-900 mb-2">用户备注</h4>
+            <h4 className="font-medium text-gray-900 mb-2">{t('analysisResult.userNotesTitle')}</h4>
             <p className="text-gray-700 text-sm bg-gray-50 p-3 rounded-lg">
               {record.userNotes}
             </p>
@@ -290,7 +279,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
         {/* 相关症状 */}
         {record.symptoms && record.symptoms.length > 0 && (
           <div className="mb-4">
-            <h4 className="font-medium text-gray-900 mb-2">相关症状</h4>
+            <h4 className="font-medium text-gray-900 mb-2">{t('analysisResult.relatedSymptomsTitle')}</h4>
             <div className="flex flex-wrap gap-2">
               {record.symptoms.map((symptom, index) => (
                 <span
@@ -307,7 +296,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
         {/* 环境信息 */}
         {(record.location || record.weather) && (
           <div className="border-t border-gray-100 pt-4">
-            <h4 className="font-medium text-gray-900 mb-2">环境信息</h4>
+            <h4 className="font-medium text-gray-900 mb-2">{t('analysisResult.environmentInfoTitle')}</h4>
             <div className="flex items-center space-x-4 text-sm text-gray-600">
               {record.location && (
                 <div className="flex items-center">
@@ -343,7 +332,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">分享分析记录</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('analysisResult.shareModalTitle')}</h3>
               <button
                 onClick={() => setShowShareModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -356,7 +345,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
               {/* 分享链接 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  分享链接
+                  {t('analysisResult.shareLinkLabel')}
                 </label>
                 <div className="flex items-center space-x-2">
                   <input
@@ -373,7 +362,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
                         : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                     }`}
                   >
-                    {copySuccess ? '已复制' : '复制'}
+                    {copySuccess ? t('analysisResult.copied') : t('analysisResult.copy')}
                   </button>
                 </div>
               </div>
@@ -381,19 +370,19 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
               {/* 分享选项 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  分享到
+                  {t('analysisResult.shareTo')}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => {
-                      const text = `我的宠物健康分析结果：${record.analysis.healthStatusDescription || '查看详情'}`;
+                      const text = `${t('analysisResult.sharePreviewTitle')}: ${record.analysis.healthStatusDescription || t('analysis.results.viewDetails')}`;
                       const url = `https://wa.me/?text=${encodeURIComponent(text + ' ' + shareUrl)}`;
                       window.open(url, '_blank');
                     }}
                     className="flex items-center justify-center space-x-2 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <MessageCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">微信</span>
+                    <span className="text-sm">{t('analysisResult.wechat')}</span>
                   </button>
                   
                   <button
@@ -406,7 +395,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
                     className="flex items-center justify-center space-x-2 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <Heart className="w-4 h-4 text-red-500" />
-                    <span className="text-sm">社区</span>
+                    <span className="text-sm">{t('analysisResult.community')}</span>
                   </button>
                 </div>
               </div>
@@ -414,7 +403,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
               {/* 分享说明 */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
-                  <strong>分享提示：</strong> 分享的记录将包含分析结果和健康建议，但不会包含您的个人信息。
+                  <strong>{t('analysisResult.shareHintTitle')}：</strong> {t('analysisResult.shareHint')}
                 </p>
               </div>
             </div>
@@ -424,7 +413,7 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({
                 onClick={() => setShowShareModal(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
               >
-                取消
+                {t('analysisResult.cancel')}
               </button>
             </div>
           </div>

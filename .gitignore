@@ -54,6 +54,13 @@ el-ccache
 .parc
 .js.org/)rcel//paps:e (httchndler caparcel-bu
 .env
+/.env.local
+/.env.*.local
+backend/.env.local
+frontend/.env.local
+!.env.example
+!backend/.env.example
+!frontend/.env.example
 
 # bles fileariaronment vtenv envi# dotegrity
 

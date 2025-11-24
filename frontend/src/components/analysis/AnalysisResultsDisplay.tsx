@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
-import { resolveImageUrl } from '@/utils/imageUrlResolver';
+import React, { useEffect, useState } from 'react';
+import { resolveBestImageUrl } from '@/utils/imageUrlResolver';
 import { PoopRecord, Pet } from '../../../../shared/types';
 import { AnalysisInterface } from '../AnalysisInterface';
 import { AnalysisService } from '../../services/analysisService';
 import TouchButton from '../common/TouchButton';
 import { useMobile } from '../../hooks/useMobile';
+import { useI18n } from '../../i18n/I18nProvider';
 import {
   ArrowLeft,
   Share2,
   Save,
-  Download,
   RefreshCw,
   AlertTriangle,
   CheckCircle,
   Info,
   TrendingUp,
   Calendar,
-
   MapPin,
   Thermometer,
   Droplets
@@ -44,10 +43,22 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
   onShareToCommunity
 }) => {
   const { isMobile } = useMobile();
+  const { t, language } = useI18n();
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [showFullImage, setShowFullImage] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [imgSrc, setImgSrc] = useState<string>('');
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const url = await resolveBestImageUrl(record.imageUrl);
+      if (!alive) return;
+      setImgSrc(url);
+    })();
+    return () => { alive = false; };
+  }, [record.imageUrl]);
 
   const handleSave = async () => {
     if (!onSave || !isNew) return;
@@ -84,9 +95,9 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
       case 'healthy':
         return {
           icon: <CheckCircle className="w-8 h-8 text-green-500" />,
-          title: '健康状态',
-          subtitle: '一切正常',
-          description: '您的宠物便便状态健康，继续保持良好的饮食习惯。',
+          title: t('status.healthy'),
+          subtitle: t('analysis.results.completed'),
+          description: t('analysis.results.description'),
           bgColor: 'bg-green-50',
           borderColor: 'border-green-200',
           textColor: 'text-green-800',
@@ -95,9 +106,9 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
       case 'warning':
         return {
           icon: <AlertTriangle className="w-8 h-8 text-yellow-500" />,
-          title: '需要关注',
-          subtitle: '轻微异常',
-          description: '检测到一些需要注意的情况，建议观察并适当调整饮食。',
+          title: t('status.warning'),
+          subtitle: t('analysis.results.viewDetails'),
+          description: t('analysis.results.description'),
           bgColor: 'bg-yellow-50',
           borderColor: 'border-yellow-200',
           textColor: 'text-yellow-800',
@@ -106,9 +117,9 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
       case 'concerning':
         return {
           icon: <AlertTriangle className="w-8 h-8 text-red-500" />,
-          title: '建议就医',
-          subtitle: '异常状态',
-          description: '检测到明显异常，建议尽快咨询兽医进行专业诊断。',
+          title: t('status.concerning'),
+          subtitle: t('analysis.results.viewDetails'),
+          description: t('analysis.results.description'),
           bgColor: 'bg-red-50',
           borderColor: 'border-red-200',
           textColor: 'text-red-800',
@@ -117,9 +128,9 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
       default:
         return {
           icon: <Info className="w-8 h-8 text-gray-500" />,
-          title: '分析完成',
-          subtitle: '查看结果',
-          description: '已完成分析，请查看详细结果。',
+          title: t('analysis.results.completed'),
+          subtitle: t('analysis.results.viewDetails'),
+          description: t('analysis.results.description'),
           bgColor: 'bg-gray-50',
           borderColor: 'border-gray-200',
           textColor: 'text-gray-800',
@@ -147,7 +158,7 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
                 />
               )}
               <div>
-                <h1 className="text-lg sm:text-xl font-semibold text-gray-900">分析结果</h1>
+                <h1 className="text-lg sm:text-xl font-semibold text-gray-900">{t('analysis.results.title')}</h1>
                 <p className="text-sm text-gray-500">{pet.name}</p>
               </div>
             </div>
@@ -162,7 +173,7 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
                   size="sm"
                   icon={saveSuccess ? CheckCircle : Save}
                 >
-                  {saveSuccess ? '已保存' : isSaving ? '保存中...' : '保存'}
+                  {saveSuccess ? t('analysis.results.saved') : isSaving ? t('analysis.results.saving') : t('analysis.results.save')}
                 </TouchButton>
               )}
               
@@ -173,7 +184,7 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
                 size="sm"
                 icon={Share2}
               >
-                {isMobile ? '' : '分享'}
+                {isMobile ? '' : t('analysis.results.share')}
               </TouchButton>
             </div>
           </div>
@@ -198,7 +209,7 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
                   </p>
                 </div>
                 <div className={`px-3 py-1 rounded-full text-sm font-medium ${statusInfo.badgeColor}`}>
-                  {record.analysis.confidence}% 置信度
+                  {record.analysis.confidence}% {t('analysis.results.confidence')}
                 </div>
               </div>
               <p className={`text-base ${statusInfo.textColor} mb-4`}>
@@ -209,12 +220,12 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-1" />
-                  <span>{new Date(record.timestamp).toLocaleString('zh-CN')}</span>
+                  <span>{new Date(record.timestamp).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')}</span>
                 </div>
                 {record.location && (
                   <div className="flex items-center">
                     <MapPin className="w-4 h-4 mr-1" />
-                    <span>位置记录</span>
+                    <span>{t('analysis.results.locationRecorded')}</span>
                   </div>
                 )}
                 {record.weather && (
@@ -240,17 +251,24 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
 
         {/* 图片展示 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">分析图片</h3>
-          <div className="relative">
-            <img
-              src={resolveImageUrl(record.imageUrl)}
-              alt="便便分析图片"
-              className="w-full h-64 sm:h-80 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => setShowFullImage(true)}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = '/pwa-192x192.png';
-              }}
-            />
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('analysis.results.title')}</h3>
+          <div className="relative overflow-hidden w-full h-64 sm:h-80 rounded-lg border border-gray-200">
+            {/* 删除图片后不显示图片 */}
+            {imgSrc && imgSrc !== '/pwa-192x192.png' ? (
+              <OptimizedImage
+                src={imgSrc}
+                alt={t('analysis.results.title')}
+                className="w-full h-full object-cover rounded-lg"
+                width={undefined}
+                height={undefined}
+                placeholder="/pwa-192x192.png"
+                lazy={true}
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-100 flex items-center justify-center rounded-lg">
+                <span className="text-gray-400">{t('analysis.results.noImage')}</span>
+              </div>
+            )}
             <button
               onClick={() => setShowFullImage(true)}
               className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-lg hover:bg-opacity-70 transition-all"
@@ -269,7 +287,7 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
                 size="sm"
                 icon={RefreshCw}
               >
-                重新拍照
+                {t('analysis.results.retakePhoto')}
               </TouchButton>
             </div>
           )}
@@ -288,7 +306,7 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
 
         {/* 快速操作 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">快速操作</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('analysis.results.quickActions')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {onViewHistory && (
               <TouchButton
@@ -297,32 +315,10 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
                 fullWidth
                 icon={TrendingUp}
               >
-                查看历史记录
+                {t('analysis.results.viewHistory')}
               </TouchButton>
             )}
             
-            <TouchButton
-              onClick={async () => {
-                try {
-                  const blob = await AnalysisService.exportRecords(record.petId, 'pdf');
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `${pet.name}-健康报告.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  document.body.removeChild(a);
-                } catch (error) {
-                  console.error('导出失败:', error);
-                }
-              }}
-              variant="outline"
-              fullWidth
-              icon={Download}
-            >
-              导出报告
-            </TouchButton>
             
             <TouchButton
               onClick={handleShare}
@@ -331,7 +327,7 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
               fullWidth
               icon={Share2}
             >
-              分享结果
+              {t('analysis.results.shareResult')}
             </TouchButton>
           </div>
         </div>
@@ -341,10 +337,14 @@ export const AnalysisResultsDisplay: React.FC<AnalysisResultsDisplayProps> = ({
       {showFullImage && (
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
           <div className="relative max-w-full max-h-full p-4">
-            <img
-              src={resolveImageUrl(record.imageUrl)}
-              alt="便便分析图片"
+            <OptimizedImage
+              src={imgSrc || '/pwa-192x192.png'}
+              alt={t('analysis.results.title')}
               className="max-w-full max-h-full object-contain"
+              width={undefined}
+              height={undefined}
+              placeholder="/pwa-192x192.png"
+              lazy={false}
             />
             <button
               onClick={() => setShowFullImage(false)}

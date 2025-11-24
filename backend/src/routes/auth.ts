@@ -38,7 +38,7 @@ const generateTokens = (userId: string, email: string) => {
 // 用户注册
 router.post('/register', validateUserRegistration, async (req: Request, res: Response) => {
   try {
-    const DB_PRIMARY = process.env.DB_PRIMARY || 'mongo';
+    const DB_PRIMARY = process.env.DB_PRIMARY || 'postgres';
     const { username, email, password } = req.body;
     const pgStatus = await getPostgresStatus();
 
@@ -140,7 +140,7 @@ router.post('/register', validateUserRegistration, async (req: Request, res: Res
 // 用户登录
 router.post('/login', validateUserLogin, async (req: Request, res: Response) => {
   try {
-    const DB_PRIMARY = process.env.DB_PRIMARY || 'mongo';
+    const DB_PRIMARY = process.env.DB_PRIMARY || 'postgres';
     const { email, password } = req.body;
     const pgStatus = await getPostgresStatus();
 

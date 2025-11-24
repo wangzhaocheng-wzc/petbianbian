@@ -32,6 +32,16 @@ export declare class AIService {
      */
     static analyzePoopImage(processedImage: ProcessedImage): Promise<AIAnalysisResult>;
     /**
+     * 安全解析可能含有非纯 JSON 的回复
+     */
+    private static safeParseJson;
+    /**
+     * 归一化外部AI返回结构为内部AIAnalysisResult
+     */
+    private static normalizeExternalResult;
+    private static mapShape;
+    private static mapHealthStatus;
+    /**
      * 生成模拟分析结果
      */
     private static generateMockAnalysis;

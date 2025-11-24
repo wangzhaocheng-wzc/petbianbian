@@ -1,3 +1,11 @@
+import dotenv from 'dotenv';
+import fs from 'fs';
+const envLocal = '.env.local';
+if (fs.existsSync(envLocal)) {
+  dotenv.config({ path: envLocal });
+} else {
+  dotenv.config();
+}
 // 应用常量配置
 export const APP_CONFIG = {
   // 服务器配置
@@ -13,7 +21,7 @@ export const APP_CONFIG = {
   REFRESH_TOKEN_EXPIRES_IN: '7d',
   
   // 文件上传配置
-  BASE_URL: process.env.BASE_URL || 'http://localhost:5000',
+  BASE_URL: process.env.BASE_URL || 'http://localhost:5001',
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   UPLOAD_PATH: {
@@ -22,8 +30,10 @@ export const APP_CONFIG = {
     COMMUNITY: 'uploads/community'
   },
   AI_SERVICE: {
-    URL: process.env.AI_SERVICE_URL || 'http://localhost:8000',
-    KEY: process.env.AI_SERVICE_KEY || 'default-key'
+    URL: process.env.AI_SERVICE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    KEY: process.env.AI_SERVICE_KEY || process.env.DASHSCOPE_API_KEY || '',
+    ANALYSIS_PATH: process.env.AI_SERVICE_ANALYSIS_PATH || '/chat/completions',
+    MODEL: process.env.AI_MODEL || 'qwen-plus'
   },
   PAGINATION: {
     DEFAULT_PAGE_SIZE: 10,

@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { MessageCircle, Share2, Eye, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { CommunityPost } from '../../../shared/types';
 import { formatDistanceToNow } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { zhCN, enUS } from 'date-fns/locale';
 import { LikeButton } from './LikeButton';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface PostCardProps {
   post: CommunityPost;
@@ -30,6 +31,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [imageError, setImageError] = useState<Record<string, boolean>>({});
+  const { t, language } = useI18n();
 
   // 检查是否是当前用户的帖子
   const isOwner = currentUserId === post.userId;
@@ -50,13 +52,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   // 分类标签文本
   const getCategoryLabel = (category: string) => {
-    const labels = {
-      health: '健康分享',
-      help: '求助问答',
-      experience: '经验分享',
-      general: '日常分享'
-    };
-    return labels[category as keyof typeof labels] || '日常分享';
+    return t(`community.categories.${category}`);
   };
 
   // 处理图片加载错误
@@ -87,7 +83,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           >
             <img
               src={imageUrl}
-              alt={`图片 ${index + 1}`}
+              alt={t('community.imageUpload.alt.image', { index: index + 1 })}
               className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
               onError={() => handleImageError(imageUrl)}
               onClick={(e) => {
@@ -134,11 +130,11 @@ export const PostCard: React.FC<PostCardProps> = ({
             <div className="flex-1">
               <div className="flex items-center space-x-2">
                 <h4 className="font-medium text-gray-900">
-                  {post.isAnonymous ? '匿名用户' : (post.user?.username || '匿名用户')}
+                  {post.isAnonymous ? t('community.user.anonymous') : (post.user?.username || t('community.user.anonymous'))}
                 </h4>
                 {!post.isAnonymous && post.user?.stats?.reputation && post.user.stats.reputation > 0 && (
                   <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
-                    声望 {post.user.stats.reputation}
+                    {t('community.user.reputation', { value: post.user.stats.reputation })}
                   </span>
                 )}
               </div>
@@ -147,7 +143,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 <span className="text-sm text-gray-500">
                   {formatDistanceToNow(new Date(post.createdAt), { 
                     addSuffix: true, 
-                    locale: zhCN 
+                    locale: language === 'zh' ? zhCN : enUS 
                   })}
                 </span>
                 
@@ -159,14 +155,14 @@ export const PostCard: React.FC<PostCardProps> = ({
                 {/* 置顶标识 */}
                 {post.isSticky && (
                   <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
-                    置顶
+                    {t('community.flags.sticky')}
                   </span>
                 )}
                 
                 {/* 精选标识 */}
                 {post.isFeatured && (
                   <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
-                    精选
+                    {t('community.flags.featured')}
                   </span>
                 )}
               </div>
@@ -174,12 +170,12 @@ export const PostCard: React.FC<PostCardProps> = ({
               {/* 相关宠物信息 */}
               {post.pet && (
                 <div className="flex items-center space-x-1 mt-1">
-                  <span className="text-xs text-gray-500">关于</span>
+                  <span className="text-xs text-gray-500">{t('community.pet.about')}</span>
                   <span className="text-xs text-orange-600 font-medium">
                     {post.pet.name}
                   </span>
                   <span className="text-xs text-gray-400">
-                    ({post.pet.type === 'dog' ? '狗' : post.pet.type === 'cat' ? '猫' : '其他'})
+                    ({post.pet.type === 'dog' ? t('community.pet.type.dog') : post.pet.type === 'cat' ? t('community.pet.type.cat') : t('community.pet.type.other')})
                   </span>
                 </div>
               )}
@@ -211,7 +207,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                       className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     >
                       <Edit size={14} className="mr-2" />
-                      编辑
+                      {t('community.actions.edit')}
                     </button>
                   )}
                   
@@ -219,7 +215,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm('确定要删除这个帖子吗？')) {
+                        if (confirm(t('community.actions.confirmDeletePost'))) {
                           onDelete(post.id);
                         }
                         setShowMenu(false);
@@ -227,7 +223,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                       className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
                     >
                       <Trash2 size={14} className="mr-2" />
-                      删除
+                      {t('community.actions.delete')}
                     </button>
                   )}
                   
@@ -241,7 +237,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                       className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     >
                       <Share2 size={14} className="mr-2" />
-                      分享
+                      {t('community.actions.share')}
                     </button>
                   )}
                 </div>
@@ -300,7 +296,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               likesCount={post.likesCount || post.interactions.likes.length}
               onToggle={async () => {
                 if (!currentUserId) {
-                  alert('请先登录');
+                  alert(t('community.loginRequired'));
                   return;
                 }
                 await onLike?.(post.id);

@@ -1,46 +1,9 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StatisticsController = void 0;
 const statisticsService_1 = require("../services/statisticsService");
-const Pet_1 = __importDefault(require("../models/Pet"));
 const logger_1 = require("../utils/logger");
-const mongoose_1 = __importDefault(require("mongoose"));
+const postgres_1 = require("../config/postgres");
 class StatisticsController {
     /**
      * 获取健康趋势数据
@@ -48,24 +11,27 @@ class StatisticsController {
     static async getHealthTrends(req, res) {
         try {
             const { petId } = req.params;
-            const userId = req.user.id;
+            const userId = req.user?.userId;
             const { days = '30', granularity = 'daily' } = req.query;
-            if (!mongoose_1.default.Types.ObjectId.isValid(petId)) {
+            // 兼容 UUID 或 ObjectId，去除 ObjectId 校验
+            if (!petId) {
                 res.status(400).json({
                     success: false,
                     message: '无效的宠物ID'
                 });
                 return;
             }
-            // 验证宠物所有权
-            const pet = await Pet_1.default.findOne({ _id: petId, ownerId: userId });
-            if (!pet) {
+            // 验证宠物所有权（PG查询）
+            const pool = await (0, postgres_1.getPostgresPool)();
+            const petRes = await pool.query('SELECT id, name FROM pets WHERE id = $1 AND owner_id = $2 AND is_active = true LIMIT 1', [petId, userId]);
+            if (!petRes.rows[0]) {
                 res.status(404).json({
                     success: false,
                     message: '宠物不存在或无权限访问'
                 });
                 return;
             }
+            const pet = petRes.rows[0];
             const daysNum = Math.min(365, Math.max(7, parseInt(days))); // 限制在7-365天之间
             const trends = await statisticsService_1.StatisticsService.calculateHealthTrends(petId, daysNum, granularity);
             res.json({
@@ -93,24 +59,47 @@ class StatisticsController {
     static async getPeriodStatistics(req, res) {
         try {
             const { petId } = req.params;
-            const userId = req.user.id;
+            const userId = req.user?.userId;
             const { period = 'month' } = req.query;
-            if (!mongoose_1.default.Types.ObjectId.isValid(petId)) {
+            // 兼容 UUID 或 ObjectId，去除 ObjectId 校验
+            if (!petId) {
                 res.status(400).json({
                     success: false,
                     message: '无效的宠物ID'
                 });
                 return;
             }
-            // 验证宠物所有权
-            const pet = await Pet_1.default.findOne({ _id: petId, ownerId: userId });
-            if (!pet) {
+            // 兼容 UUID，使用 PostgreSQL 查询 pets 表校验宠物所有权
+            const pool = await (0, postgres_1.getPostgresPool)();
+            const petsRes = await pool.query('SELECT id, name, type, breed, avatar FROM pets WHERE owner_id = $1 AND is_active = true', [userId]);
+            const pets = petsRes.rows;
+            if (pets.length === 0) {
+                res.json({
+                    success: true,
+                    data: {
+                        totalPets: 0,
+                        petSummaries: [],
+                        overallStatistics: {
+                            totalRecords: 0,
+                            averageHealthyPercentage: 0,
+                            averageWarningPercentage: 0,
+                            averageConcerningPercentage: 0,
+                            totalAnomalies: 0
+                        }
+                    }
+                });
+                return;
+            }
+            // 验证宠物所有权（PG查询）
+            const petRes = await pool.query('SELECT id, name FROM pets WHERE id = $1 AND owner_id = $2 AND is_active = true LIMIT 1', [petId, userId]);
+            if (!petRes.rows[0]) {
                 res.status(404).json({
                     success: false,
                     message: '宠物不存在或无权限访问'
                 });
                 return;
             }
+            const pet = petRes.rows[0];
             const statistics = await statisticsService_1.StatisticsService.calculatePeriodStatistics(petId, period);
             res.json({
                 success: true,
@@ -135,24 +124,27 @@ class StatisticsController {
     static async getAnomalyPatterns(req, res) {
         try {
             const { petId } = req.params;
-            const userId = req.user.id;
+            const userId = req.user?.userId;
             const { window = '30' } = req.query;
-            if (!mongoose_1.default.Types.ObjectId.isValid(petId)) {
+            // 兼容 UUID 或 ObjectId，去除 ObjectId 校验
+            if (!petId) {
                 res.status(400).json({
                     success: false,
                     message: '无效的宠物ID'
                 });
                 return;
             }
-            // 验证宠物所有权
-            const pet = await Pet_1.default.findOne({ _id: petId, ownerId: userId });
-            if (!pet) {
+            // 验证宠物所有权（PG查询）
+            const pool = await (0, postgres_1.getPostgresPool)();
+            const petRes = await pool.query('SELECT id, name FROM pets WHERE id = $1 AND owner_id = $2 AND is_active = true LIMIT 1', [petId, userId]);
+            if (!petRes.rows[0]) {
                 res.status(404).json({
                     success: false,
                     message: '宠物不存在或无权限访问'
                 });
                 return;
             }
+            const pet = petRes.rows[0];
             const windowDays = Math.min(90, Math.max(7, parseInt(window))); // 限制在7-90天之间
             const anomalies = await statisticsService_1.StatisticsService.detectAnomalyPatterns(petId, windowDays);
             // 按严重程度排序
@@ -188,24 +180,27 @@ class StatisticsController {
     static async getComparisonAnalysis(req, res) {
         try {
             const { petId } = req.params;
-            const userId = req.user.id;
+            const userId = req.user?.userId;
             const { period = 'month' } = req.query;
-            if (!mongoose_1.default.Types.ObjectId.isValid(petId)) {
+            // 兼容 UUID 或 ObjectId，去除 ObjectId 校验
+            if (!petId) {
                 res.status(400).json({
                     success: false,
                     message: '无效的宠物ID'
                 });
                 return;
             }
-            // 验证宠物所有权
-            const pet = await Pet_1.default.findOne({ _id: petId, ownerId: userId });
-            if (!pet) {
+            // 验证宠物所有权（PG查询，兼容UUID）并获取名称
+            const pool = await (0, postgres_1.getPostgresPool)();
+            const petRes = await pool.query('SELECT id, name FROM pets WHERE id = $1 AND owner_id = $2 AND is_active = true LIMIT 1', [petId, userId]);
+            if (!petRes.rows[0]) {
                 res.status(404).json({
                     success: false,
                     message: '宠物不存在或无权限访问'
                 });
                 return;
             }
+            const pet = petRes.rows[0];
             const comparison = await statisticsService_1.StatisticsService.performComparisonAnalysis(petId, period);
             res.json({
                 success: true,
@@ -229,105 +224,12 @@ class StatisticsController {
      */
     static async getMultiPetSummary(req, res) {
         try {
-            const userId = req.user.id;
+            const userId = req.user?.userId;
             const { period = 'month' } = req.query;
-            // 获取用户的所有宠物
-            const pets = await Pet_1.default.find({ ownerId: userId, isActive: true });
-            if (pets.length === 0) {
-                res.json({
-                    success: true,
-                    data: {
-                        totalPets: 0,
-                        petSummaries: [],
-                        overallStatistics: {
-                            totalRecords: 0,
-                            averageHealthyPercentage: 0,
-                            averageWarningPercentage: 0,
-                            averageConcerningPercentage: 0,
-                            totalAnomalies: 0
-                        }
-                    }
-                });
-                return;
-            }
-            // 并行获取每个宠物的统计数据
-            const petSummaries = await Promise.all(pets.map(async (pet) => {
-                try {
-                    const [statistics, anomalies] = await Promise.all([
-                        statisticsService_1.StatisticsService.calculatePeriodStatistics(pet._id.toString(), period),
-                        statisticsService_1.StatisticsService.detectAnomalyPatterns(pet._id.toString(), 30)
-                    ]);
-                    return {
-                        petId: pet._id,
-                        petName: pet.name,
-                        petType: pet.type,
-                        petBreed: pet.breed,
-                        petAvatar: pet.avatar,
-                        statistics,
-                        anomaliesCount: anomalies.length,
-                        highSeverityAnomalies: anomalies.filter(a => a.severity === 'high').length,
-                        lastAnalyzed: statistics.endDate
-                    };
-                }
-                catch (error) {
-                    logger_1.Logger.error(`获取宠物${pet.name}统计失败:`, error);
-                    return {
-                        petId: pet._id,
-                        petName: pet.name,
-                        petType: pet.type,
-                        petBreed: pet.breed,
-                        petAvatar: pet.avatar,
-                        statistics: null,
-                        anomaliesCount: 0,
-                        highSeverityAnomalies: 0,
-                        lastAnalyzed: null,
-                        error: '统计数据获取失败'
-                    };
-                }
-            }));
-            // 计算整体统计
-            const validSummaries = petSummaries.filter(s => s.statistics !== null);
-            const overallStatistics = {
-                totalRecords: validSummaries.reduce((sum, s) => sum + (s.statistics?.totalRecords || 0), 0),
-                averageHealthyPercentage: validSummaries.length > 0
-                    ? Math.round(validSummaries.reduce((sum, s) => sum + (s.statistics?.healthyPercentage || 0), 0) / validSummaries.length)
-                    : 0,
-                averageWarningPercentage: validSummaries.length > 0
-                    ? Math.round(validSummaries.reduce((sum, s) => sum + (s.statistics?.warningPercentage || 0), 0) / validSummaries.length)
-                    : 0,
-                averageConcerningPercentage: validSummaries.length > 0
-                    ? Math.round(validSummaries.reduce((sum, s) => sum + (s.statistics?.concerningPercentage || 0), 0) / validSummaries.length)
-                    : 0,
-                totalAnomalies: petSummaries.reduce((sum, s) => sum + s.anomaliesCount, 0),
-                highSeverityAnomalies: petSummaries.reduce((sum, s) => sum + s.highSeverityAnomalies, 0)
-            };
-            res.json({
-                success: true,
-                data: {
-                    period,
-                    totalPets: pets.length,
-                    activePets: validSummaries.length,
-                    petSummaries,
-                    overallStatistics
-                }
-            });
-        }
-        catch (error) {
-            logger_1.Logger.error('获取多宠物汇总失败:', error);
-            res.status(500).json({
-                success: false,
-                message: '获取多宠物汇总失败'
-            });
-        }
-    }
-    /**
-     * 获取用户整体统计概览
-     */
-    static async getUserOverview(req, res) {
-        try {
-            const userId = req.user.id;
-            // 获取用户的所有宠物
-            const pets = await Pet_1.default.find({ ownerId: userId, isActive: true });
+            // 获取用户的所有宠物（PG查询）
+            const pool = await (0, postgres_1.getPostgresPool)();
+            const petsRes = await pool.query('SELECT id, name, type, breed, avatar_url, is_active FROM pets WHERE owner_id = $1 AND is_active = true', [userId]);
+            const pets = petsRes.rows;
             // 获取不同时间段的统计数据
             const [weekStats, monthStats, quarterStats] = await Promise.all([
                 StatisticsController.calculateUserPeriodStats(userId, 'week'),
@@ -337,10 +239,10 @@ class StatisticsController {
             // 获取最近的异常情况
             const recentAnomalies = await Promise.all(pets.map(async (pet) => {
                 try {
-                    const anomalies = await statisticsService_1.StatisticsService.detectAnomalyPatterns(pet._id.toString(), 7);
+                    const anomalies = await statisticsService_1.StatisticsService.detectAnomalyPatterns(pet.id, 7);
                     return anomalies.map(anomaly => ({
                         ...anomaly,
-                        petId: pet._id,
+                        petId: pet.id,
                         petName: pet.name
                     }));
                 }
@@ -355,7 +257,7 @@ class StatisticsController {
                 success: true,
                 data: {
                     totalPets: pets.length,
-                    activePets: pets.filter(p => p.isActive).length,
+                    activePets: pets.filter(p => p.is_active).length,
                     periodStatistics: {
                         week: weekStats,
                         month: monthStats,
@@ -379,40 +281,45 @@ class StatisticsController {
             });
         }
     }
+    /**
+     * 用户整体统计概览
+     */
+    static async getUserOverview(req, res) {
+        try {
+            const userId = req.user?.userId;
+            const { period = 'month' } = req.query;
+            if (!userId) {
+                res.status(401).json({ success: false, message: '用户未认证' });
+                return;
+            }
+            const overview = await StatisticsController.calculateUserPeriodStats(userId, period);
+            res.json({ success: true, data: overview });
+        }
+        catch (error) {
+            logger_1.Logger.error('获取用户概览失败:', error);
+            res.status(500).json({ success: false, message: '获取用户概览失败' });
+        }
+    }
     // 私有辅助方法
     static async calculateUserPeriodStats(userId, period) {
+        // 统计分析逻辑切换为 PG SQL 查询
+        const pool = await (0, postgres_1.getPostgresPool)();
         const daysMap = { week: 7, month: 30, quarter: 90, year: 365 };
         const days = daysMap[period];
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
-        const { PoopRecord } = await Promise.resolve().then(() => __importStar(require('../models/PoopRecord')));
-        const pipeline = [
-            {
-                $match: {
-                    userId: new mongoose_1.default.Types.ObjectId(userId),
-                    timestamp: { $gte: startDate, $lte: endDate }
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    totalRecords: { $sum: 1 },
-                    healthyCount: {
-                        $sum: { $cond: [{ $eq: ['$analysis.healthStatus', 'healthy'] }, 1, 0] }
-                    },
-                    warningCount: {
-                        $sum: { $cond: [{ $eq: ['$analysis.healthStatus', 'warning'] }, 1, 0] }
-                    },
-                    concerningCount: {
-                        $sum: { $cond: [{ $eq: ['$analysis.healthStatus', 'concerning'] }, 1, 0] }
-                    },
-                    avgConfidence: { $avg: '$analysis.confidence' },
-                    uniquePets: { $addToSet: '$petId' }
-                }
-            }
-        ];
-        const [result] = await PoopRecord.aggregate(pipeline);
+        // 查询 poop_records 表统计数据
+        const statsRes = await pool.query(`SELECT
+         COUNT(*) AS total_records,
+         SUM(CASE WHEN analysis->>'healthStatus' = 'healthy' THEN 1 ELSE 0 END) AS healthy_count,
+         SUM(CASE WHEN analysis->>'healthStatus' = 'warning' THEN 1 ELSE 0 END) AS warning_count,
+         SUM(CASE WHEN analysis->>'healthStatus' = 'concerning' THEN 1 ELSE 0 END) AS concerning_count,
+         AVG((analysis->>'confidence')::float) AS avg_confidence,
+         COUNT(DISTINCT pet_id) AS active_pets
+       FROM poop_records
+       WHERE owner_id = $1 AND timestamp >= $2 AND timestamp <= $3`, [userId, startDate, endDate]);
+        const result = statsRes.rows[0];
         if (!result) {
             return {
                 period,
@@ -428,22 +335,22 @@ class StatisticsController {
                 activePets: 0
             };
         }
-        const healthyPercentage = result.totalRecords > 0 ? Math.round((result.healthyCount / result.totalRecords) * 100) : 0;
-        const warningPercentage = result.totalRecords > 0 ? Math.round((result.warningCount / result.totalRecords) * 100) : 0;
-        const concerningPercentage = result.totalRecords > 0 ? Math.round((result.concerningCount / result.totalRecords) * 100) : 0;
-        const frequencyPerWeek = Math.round((result.totalRecords / days) * 7 * 10) / 10;
+        const healthyPercentage = result.total_records > 0 ? Math.round((result.healthy_count / result.total_records) * 100) : 0;
+        const warningPercentage = result.total_records > 0 ? Math.round((result.warning_count / result.total_records) * 100) : 0;
+        const concerningPercentage = result.total_records > 0 ? Math.round((result.concerning_count / result.total_records) * 100) : 0;
+        const frequencyPerWeek = Math.round((result.total_records / days) * 7 * 10) / 10;
         return {
             period,
-            totalRecords: result.totalRecords,
-            healthyCount: result.healthyCount,
-            warningCount: result.warningCount,
-            concerningCount: result.concerningCount,
+            totalRecords: Number(result.total_records),
+            healthyCount: Number(result.healthy_count),
+            warningCount: Number(result.warning_count),
+            concerningCount: Number(result.concerning_count),
             healthyPercentage,
             warningPercentage,
             concerningPercentage,
-            averageConfidence: Math.round(result.avgConfidence || 0),
+            averageConfidence: Math.round(result.avg_confidence || 0),
             frequencyPerWeek,
-            activePets: result.uniquePets.length
+            activePets: Number(result.active_pets)
         };
     }
 }

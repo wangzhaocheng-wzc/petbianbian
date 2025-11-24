@@ -1,0 +1,554 @@
+{
+  "appName": "宠物健康助手",
+  "menu": "菜单",
+  "openMenu": "打开菜单",
+  "closeMenu": "关闭菜单",
+  "login": "登录",
+  "register": "注册",
+  "logout": "退出",
+  "languages": {
+    "label": "语言",
+    "zh": "中文",
+    "en": "英文"
+  },
+  "recordsList": {
+    "toolbar": {
+      "searchPlaceholder": "搜索记录...",
+      "filter": "筛选",
+      "deleteSelected": "删除选中 ({count})"
+    },
+    "filters": {
+      "healthStatus": "健康状态",
+      "all": "全部",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "clear": "清除筛选"
+    },
+    "loading": "加载中...",
+    "empty": "暂无记录",
+    "columns": {
+      "pet": "宠物",
+      "healthStatus": "健康状态",
+      "confidence": "置信度",
+      "time": "时间",
+      "notes": "备注",
+      "actions": "操作"
+    },
+    "actions": {
+      "view": "查看详情",
+      "edit": "编辑",
+      "delete": "删除"
+    },
+    "pagination": {
+      "prev": "上一页",
+      "next": "下一页",
+      "pageOf": "第 {{page}} 页，共 {{totalPages}} 页",
+      "range": "显示 {{from}} 到 {{to}} 条，共 {{total}} 条记录"
+    }
+  },
+  "nav": {
+    "home": "首页",
+    "analysis": "便便分析",
+    "pets": "我的宠物",
+    "records": "健康记录",
+    "statistics": "数据统计",
+    "comparison": "宠物对比",
+    "community": "宠物社区",
+    "profile": "个人中心",
+    "admin": "管理后台"
+  },
+  "common": {
+    "loading": "加载中...",
+    "pet": "宠物"
+  },
+  
+  "recent": {
+    "title": "最近分析"
+  },
+  "tips": {
+    "title": "健康提示",
+    "normal": "正常的便便应该是棕色、成形且不太硬也不太软",
+    "change": "便便颜色、形状的变化可能反映健康状况",
+    "consult": "持续异常情况建议及时咨询兽医"
+  },
+  "shapeRef": {
+    "title": "便便形状参考",
+    "type12": "类型1-2:",
+    "type34": "类型3-4:",
+    "type57": "类型5-7:",
+    "hard": "过硬",
+    "normal": "正常",
+    "soft": "过软"
+  },
+  "analysisResult": {
+    "healthAdviceTitle": "健康建议",
+    "userNotesTitle": "用户备注",
+    "relatedSymptomsTitle": "相关症状",
+    "environmentInfoTitle": "环境信息",
+    "shareModalTitle": "分享分析记录",
+    "shareLinkLabel": "分享链接",
+    "copy": "复制",
+    "copied": "已复制",
+    "shareTo": "分享到",
+    "wechat": "微信",
+    "community": "社区",
+    "email": "邮件",
+    "weibo": "微博",
+    "qq": "QQ",
+    "shareToOtherPlatforms": "分享到其他平台",
+    "shareHintTitle": "分享提示",
+    "shareHint": "分享的记录将包含分析结果和健康建议，但不会包含您的个人信息。",
+    "shareHintLong": "分享的记录将包含分析结果和健康建议，但不会包含您的个人隐私信息。分享可以帮助其他宠物主人了解类似的健康情况。",
+    "communityHint": "分享到社区可以帮助其他宠物主人了解类似情况",
+    "sharePreviewTitle": "我的宠物健康分析结果",
+    "shareToCommunity": "分享到宠物社区",
+    "cancel": "取消",
+    "close": "关闭",
+    "emailSubjectPrefix": "健康分析报告 -",
+    "saveRecord": "保存记录",
+    "shareRecord": "分享记录",
+    "editRecord": "编辑记录",
+    "deleteRecord": "删除记录"
+  },
+  "healthStatus": {
+    "healthy": {
+      "title": "健康状态",
+      "subtitle": "一切正常",
+      "description": "便便状态健康，继续保持良好习惯",
+      "recommendation": "保持当前的饮食和生活习惯"
+    },
+    "warning": {
+      "title": "需要关注",
+      "subtitle": "轻微异常",
+      "description": "检测到需要注意的情况",
+      "recommendation": "观察几天并适当调整饮食"
+    },
+    "concerning": {
+      "title": "建议就医",
+      "subtitle": "异常状态",
+      "description": "检测到明显异常情况",
+      "recommendation": "建议尽快咨询兽医"
+    }
+  },
+  "status": {
+    "healthy": "健康",
+    "warning": "需要注意",
+    "concerning": "需要关注",
+    "unknown": "未知"
+  },
+  "analysis": {
+    "header": {
+      "title": "便便健康分析",
+      "viewRecords": "查看记录",
+      "selectPet": "选择宠物",
+      "pleaseSelectPet": "请先选择宠物",
+      "noPetsTip": "您还没有添加宠物，请先添加宠物信息",
+      "selectPetTip": "请选择要进行健康分析的宠物",
+      "addPet": "添加宠物"
+    },
+    "upload": {
+      "subtitle": "上传宠物便便照片，我们将使用AI技术为您分析健康状况",
+      "notesLabel": "备注信息（可选）",
+      "notesPlaceholder": "记录宠物当天的状态、饮食等信息...",
+      "notesHelper": "详细的备注有助于更准确的健康分析",
+      "symptomsLabel": "相关症状（可选）",
+      "symptomsPlaceholder": "如：食欲不振、精神萎靡等，用逗号分隔",
+      "symptomsHelper": "如有其他症状请一并记录",
+      "submit": "开始分析",
+      "uploading": "分析中...",
+      "result": {
+        "detailsLabel": "详细分析"
+      },
+      "warningContent": "检测到异常情况，建议尽快咨询兽医进行专业诊断。",
+      "error": {
+        "noFile": "请先选择要分析的图片",
+        "noPet": "请先选择宠物",
+        "analysisFailed": "分析失败",
+        "uploadFailed": "上传失败，请稍后重试"
+      }
+    },
+    "results": {
+      "title": "分析结果",
+      "saved": "已保存",
+      "saving": "保存中...",
+      "save": "保存",
+      "share": "分享",
+      "confidence": "置信度",
+      "locationRecorded": "位置记录",
+      "noImage": "暂无图片",
+      "retakePhoto": "重新拍照",
+      "quickActions": "快速操作",
+      "viewHistory": "查看历史记录",
+      "shareResult": "分享结果",
+      "viewDetails": "查看结果",
+      "completed": "分析完成",
+      "description": "已完成分析，请查看详细结果。"
+    },
+    "detail": {
+      "title": "详细分析结果",
+      "reanalyze": "重新分析",
+      "healthStatusLabel": "健康状态",
+      "shapeType": "形状类型",
+      "detectedFeatures": "检测特征",
+      "color": "颜色",
+      "texture": "质地",
+      "consistency": "硬度",
+      "size": "大小",
+      "recommendationLabel": "建议",
+      "statusLabel": "状态",
+      "riskLevelLabel": "风险等级",
+      "urgencyLabel": "建议处理时间",
+      "urgency": {
+        "urgent": "立即处理",
+        "consult": "建议咨询兽医",
+        "monitor": "持续观察"
+      },
+      "riskLevels": {
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      }
+    },
+    "actions": {
+      "title": "操作选项",
+      "collapse": "收起",
+      "moreActions": "更多操作"
+    },
+    "dateLocale_zh": "zh-CN",
+    "dateLocale_en": "en-US"
+  }
+  ,
+  "reports": {
+    "display": {
+      "title": "宠物健康报告",
+      "basicInfo": "基本信息",
+      "petName": "宠物姓名",
+      "petType": "宠物类型",
+      "ageWeight": "年龄体重",
+      "periodLabel": "报告周期",
+      "periodDays": "天",
+      "totalRecords": "总记录数",
+      "averagePerWeek": "平均每周 {{count}} 次",
+      "healthyRate": "健康率",
+      "healthyCountLabel": "{{count}} 条健康记录",
+      "warningRate": "警告率",
+      "warningCountLabel": "{{count}} 条警告记录",
+      "concerningRate": "异常率",
+      "concerningCountLabel": "{{count}} 条异常记录",
+      "healthAssessmentTitle": "健康评估",
+      "currentStatus": "当前状态",
+      "healthTrend": "健康趋势",
+      "riskLevel": "风险等级",
+      "urgency": "紧急程度",
+      "recommendationsTitle": "健康建议",
+      "healthDistribution": "健康状况分布",
+      "shapeDistribution": "便便形状分布",
+      "healthTrendTitle": "健康趋势",
+      "recentRecordsTitle": "最近记录",
+      "suggestionPrefix": "建议:",
+      "legendHealthy": "健康",
+      "legendWarning": "警告",
+      "legendConcerning": "异常"
+    },
+    "generator": {
+      "title": "生成健康报告",
+      "petLabel": "宠物",
+      "reportRange": "报告时间范围",
+      "generateData": "生成报告数据",
+      "successGenerated": "健康报告生成成功！",
+      "errorGenerating": "生成健康报告失败，请重试",
+      "guideTitle": "报告说明",
+      "guideGenerateData": "• 生成报告数据：在页面中显示详细的健康分析数据",
+      "daysSuffix": "天"
+    }
+  },
+  "petInfo": {
+    "title": "宠物信息",
+    "breed": "品种",
+    "type": "类型",
+    "typeDog": "狗",
+    "typeCat": "猫",
+    "typeOther": "其他",
+    "unknown": "未知",
+    "age": "年龄",
+    "ageYears": "岁",
+    "ageMonths": "个月",
+    "weight": "体重",
+    "weightUnit": "kg"
+  },
+  "fileUpload": {
+    "useCameraButton": "使用相机拍照",
+    "uploading": "上传中...",
+    "dropHere": "放开以上传文件",
+    "clickToSelect": "点击选择文件",
+    "dragOrClick": "拖拽文件到这里或点击选择",
+    "supportedFormatsAndMax": "支持 JPG、PNG、WebP、GIF 格式，最大 {{max}}",
+    "maxFiles": "(最多 {{count}} 个文件)",
+    "useCameraTip": "或使用上方相机按钮拍照",
+    "selectedFiles": "已选择的文件"
+  },
+  "healthVisualization": {
+    "noData": "暂无统计数据",
+    "headerTitle": "健康状态分析",
+    "daysSuffix": "天",
+    "totalAnalysis": "总分析次数",
+    "healthyLabel": "健康状态",
+    "warningLabel": "需要关注",
+    "concerningLabel": "异常状态",
+    "assessmentTitle": "健康评估",
+    "currentStatus": "当前状态",
+    "riskLevel": "风险等级",
+    "risk": {
+      "low": "低风险",
+      "medium": "中风险",
+      "high": "高风险"
+    },
+    "trendTitle": "健康趋势",
+    "legend": {
+      "healthy": "健康",
+      "warning": "警告",
+      "concerning": "异常"
+    },
+    "trend": {
+      "improving": "改善中",
+      "declining": "下降中",
+      "stable": "稳定"
+    },
+    "urgency": {
+      "urgent": "紧急处理",
+      "consult": "建议咨询",
+      "monitor": "持续观察",
+      "none": "无需担心"
+    },
+    "recommendationsTitle": "健康建议",
+    "lastUpdated": "最后更新"
+  },
+  "home": {
+    "hero": {
+      "title": "🐾 关爱宠物健康，从便便开始",
+      "subtitle": "通过AI智能分析，帮助您更好地了解宠物的健康状况",
+      "cta": "开始分析"
+    },
+    "features": {
+      "analysis": {
+        "name": "便便健康分析",
+        "description": "上传宠物便便照片，AI智能分析健康状况"
+      },
+      "records": {
+        "name": "健康记录追踪",
+        "description": "记录和统计宠物排便情况，追踪健康趋势"
+      },
+      "community": {
+        "name": "宠物社区",
+        "description": "与其他养宠人士分享经验，交流心得"
+      }
+    },
+    "stats": {
+      "analysisCount": "分析次数",
+      "registeredUsers": "注册用户",
+      "accuracy": "准确率",
+      "onlineService": "在线服务"
+    }
+  },
+  "community": {
+    "title": "宠物社区",
+    "subtitle": "分享你的养宠经验，与其他宠物主人交流互动",
+    "loginRequired": "请先登录",
+    "postList": {
+      "sort": {
+        "latest": "最新发布",
+        "popular": "最多点赞",
+        "views": "最多浏览",
+        "comments": "最多评论"
+      },
+      "sortLabel": "排序方式",
+      "pagination": {
+        "prev": "上一页",
+        "next": "下一页"
+      },
+      "search": {
+        "placeholder": "搜索帖子...",
+        "action": "搜索"
+      },
+      "actions": {
+        "filter": "筛选",
+        "refresh": "刷新",
+        "create": "发布帖子",
+        "createShort": "发布"
+      },
+      "state": {
+        "loading": "加载中...",
+        "empty": "暂无帖子",
+        "emptyCta": "发布第一个帖子"
+      },
+      "share": {
+        "copied": "链接已复制到剪贴板"
+      }
+    },
+    "categories": {
+      "all": "全部",
+      "general": "日常分享",
+      "health": "健康分享",
+      "help": "求助问答",
+      "experience": "经验分享"
+    },
+    "flags": {
+      "sticky": "置顶",
+      "featured": "精选"
+    },
+    "user": {
+      "anonymous": "匿名用户",
+      "reputation": "声望 {{value}}"
+    },
+    "pet": {
+      "about": "关于",
+      "type": {
+        "dog": "狗",
+        "cat": "猫",
+        "other": "其他"
+      }
+    },
+    "actions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "share": "分享",
+      "confirmDeletePost": "确定要删除这个帖子吗？",
+      "confirmDeleteComment": "确定要删除这条评论吗？",
+      "retry": "重试",
+      "backToList": "返回列表",
+      "reply": "回复",
+      "report": "举报",
+      "loginNow": "立即登录"
+    },
+    "states": {
+      "loading": "加载中...",
+      "notFound": "帖子不存在",
+      "moderationPending": "审核中",
+      "deletedComment": "此评论已被删除",
+      "loadingComments": "加载评论中...",
+      "noComments": "暂无评论，来发表第一个评论吧！",
+      "loadMoreComments": "加载更多评论",
+      "publishing": "发布中..."
+    },
+    "comments": {
+      "header": {
+        "one": "评论 ({{count}})",
+        "other": "评论 ({{count}})"
+      },
+      "placeholder": {
+        "write": "写下你的评论...",
+        "reply": "回复 @{{username}}..."
+      },
+      "loginRequired": "登录后可以发表评论",
+      "cancel": "取消",
+      "post": "发布评论",
+      "posting": "发布中..."
+    },
+    "editor": {
+      "editTitle": "编辑帖子",
+      "createTitle": "发布新帖子",
+      "fields": {
+        "title": {
+          "label": "标题 *",
+          "placeholder": "请输入帖子标题..."
+        },
+        "content": {
+          "label": "内容 *",
+          "placeholder": "分享你的想法、经验或问题..."
+        },
+        "category": {
+          "label": "分类"
+        },
+        "pet": {
+          "label": "相关宠物",
+          "selectOptional": "选择宠物（可选）"
+        },
+        "images": {
+          "label": "图片 ({{current}}/{{max}})",
+          "upload": "上传图片",
+          "uploading": "上传中... ({{count}})"
+        },
+        "tags": {
+          "label": "标签",
+          "placeholder": "添加相关标签..."
+        }
+      },
+      "anonymousNote": "匿名发布（不显示用户名，默认显示为\"匿名用户\"）",
+      "requiredNote": "* 为必填项",
+      "buttons": {
+        "preview": "预览",
+        "cancel": "取消",
+        "save": "保存",
+        "saving": "保存中...",
+        "update": "更新",
+        "publish": "发布"
+      },
+      "errors": {
+        "titleRequired": "标题不能为空",
+        "titleTooLong": "标题长度不能超过200个字符",
+        "contentRequired": "内容不能为空",
+        "contentTooLong": "内容长度不能超过10000个字符",
+        "tagsTooMany": "标签数量不能超过10个",
+        "imagesTooMany": "图片数量不能超过9张",
+        "invalidImage": "{{name}} 不是有效的图片文件",
+        "fileTooLarge": "{{name}} 文件大小超过10MB",
+        "uploadFailed": "{{name}} 上传失败"
+      }
+    },
+    "imageUpload": {
+      "maxExceeded": "最多只能上传{{max}}张图片",
+      "status": {
+        "uploaded": "已上传 {{current}} / {{max}} 张图片",
+        "uploading": "上传中..."
+      },
+      "hint": {
+        "title": "添加图片",
+        "description": "支持JPG、PNG、WebP、GIF格式，最多{{max}}张图片"
+      },
+      "alt": {
+        "image": "图片 {{index}}",
+        "uploadedImage": "上传的图片 {{index}}"
+      }
+    },
+    "preview": {
+      "title": "帖子预览",
+      "myPost": "我的帖子",
+      "justNow": "刚刚",
+      "continueEdit": "继续编辑",
+      "confirmPublish": "确认发布",
+      "publishing": "发布中...",
+      "tips": "这是您帖子的预览效果。确认无误后可以发布，或返回继续编辑。"
+    },
+    "share": {
+      "copied": "链接已复制到剪贴板"
+    }
+  },
+  "profile": {
+    "errorNoUser": "无法获取用户信息",
+    "joinedAt": "加入时间",
+    "editProfile": "编辑资料",
+    "stats": {
+      "analysisCount": "分析次数",
+      "petCount": "宠物数量",
+      "posts": "社区发帖"
+    },
+    "tabs": {
+      "myPets": "我的宠物",
+      "account": "账户设置"
+    },
+    "myPetsTitle": "我的宠物",
+    "addPet": "添加宠物",
+    "loadingPets": "加载宠物信息中...",
+    "noPets": "您还没有添加宠物",
+    "addFirstPet": "添加第一只宠物",
+    "unknownBreed": "未知品种",
+    "unknownAge": "年龄未知",
+    "accountSettings": "账户设置",
+    "fields": {
+      "username": "用户名",
+      "email": "邮箱",
+      "password": "密码"
+    },
+    "saveSettings": "保存设置"
+  }
+}

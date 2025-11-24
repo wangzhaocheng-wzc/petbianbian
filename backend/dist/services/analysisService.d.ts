@@ -5,6 +5,8 @@ interface CreateAnalysisParams {
     petId: string;
     imageUrl: string;
     result: AIAnalysisResult;
+    userNotes?: string;
+    symptoms?: string[] | string;
 }
 interface AnalysisQuery {
     userId?: string;
@@ -41,9 +43,15 @@ interface AnalysisStatistics {
 }
 export declare class AnalysisService {
     /**
+     * 解析并映射传入的用户/宠物ID到Mongo ObjectId
+     * - 如果本身是合法的ObjectId字符串，直接转换
+     * - 如果是Postgres的UUID，尝试从Postgres查找对应的external_id并转换
+     */
+    private static resolveMongoObjectId;
+    /**
      * 创建分析记录
      */
-    static createAnalysisRecord(params: CreateAnalysisParams): Promise<IPoopRecord>;
+    static createAnalysisRecord(params: CreateAnalysisParams): Promise<any>;
     /**
      * 获取分析记录列表
      */

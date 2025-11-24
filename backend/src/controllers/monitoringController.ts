@@ -197,9 +197,8 @@ export const logImageUrlRewrite = (req: Request, res: Response) => {
       timestamp: typeof timestamp === 'number' ? timestamp : Date.now(),
     };
 
-    // 记录到应用日志
-    Logger.info('Image URL rewrite', {
-      type: 'monitoring',
+    // 记录到应用日志（归类为 API 日志类型）
+    Logger.api('Image URL rewrite', {
       payload,
     });
 

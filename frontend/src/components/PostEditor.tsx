@@ -4,6 +4,7 @@ import { RichTextEditor } from './RichTextEditor';
 import { TagSelector } from './TagSelector';
 import { communityService } from '../services/communityService';
 import { CreatePostRequest, UpdatePostRequest, CommunityPost, Pet } from '../../../shared/types';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface PostEditorProps {
   post?: CommunityPost;
@@ -22,6 +23,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
   onPreview,
   className = ''
 }) => {
+  const { t } = useI18n();
   const [formData, setFormData] = useState({
     title: post?.title || '',
     content: post?.content || '',
@@ -228,7 +230,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
                 <option value="">选择宠物（可选）</option>
                 {pets.map(pet => (
                   <option key={pet.id} value={pet.id}>
-                    {pet.name} ({pet.type === 'dog' ? '狗' : pet.type === 'cat' ? '猫' : '其他'})
+                    {pet.name} ({pet.type === 'dog' ? t('community.pet.type.dog') : pet.type === 'cat' ? t('community.pet.type.cat') : t('community.pet.type.other')})
                   </option>
                 ))}
               </select>
@@ -246,19 +248,19 @@ export const PostEditor: React.FC<PostEditorProps> = ({
             className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
           />
           <label htmlFor="anonymous-publish" className="text-sm text-gray-700">
-            匿名发布（不显示用户名，默认显示为"匿名用户"）
+            {t('community.editor.anonymousNote')}
           </label>
         </div>
 
         {/* 内容编辑器 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            内容 *
+            {t('community.editor.fields.content.label')}
           </label>
           <RichTextEditor
             value={formData.content}
             onChange={(content) => setFormData(prev => ({ ...prev, content }))}
-            placeholder="分享你的想法、经验或问题..."
+            placeholder={t('community.editor.fields.content.placeholder')}
             maxLength={10000}
             onImageUpload={handleImageUpload}
             className={errors.content ? 'border-red-500' : ''}
@@ -271,7 +273,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
         {/* 图片上传 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            图片 ({formData.images.length}/9)
+            {t('community.editor.fields.images.label', { current: formData.images.length, max: 9 })}
           </label>
           
           {/* 图片预览 */}
@@ -281,7 +283,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
                 <div key={index} className="relative group">
                   <img
                     src={imageUrl}
-                    alt={`图片 ${index + 1}`}
+                    alt={t('community.imageUpload.alt.image', { index: index + 1 })}
                     className="w-full h-24 object-cover rounded-lg"
                   />
                   <button
@@ -312,11 +314,11 @@ export const PostEditor: React.FC<PostEditorProps> = ({
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
               >
                 <Upload size={16} className="mr-2" />
-                上传图片
+                {t('community.editor.fields.images.upload')}
               </label>
               {uploadingImages.length > 0 && (
                 <span className="ml-2 text-sm text-gray-500">
-                  上传中... ({uploadingImages.length})
+                  {t('community.editor.fields.images.uploading', { count: uploadingImages.length })}
                 </span>
               )}
             </div>
@@ -330,13 +332,13 @@ export const PostEditor: React.FC<PostEditorProps> = ({
         {/* 标签 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            标签
+            {t('community.editor.fields.tags.label')}
           </label>
           <TagSelector
             tags={formData.tags}
             onChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
             maxTags={10}
-            placeholder="添加相关标签..."
+            placeholder={t('community.editor.fields.tags.placeholder')}
           />
           {errors.tags && (
             <p className="mt-1 text-sm text-red-600">{errors.tags}</p>

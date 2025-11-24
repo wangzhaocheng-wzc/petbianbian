@@ -5,6 +5,7 @@ import { MobileForm, MobileTextarea, MobileInput } from './mobile/MobileForm';
 import TouchButton from './common/TouchButton';
 import { AnalysisService } from '../services/analysisService';
 import { PoopRecord } from '../../../shared/types';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface PoopAnalysisUploadProps {
   petId: string;
@@ -18,6 +19,7 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
   onAnalysisComplete,
   onError
 }) => {
+  const { t, language } = useI18n();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -38,12 +40,12 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
 
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
-      setError('请先选择要分析的图片');
+      setError(t('analysis.upload.error.noFile'));
       return;
     }
 
     if (!petId) {
-      setError('请先选择宠物');
+      setError(t('analysis.upload.error.noPet'));
       return;
     }
 
@@ -89,10 +91,10 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
         setNotes('');
         setSymptoms('');
       } else {
-        throw new Error(result.message || '分析失败');
+        throw new Error(result.message || t('analysis.upload.error.analysisFailed'));
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '上传失败，请稍后重试';
+      const errorMessage = err instanceof Error ? err.message : t('analysis.upload.error.uploadFailed');
       setError(errorMessage);
       onError?.(errorMessage);
     } finally {
@@ -117,22 +119,22 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
   const getHealthStatusText = (status: string) => {
     switch (status) {
       case 'healthy':
-        return '健康';
+        return t('status.healthy');
       case 'warning':
-        return '需要注意';
+        return t('status.warning');
       case 'concerning':
-        return '需要关注';
+        return t('status.concerning');
       default:
-        return '未知';
+        return t('status.unknown');
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow-lg">
       <div className="mb-4 sm:mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">便便健康分析</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{t('analysis.header.title')}</h2>
         <p className="text-sm sm:text-base text-gray-600">
-          上传宠物便便照片，我们将使用AI技术为您分析健康状况
+          {t('analysis.upload.subtitle')}
         </p>
       </div>
 
@@ -155,22 +157,22 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
       {/* 附加信息输入 */}
       <MobileForm className="mb-4 sm:mb-6">
         <MobileTextarea
-          label="备注信息 (可选)"
+          label={t('analysis.upload.notesLabel')}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="记录宠物当天的状态、饮食等信息..."
+          placeholder={t('analysis.upload.notesPlaceholder')}
           disabled={isUploading}
-          helperText="详细的备注有助于更准确的健康分析"
+          helperText={t('analysis.upload.notesHelper')}
         />
 
         <MobileInput
-          label="相关症状 (可选)"
+          label={t('analysis.upload.symptomsLabel')}
           type="text"
           value={symptoms}
           onChange={(e) => setSymptoms(e.target.value)}
-          placeholder="如：食欲不振、精神萎靡等，用逗号分隔"
+          placeholder={t('analysis.upload.symptomsPlaceholder')}
           disabled={isUploading}
-          helperText="如有其他症状请一并记录"
+          helperText={t('analysis.upload.symptomsHelper')}
         />
       </MobileForm>
 
@@ -184,7 +186,7 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
           loading={isUploading}
           icon={isUploading ? Loader : Camera}
         >
-          {isUploading ? '分析中...' : '开始分析'}
+          {isUploading ? t('analysis.upload.uploading') : t('analysis.upload.submit')}
         </TouchButton>
       </div>
 
@@ -193,24 +195,24 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
         <div className="bg-gray-50 rounded-lg p-6">
           <div className="flex items-center mb-4">
             <CheckCircle className="w-6 h-6 text-green-500 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-900">分析完成</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('analysis.results.completed')}</h3>
           </div>
 
           <div className="space-y-4">
             {/* 健康状态 */}
             <div className="flex items-center space-x-3">
-              <span className="text-sm font-medium text-gray-700">健康状态:</span>
+              <span className="text-sm font-medium text-gray-700">{t('analysis.detail.healthStatusLabel')}:</span>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getHealthStatusColor(analysisResult.analysis.healthStatus)}`}>
                 {getHealthStatusText(analysisResult.analysis.healthStatus)}
               </span>
               <span className="text-sm text-gray-500">
-                置信度: {analysisResult.analysis.confidence}%
+                {t('analysis.results.confidence')}: {analysisResult.analysis.confidence}%
               </span>
             </div>
 
             {/* 详细分析 */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">详细分析:</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">{t('analysis.upload.result.detailsLabel')}:</h4>
               <p className="text-sm text-gray-600 bg-white p-3 rounded border">
                 {analysisResult.analysis.details}
               </p>
@@ -219,7 +221,7 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
             {/* 建议 */}
             {analysisResult.analysis.recommendations.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">健康建议:</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">{t('analysisResult.healthAdviceTitle')}:</h4>
                 <ul className="space-y-1">
                   {analysisResult.analysis.recommendations.map((recommendation, index) => (
                     <li key={index} className="text-sm text-gray-600 flex items-start">
@@ -236,9 +238,9 @@ const PoopAnalysisUpload: React.FC<PoopAnalysisUploadProps> = ({
               <div className="flex items-start space-x-2 p-3 bg-red-50 border border-red-200 rounded">
                 <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-red-800">建议就医</p>
+                  <p className="text-sm font-medium text-red-800">{t('healthStatus.concerning.title')}</p>
                   <p className="text-sm text-red-700">
-                    检测到异常情况，建议尽快咨询兽医进行专业诊断。
+                    {t('analysis.upload.warningContent')}
                   </p>
                 </div>
               </div>

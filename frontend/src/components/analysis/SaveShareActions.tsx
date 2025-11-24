@@ -3,10 +3,10 @@ import { PoopRecord } from '../../../../shared/types';
 import { AnalysisService } from '../../services/analysisService';
 import TouchButton from '../common/TouchButton';
 import { useMobile } from '../../hooks/useMobile';
+import { useI18n } from '../../i18n/I18nProvider';
 import {
   Save,
   Share2,
-  Download,
   Copy,
   Check,
   Heart,
@@ -38,6 +38,7 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
   className = ''
 }) => {
   const { isMobile } = useMobile();
+  const { t, language } = useI18n();
   const [showShareModal, setShowShareModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -56,7 +57,7 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
         // 保持保存状态，不重置
       }, 2000);
     } catch (error) {
-      console.error('保存失败:', error);
+      console.error('Save failed:', error);
     } finally {
       setIsSaving(false);
     }
@@ -70,7 +71,7 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
       await onShareToCommunity(record);
       setShowShareModal(false);
     } catch (error) {
-      console.error('分享到社区失败:', error);
+      console.error('Share to community failed:', error);
     } finally {
       setIsSharing(false);
     }
@@ -89,19 +90,22 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
-      console.error('复制失败:', err);
+      console.error('Copy failed:', err);
     }
   };
 
   const handleExternalShare = (platform: string) => {
     const url = shareUrl || generateShareUrl();
-    const text = `我的宠物${petName}的健康分析结果：${record.analysis.healthStatusDescription || '查看详情'}`;
-    
+    const previewTitle = t('analysisResult.sharePreviewTitle');
+    const detailsText = record.analysis.healthStatusDescription || t('analysis.results.viewDetails');
+    const text = `${previewTitle}: ${detailsText}`;
+    const emailSubjectPrefix = t('analysisResult.emailSubjectPrefix');
+
     const shareUrls: Record<string, string> = {
       wechat: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
       weibo: `https://service.weibo.com/share/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`,
       qq: `https://connect.qq.com/widget/shareqq/index.html?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`,
-      email: `mailto:?subject=${encodeURIComponent(`${petName}的健康分析报告`)}&body=${encodeURIComponent(text + '\n\n' + url)}`,
+      email: `mailto:?subject=${encodeURIComponent(`${emailSubjectPrefix} ${petName}`)}&body=${encodeURIComponent(text + '\n\n' + url)}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
     };
@@ -113,16 +117,10 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
   };
 
   const getHealthStatusText = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return '健康';
-      case 'warning':
-        return '需要关注';
-      case 'concerning':
-        return '建议就医';
-      default:
-        return '已分析';
+    if (['healthy', 'warning', 'concerning'].includes(status)) {
+      return t(`status.${status}`);
     }
+    return t('status.unknown');
   };
 
   return (
@@ -139,7 +137,7 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
             icon={saveSuccess ? BookmarkPlus : Save}
             className={saveSuccess ? "text-green-600 border-green-300 bg-green-50" : ""}
           >
-            {saveSuccess ? '已保存' : isSaving ? '保存中...' : '保存记录'}
+            {saveSuccess ? t('analysis.results.saved') : isSaving ? t('analysis.results.saving') : t('analysisResult.saveRecord')}
           </TouchButton>
         )}
 
@@ -153,7 +151,7 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
           size={isMobile ? "sm" : "md"}
           icon={Share2}
         >
-          分享结果
+          {t('analysis.results.shareResult')}
         </TouchButton>
 
         {/* 分享到社区按钮 */}
@@ -165,46 +163,20 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
             size={isMobile ? "sm" : "md"}
             icon={Users}
           >
-            分享到社区
+            {isSharing ? `${t('analysis.results.share')}...` : t('analysisResult.shareToCommunity')}
           </TouchButton>
         )}
 
-        {/* 导出报告按钮 */}
-        <TouchButton
-          onClick={async () => {
-            try {
-              const blob = await AnalysisService.exportRecords(record.petId, 'pdf', {
-                startDate: new Date(record.timestamp).toISOString().split('T')[0],
-                endDate: new Date(record.timestamp).toISOString().split('T')[0]
-              });
-              
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `${petName}-分析报告-${new Date(record.timestamp).toLocaleDateString()}.pdf`;
-              document.body.appendChild(a);
-              a.click();
-              window.URL.revokeObjectURL(url);
-              document.body.removeChild(a);
-            } catch (error) {
-              console.error('导出失败:', error);
-            }
-          }}
-          variant="outline"
-          size={isMobile ? "sm" : "md"}
-          icon={Download}
-        >
-          {isMobile ? '' : '导出报告'}
-        </TouchButton>
+        {/* 导出功能已移除 */}
       </div>
 
       {/* 分享模态框 */}
       {showShareModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            {/* 头部 */}
+            {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">分享分析结果</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('analysisResult.shareModalTitle')}</h3>
               <button
                 onClick={() => setShowShareModal(false)}
                 className="text-gray-400 hover:text-gray-600 p-1"
@@ -214,7 +186,7 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
             </div>
 
             <div className="p-6 space-y-6">
-              {/* 分析结果预览 */}
+              {/* Analysis preview */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center space-x-3 mb-2">
                   <div className={`w-3 h-3 rounded-full ${
@@ -223,22 +195,22 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
                     'bg-red-400'
                   }`} />
                   <span className="font-medium text-gray-900">
-                    {petName}的健康分析
+                    {t('analysisResult.sharePreviewTitle')} - {petName}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  状态: {getHealthStatusText(record.analysis.healthStatus)} • 
-                  置信度: {record.analysis.confidence}%
+                  {t('analysis.detail.statusLabel')}: {getHealthStatusText(record.analysis.healthStatus)} • 
+                  {t('analysis.results.confidence')}: {record.analysis.confidence}%
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {new Date(record.timestamp).toLocaleString('zh-CN')}
+                  {new Date(record.timestamp).toLocaleString(language === 'zh' ? t('analysis.dateLocale_zh') : t('analysis.dateLocale_en'))}
                 </p>
               </div>
 
-              {/* 分享链接 */}
+              {/* Share link */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  分享链接
+                  {t('analysisResult.shareLinkLabel')}
                 </label>
                 <div className="flex items-center space-x-2">
                   <input
@@ -253,16 +225,16 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
                     variant={copySuccess ? "outline" : "primary"}
                     icon={copySuccess ? Check : Copy}
                   >
-                    {copySuccess ? '已复制' : '复制'}
+                    {copySuccess ? t('analysisResult.copied') : t('analysisResult.copy')}
                   </TouchButton>
                 </div>
               </div>
 
-              {/* 分享到社区 */}
+              {/* Share to community */}
               {onShareToCommunity && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    分享到社区
+                    {t('analysisResult.shareToCommunity')}
                   </label>
                   <TouchButton
                     onClick={handleShareToCommunity}
@@ -271,18 +243,18 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
                     variant="primary"
                     icon={Users}
                   >
-                    {isSharing ? '分享中...' : '分享到宠物社区'}
+                    {isSharing ? `${t('analysis.results.share')}...` : t('analysisResult.shareToCommunity')}
                   </TouchButton>
                   <p className="text-xs text-gray-500 mt-2">
-                    分享到社区可以帮助其他宠物主人了解类似情况
+                    {t('analysisResult.communityHint')}
                   </p>
                 </div>
               )}
 
-              {/* 外部分享选项 */}
+              {/* External share options */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  分享到其他平台
+                  {t('analysisResult.shareToOtherPlatforms')}
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -290,7 +262,7 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
                     className="flex items-center justify-center space-x-2 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <MessageSquare className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">微信</span>
+                    <span className="text-sm">{t('analysisResult.wechat')}</span>
                   </button>
                   
                   <button
@@ -298,7 +270,7 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
                     className="flex items-center justify-center space-x-2 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <Mail className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm">邮件</span>
+                    <span className="text-sm">{t('analysisResult.email')}</span>
                   </button>
                   
                   <button
@@ -306,7 +278,7 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
                     className="flex items-center justify-center space-x-2 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <ExternalLink className="w-4 h-4 text-red-600" />
-                    <span className="text-sm">微博</span>
+                    <span className="text-sm">{t('analysisResult.weibo')}</span>
                   </button>
                   
                   <button
@@ -314,34 +286,31 @@ export const SaveShareActions: React.FC<SaveShareActionsProps> = ({
                     className="flex items-center justify-center space-x-2 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <MessageSquare className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm">QQ</span>
+                    <span className="text-sm">{t('analysisResult.qq')}</span>
                   </button>
                 </div>
               </div>
 
-              {/* 分享说明 */}
+              {/* Share hint */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start space-x-2">
                   <Heart className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-blue-900 mb-1">分享提示</p>
-                    <p className="text-xs text-blue-800">
-                      分享的记录将包含分析结果和健康建议，但不会包含您的个人隐私信息。
-                      分享可以帮助其他宠物主人了解类似的健康情况。
-                    </p>
+                    <p className="text-sm font-medium text-blue-900 mb-1">{t('analysisResult.shareHintTitle')}</p>
+                    <p className="text-xs text-blue-800">{t('analysisResult.shareHintLong')}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 底部操作 */}
+            {/* Footer actions */}
             <div className="flex justify-end space-x-3 p-6 border-t border-gray-100">
               <TouchButton
                 onClick={() => setShowShareModal(false)}
                 variant="outline"
                 size="sm"
               >
-                关闭
+                {t('analysisResult.close')}
               </TouchButton>
             </div>
           </div>

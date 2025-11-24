@@ -131,3 +131,39 @@ export const ImageUrlResolver = {
   resolve: resolveImageUrl,
   placeholder: PLACEHOLDER,
 };
+
+// 通过 HEAD 探测 URL 是否存在且为图片
+async function headExists(url: string, timeoutMs = 5000): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const resp = await fetch(url, { method: 'HEAD', signal: controller.signal });
+    clearTimeout(timer);
+    if (!resp.ok) return false;
+    const ct = resp.headers.get('content-type') || '';
+    return ct.startsWith('image/');
+  } catch {
+    return false;
+  }
+}
+
+// 智能解析最佳图片URL：
+// 1) 正常解析；
+// 2) 若不存在且为 .webp，尝试 .jpg/.jpeg/.png；
+// 3) 全失败则返回占位图。
+export async function resolveBestImageUrl(raw?: string | null): Promise<string> {
+  const primary = resolveImageUrl(raw);
+  if (await headExists(primary)) return primary;
+
+  // 仅当原始或解析结果以 .webp 结尾时尝试替代扩展
+  const target = primary.toLowerCase();
+  const isWebp = target.endsWith('.webp');
+  if (!isWebp) return PLACEHOLDER;
+
+  const candidates = ['.jpg', '.jpeg', '.png'];
+  for (const ext of candidates) {
+    const alt = target.replace(/\.webp$/, ext);
+    if (await headExists(alt)) return alt;
+  }
+  return PLACEHOLDER;
+}

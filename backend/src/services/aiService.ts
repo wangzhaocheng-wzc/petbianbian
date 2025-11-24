@@ -1,5 +1,7 @@
 import sharp from 'sharp';
+import axios from 'axios';
 import { Logger } from '../utils/logger';
+import { APP_CONFIG } from '../config/constants';
 
 // AI分析结果接口
 export interface AIAnalysisResult {
@@ -113,22 +115,119 @@ export class AIService {
     try {
       Logger.info('开始AI分析...');
       
-      // 模拟AI分析过程
-      // 在实际实现中，这里会调用真实的AI模型API
-      
-      // 模拟分析延迟
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 生成模拟分析结果
+      // 若配置了外部AI服务，则调用兼容 OpenAI 的 Chat Completions API
+      if (APP_CONFIG.AI_SERVICE.URL && APP_CONFIG.AI_SERVICE.KEY) {
+        try {
+          const endpoint = `${APP_CONFIG.AI_SERVICE.URL}${APP_CONFIG.AI_SERVICE.ANALYSIS_PATH || '/chat/completions'}`;
+          const base64 = processedImage.buffer.toString('base64');
+          const headers = {
+            Authorization: `Bearer ${APP_CONFIG.AI_SERVICE.KEY}`,
+            'Content-Type': 'application/json'
+          };
+          const payload = {
+            model: APP_CONFIG.AI_SERVICE.MODEL || 'qwen-plus',
+            messages: [
+              { role: 'system', content: '你是一名专注于宠物便便分析的兽医助手。请严格仅返回与要求架构完全匹配的纯 JSON，禁止任何解释、前后缀或 Markdown 代码块。所有文本字段必须使用简体中文。' },
+              { role: 'user', content: `请分析这张宠物便便图片，并返回纯 JSON，键和值要求如下：shape(type1..type7)，healthStatus(healthy|warning|concerning)，confidence(0-100)，details(字符串，简体中文)，recommendations(字符串数组，简体中文)，detectedFeatures{color(简体中文),texture(简体中文),consistency(简体中文),size(简体中文)}。Meta: format=${processedImage.format}, width=${processedImage.width}, height=${processedImage.height}。image_base64=${base64}` }
+            ],
+            stream: false
+          };
+
+          const resp = await axios.post(endpoint, payload, { headers, timeout: 20000 });
+          const content: string = resp?.data?.choices?.[0]?.message?.content || '';
+          const parsed = AIService.safeParseJson(content);
+          const result = AIService.normalizeExternalResult(parsed ?? {});
+          if (AIService.validateAnalysisResult(result)) {
+            Logger.info(`AI分析完成(外部AI)，形状: ${result.shape}, 健康状态: ${result.healthStatus}`);
+            return result;
+          } else {
+            Logger.warn('外部AI返回结果未通过校验，使用本地模拟结果');
+          }
+        } catch (err: any) {
+          const status = err?.response?.status;
+          const msg = err?.response?.data || err?.message;
+          Logger.error(`调用外部AI失败: ${status || ''} ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`);
+          // 继续使用本地模拟结果兜底
+        }
+      }
+
+      // 兜底：使用本地模拟分析
       const analysisResult = this.generateMockAnalysis();
-      
-      Logger.info(`AI分析完成，形状: ${analysisResult.shape}, 健康状态: ${analysisResult.healthStatus}`);
+      Logger.info(`AI分析完成(本地模拟)，形状: ${analysisResult.shape}, 健康状态: ${analysisResult.healthStatus}`);
       return analysisResult;
       
     } catch (error) {
       Logger.error('AI分析失败:', error);
       throw new Error('AI分析服务暂时不可用');
     }
+  }
+
+  /**
+   * 安全解析可能含有非纯 JSON 的回复
+   */
+  private static safeParseJson(text: string): any | null {
+    if (!text || typeof text !== 'string') return null;
+    try { return JSON.parse(text); } catch {}
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      try { return JSON.parse(match[0]); } catch {}
+    }
+    return null;
+  }
+  /**
+   * 归一化外部AI返回结构为内部AIAnalysisResult
+   */
+  private static normalizeExternalResult(data: any): AIAnalysisResult {
+    // 尝试兼容多种字段命名
+    const shapeRaw = data?.shape || data?.poop_shape || data?.bristol_type || data?.bristol_scale_type;
+    const statusRaw = data?.healthStatus || data?.health_status || data?.status;
+    const confRaw = data?.confidence ?? data?.confidence_score ?? data?.probability;
+    const detailsRaw = data?.details || data?.description || '';
+    const recsRaw = data?.recommendations || data?.suggestions || [];
+    const features = data?.detectedFeatures || data?.features || {};
+
+    const shape = AIService.mapShape(shapeRaw);
+    const healthStatus = AIService.mapHealthStatus(statusRaw);
+    const confidence = Math.max(0, Math.min(100, Math.round((Number(confRaw) || 0) * (confRaw <= 1 ? 100 : 1))));
+
+    return {
+      shape,
+      healthStatus,
+      confidence,
+      details: String(detailsRaw || ''),
+      recommendations: Array.isArray(recsRaw) ? recsRaw : [],
+      detectedFeatures: {
+        color: features?.color ?? '',
+        texture: features?.texture ?? '',
+        consistency: features?.consistency ?? '',
+        size: features?.size ?? ''
+      }
+    };
+  }
+
+  private static mapShape(input: any): 'type1' | 'type2' | 'type3' | 'type4' | 'type5' | 'type6' | 'type7' {
+    const s = String(input || '').toLowerCase();
+    // 数字映射（bristol 1-7）
+    const n = Number(s);
+    if (n >= 1 && n <= 7) return (`type${n}` as any);
+    // 关键字映射
+    if (/type\s*1|hard\s*pellet|pellet/.test(s)) return 'type1';
+    if (/type\s*2|lumpy|sausage/.test(s)) return 'type2';
+    if (/type\s*3|cracked|sausage/.test(s)) return 'type3';
+    if (/type\s*4|smooth|soft\s*sausage/.test(s)) return 'type4';
+    if (/type\s*5|soft\s*blobs|blobs/.test(s)) return 'type5';
+    if (/type\s*6|mushy|fluffy/.test(s)) return 'type6';
+    if (/type\s*7|watery|liquid|diarrhea/.test(s)) return 'type7';
+    // 默认
+    return 'type4';
+  }
+
+  private static mapHealthStatus(input: any): 'healthy' | 'warning' | 'concerning' {
+    const s = String(input || '').toLowerCase();
+    if (/healthy|normal|good/.test(s)) return 'healthy';
+    if (/warn|moderate|attention|risk/.test(s)) return 'warning';
+    if (/concern|bad|poor|danger|severe/.test(s)) return 'concerning';
+    return 'warning';
   }
 
   /**

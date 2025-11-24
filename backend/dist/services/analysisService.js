@@ -8,15 +8,124 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const PoopRecord_1 = require("../models/PoopRecord");
 const logger_1 = require("../utils/logger");
 const pgSyncService_1 = require("./pgSyncService");
+const postgres_1 = require("../config/postgres");
 class AnalysisService {
+    /**
+     * 解析并映射传入的用户/宠物ID到Mongo ObjectId
+     * - 如果本身是合法的ObjectId字符串，直接转换
+     * - 如果是Postgres的UUID，尝试从Postgres查找对应的external_id并转换
+     */
+    static async resolveMongoObjectId(id, entity) {
+        // 先尝试直接作为ObjectId
+        if (mongoose_1.default.Types.ObjectId.isValid(id)) {
+            return new mongoose_1.default.Types.ObjectId(id);
+        }
+        // 非ObjectId，尝试通过Postgres external_id映射
+        try {
+            const pool = await (0, postgres_1.getPostgresPool)();
+            const table = entity === 'user' ? 'users' : 'pets';
+            const { rows } = await pool.query(`SELECT external_id FROM ${table} WHERE id = $1 LIMIT 1`, [id]);
+            const externalId = rows[0]?.external_id;
+            if (externalId && mongoose_1.default.Types.ObjectId.isValid(externalId)) {
+                return new mongoose_1.default.Types.ObjectId(externalId);
+            }
+            throw new Error(`无法通过Postgres映射${entity}ID: ${id}`);
+        }
+        catch (err) {
+            logger_1.Logger.error('解析Mongo ObjectId失败:', err);
+            throw err;
+        }
+    }
     /**
      * 创建分析记录
      */
     static async createAnalysisRecord(params) {
         try {
+            const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+            // 在 Postgres 主库模式下，直接写入 poop_records 表
+            if (dbPrimary === 'postgres') {
+                const pool = await (0, postgres_1.getPostgresPool)();
+                // 症状入库处理：字符串按逗号拆分为数组
+                const symptomsArray = Array.isArray(params.symptoms)
+                    ? params.symptoms
+                    : (typeof params.symptoms === 'string'
+                        ? params.symptoms.split(',').map(s => s.trim()).filter(Boolean)
+                        : []);
+                const detectedFeaturesObj = params.result.detectedFeatures
+                    ? {
+                        color: params.result.detectedFeatures.color ?? null,
+                        texture: params.result.detectedFeatures.texture ?? null,
+                        consistency: params.result.detectedFeatures.consistency ?? null,
+                        size: params.result.detectedFeatures.size ?? null,
+                    }
+                    : null;
+                const insertSql = `
+          INSERT INTO poop_records (
+            user_id, pet_id, image_url,
+            shape, health_status, confidence, details,
+            recommendations, detected_features,
+            user_notes, symptoms,
+            is_shared, timestamp, created_at, updated_at
+          ) VALUES (
+            $1, $2, $3,
+            $4, $5, $6, $7,
+            $8, $9,
+            $10, $11,
+            $12, now(), now(), now()
+          ) RETURNING
+            id, user_id, pet_id, image_url,
+            shape, health_status, confidence, details,
+            recommendations, detected_features,
+            user_notes, symptoms,
+            is_shared, timestamp, created_at, updated_at
+        `;
+                const values = [
+                    params.userId,
+                    params.petId,
+                    params.imageUrl,
+                    params.result.shape,
+                    params.result.healthStatus,
+                    params.result.confidence,
+                    params.result.details,
+                    params.result.recommendations || [],
+                    detectedFeaturesObj ? JSON.stringify(detectedFeaturesObj) : null,
+                    params.userNotes || null,
+                    symptomsArray,
+                    false,
+                ];
+                const { rows } = await pool.query(insertSql, values);
+                const row = rows[0];
+                // 返回与前端 PoopRecord 兼容的结构
+                return {
+                    id: row.id,
+                    userId: row.user_id,
+                    petId: row.pet_id,
+                    imageUrl: row.image_url,
+                    thumbnailUrl: row.thumbnail_url || undefined,
+                    analysis: {
+                        shape: row.shape,
+                        healthStatus: row.health_status,
+                        confidence: row.confidence,
+                        details: row.details || '',
+                        recommendations: row.recommendations || [],
+                        detectedFeatures: (typeof row.detected_features === 'string'
+                            ? JSON.parse(row.detected_features)
+                            : (row.detected_features || {})),
+                    },
+                    userNotes: row.user_notes || undefined,
+                    symptoms: row.symptoms || [],
+                    timestamp: row.timestamp,
+                    isShared: row.is_shared,
+                    createdAt: row.created_at,
+                    updatedAt: row.updated_at,
+                };
+            }
+            // 将传入的用户/宠物ID解析为Mongo ObjectId（支持从Postgres UUID映射）
+            const mongoUserId = await AnalysisService.resolveMongoObjectId(params.userId, 'user');
+            const mongoPetId = await AnalysisService.resolveMongoObjectId(params.petId, 'pet');
             const record = new PoopRecord_1.PoopRecord({
-                userId: params.userId,
-                petId: params.petId,
+                userId: mongoUserId,
+                petId: mongoPetId,
                 imageUrl: params.imageUrl,
                 analysis: {
                     healthStatus: params.result.healthStatus,
@@ -26,8 +135,14 @@ class AnalysisService {
                     recommendations: params.result.recommendations,
                     detectedFeatures: params.result.detectedFeatures
                 },
+                userNotes: params.userNotes,
+                symptoms: Array.isArray(params.symptoms)
+                    ? params.symptoms
+                    : (typeof params.symptoms === 'string'
+                        ? params.symptoms.split(',').map(s => s.trim()).filter(Boolean)
+                        : undefined),
                 timestamp: new Date(),
-                shared: false
+                isShared: false
             });
             await record.save();
             // PG双写（若未建立用户或宠物映射则自动跳过）
@@ -111,7 +226,7 @@ class AnalysisService {
         try {
             const record = await PoopRecord_1.PoopRecord.findOneAndUpdate({ _id: id, userId }, {
                 $set: {
-                    shared: true,
+                    isShared: true,
                     shareType: params.shareType,
                     shareWith: params.shareWith || []
                 }

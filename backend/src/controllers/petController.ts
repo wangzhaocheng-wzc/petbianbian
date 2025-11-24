@@ -3,6 +3,32 @@ import { CreatePetRequest, UpdatePetRequest } from '../types';
 import { getPostgresPool } from '../config/postgres';
 import { ensureUser, upsertPet } from '../services/pgSyncService';
 
+// 为查询结果定义类型，避免隐式 any
+type PetBaseRow = {
+  id: string;
+  owner_id: string;
+  name: string;
+  type: string;
+  breed: string | null;
+  gender: string | null;
+  age: number | null;
+  weight: number | null;
+  avatar_url: string | null;
+  description: string | null;
+  is_active?: boolean;
+  created_at: Date | string;
+  updated_at: Date | string;
+};
+
+type PetListRow = PetBaseRow & {
+  external_id: string | null;
+  record_count: number | string | null;
+  last_record_date: Date | string | null;
+};
+
+type PetNameRow = { name: string };
+type IdRow = { id: string };
+
 // 获取用户的宠物列表
 export const getPets = async (req: Request, res: Response) => {
   try {
@@ -12,22 +38,41 @@ export const getPets = async (req: Request, res: Response) => {
     }
 
     const pool = await getPostgresPool();
-    const result = await pool.query(
-      `SELECT p.id, p.owner_id, p.name, p.type, p.breed, p.gender, p.age, p.weight, p.avatar_url, p.description, p.created_at, p.updated_at, p.external_id,
-              COALESCE(r.cnt, 0) AS record_count, r.last_ts AS last_record_date
-         FROM pets p
-         JOIN users u ON u.id = p.owner_id
-         LEFT JOIN (
-           SELECT pet_id, COUNT(*) AS cnt, MAX(timestamp) AS last_ts
-           FROM poop_records
-           GROUP BY pet_id
-         ) r ON r.pet_id = p.id
-        WHERE u.external_id = $1
-        ORDER BY p.created_at DESC`,
-      [externalUserId]
-    );
+    // 映射到 Postgres 用户ID（优先视为PG id，其次尝试 external_id）
+    let ownerIdForPg: string | null = null;
+    try {
+      const r1 = await pool.query('SELECT id FROM users WHERE id = $1 LIMIT 1', [String(externalUserId)]);
+      if (r1.rows[0]?.id) {
+        ownerIdForPg = r1.rows[0].id;
+      } else {
+        const r2 = await pool.query('SELECT id FROM users WHERE external_id = $1 LIMIT 1', [String(externalUserId)]);
+        if (r2.rows[0]?.id) {
+          ownerIdForPg = r2.rows[0].id;
+        }
+      }
+    } catch (e) {
+      console.error('用户ID映射失败:', e);
+    }
 
-    const pets = result.rows.map((row) => ({
+    let resultRows: PetListRow[] = [];
+    if (ownerIdForPg) {
+      const result = await pool.query<PetListRow>(
+        `SELECT p.id, p.owner_id, p.name, p.type, p.breed, p.gender, p.age, p.weight, p.avatar_url, p.description, p.created_at, p.updated_at, p.external_id,
+                COALESCE(r.cnt, 0) AS record_count, r.last_ts AS last_record_date
+           FROM pets p
+           LEFT JOIN (
+             SELECT pet_id, COUNT(*) AS cnt, MAX(timestamp) AS last_ts
+             FROM poop_records
+             GROUP BY pet_id
+           ) r ON r.pet_id = p.id
+          WHERE p.owner_id = $1 AND p.is_active = true
+          ORDER BY p.created_at DESC`,
+        [ownerIdForPg]
+      );
+      resultRows = result.rows;
+    }
+
+    const pets = resultRows.map((row: PetListRow) => ({
       id: row.id,
       ownerId: row.owner_id,
       name: row.name,
@@ -46,38 +91,7 @@ export const getPets = async (req: Request, res: Response) => {
       externalId: row.external_id,
     }));
 
-    // 若存在Mongo主库新增但未同步到PG的宠物，进行补充（避免列表缺失）
-    try {
-      const Pet = (await import('../models/Pet')).default;
-      const mongoPets = await Pet.find({ ownerId: externalUserId }).sort({ createdAt: -1 });
-      const existingExternalIds = new Set(pets.map((p: any) => String(p.externalId)).filter(Boolean));
-      for (const mp of mongoPets) {
-        const extId = String(mp._id);
-        if (!existingExternalIds.has(extId)) {
-          pets.push({
-            id: extId,
-            ownerId: String(mp.ownerId),
-            name: mp.name,
-            type: mp.type,
-            breed: mp.breed ?? null,
-            gender: mp.gender ?? null,
-            age: mp.age ?? null,
-            weight: mp.weight ?? null,
-            avatar: mp.avatar ?? null,
-            description: mp.description ?? null,
-            isActive: true,
-            createdAt: mp.createdAt,
-            updatedAt: mp.updatedAt,
-            recordCount: 0,
-            lastRecordDate: null,
-            externalId: extId,
-          });
-        }
-      }
-    } catch (e) {
-      // 补充失败不阻断主流程
-      console.warn('Mongo列表补充失败（忽略）:', e);
-    }
+    // 已切换为 PG 查询，移除旧的 Mongo 补充逻辑
 
     res.json({ success: true, message: '获取宠物列表成功', data: { pets, total: pets.length } });
   } catch (error) {
@@ -97,15 +111,34 @@ export const getPetById = async (req: Request, res: Response) => {
     }
 
     const pool = await getPostgresPool();
-    const r = await pool.query(
+    // 映射到 Postgres 用户ID（优先视为PG id，其次尝试 external_id）
+    let ownerIdForPg: string | null = null;
+    try {
+      const r1 = await pool.query('SELECT id FROM users WHERE id = $1 LIMIT 1', [String(externalUserId)]);
+      if (r1.rows[0]?.id) {
+        ownerIdForPg = r1.rows[0].id;
+      } else {
+        const r2 = await pool.query('SELECT id FROM users WHERE external_id = $1 LIMIT 1', [String(externalUserId)]);
+        if (r2.rows[0]?.id) {
+          ownerIdForPg = r2.rows[0].id;
+        }
+      }
+    } catch (e) {
+      console.error('用户ID映射失败:', e);
+    }
+
+    if (!ownerIdForPg) {
+      return res.status(404).json({ success: false, message: '宠物不存在或无权限访问' });
+    }
+
+    const r = await pool.query<PetBaseRow>(
       `SELECT p.id, p.owner_id, p.name, p.type, p.breed, p.gender, p.age, p.weight, p.avatar_url, p.description, p.created_at, p.updated_at
          FROM pets p
-         JOIN users u ON u.id = p.owner_id
-        WHERE p.id = $1 AND u.external_id = $2
+        WHERE p.id = $1 AND p.owner_id = $2 AND p.is_active = true
         LIMIT 1`,
-      [petId, externalUserId]
+      [petId, ownerIdForPg]
     );
-    const row = r.rows[0];
+    const row: PetBaseRow | undefined = r.rows[0];
     if (!row) {
       return res.status(404).json({ success: false, message: '宠物不存在或无权限访问' });
     }
@@ -151,32 +184,48 @@ export const createPet = async (req: Request, res: Response) => {
       });
     }
 
-    const DB_PRIMARY = process.env.DB_PRIMARY || 'mongo';
+    const DB_PRIMARY = process.env.DB_PRIMARY || 'postgres';
     const pool = await getPostgresPool();
 
-    // 将Mongo ObjectId令牌映射到Postgres用户uuid（如需要）
-    let ownerIdForPg: string = userId;
+    // 将令牌中的ID映射到Postgres用户uuid（先视为PG id，其次尝试 external_id；必要时在Mongo主库确保同步）
+    let ownerIdForPg: string | null = null;
     try {
-      const mapped = await pool.query('SELECT id FROM users WHERE external_id = $1 LIMIT 1', [String(userId)]);
-      if (mapped.rows[0]?.id) {
-        ownerIdForPg = mapped.rows[0].id;
-      } else if (DB_PRIMARY === 'mongo') {
-        try {
-          const User = (await import('../models/User')).default;
-          const userDoc = await User.findById(userId).select('username email password avatar role isActive isVerified createdAt updatedAt');
-          if (userDoc) {
-            await ensureUser(userDoc as any);
-            const mapped2 = await pool.query('SELECT id FROM users WHERE external_id = $1 LIMIT 1', [String(userId)]);
-            if (mapped2.rows[0]?.id) {
-              ownerIdForPg = mapped2.rows[0].id;
+      // 优先当作PG主键ID处理
+      const r1 = await pool.query('SELECT id FROM users WHERE id = $1 LIMIT 1', [String(userId)]);
+      if (r1.rows[0]?.id) {
+        ownerIdForPg = r1.rows[0].id;
+      } else {
+        // 其次尝试 external_id 映射（适配Mongo颁发的ObjectId令牌）
+        const r2 = await pool.query('SELECT id FROM users WHERE external_id = $1 LIMIT 1', [String(userId)]);
+        if (r2.rows[0]?.id) {
+          ownerIdForPg = r2.rows[0].id;
+        } else if (DB_PRIMARY === 'mongo') {
+          // 当主库为Mongo时，尽力确保PG侧存在映射用户
+          try {
+            const User = (await import('../models/User')).default;
+            const userDoc = await User.findById(userId).select('username email password avatar role isActive isVerified createdAt updatedAt');
+            if (userDoc) {
+              await ensureUser(userDoc as any);
+              const r3 = await pool.query('SELECT id FROM users WHERE external_id = $1 LIMIT 1', [String(userId)]);
+              if (r3.rows[0]?.id) {
+                ownerIdForPg = r3.rows[0].id;
+              }
             }
+          } catch (e) {
+            console.error('确保用户映射失败:', e);
           }
-        } catch (e) {
-          console.error('确保用户映射失败:', e);
         }
       }
     } catch (e) {
-      console.error('查询用户映射失败:', e);
+      console.error('用户ID映射查询失败:', e);
+    }
+
+    // 若仍未找到有效的PG用户ID，则拒绝创建以避免UUID类型错误
+    if (!ownerIdForPg) {
+      return res.status(401).json({
+        success: false,
+        message: '用户映射未建立，请重新登录后重试'
+      });
     }
 
     const dup = await pool.query(
@@ -263,7 +312,7 @@ export const createPet = async (req: Request, res: Response) => {
       }
     }
 
-    const r = await pool.query(
+    const r = await pool.query<PetBaseRow>(
       `INSERT INTO pets (owner_id, name, type, breed, gender, age, weight, avatar_url, description, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), now())
        RETURNING id, owner_id, name, type, breed, gender, age, weight, avatar_url, description, created_at, updated_at`,
@@ -279,7 +328,10 @@ export const createPet = async (req: Request, res: Response) => {
         petData.description ?? null,
       ]
     );
-    const row = r.rows[0];
+    const row: PetBaseRow | undefined = r.rows[0];
+    if (!row) {
+      return res.status(500).json({ success: false, message: '服务器内部错误' });
+    }
     const petWithRecordInfo = {
       id: row.id,
       ownerId: row.owner_id,
@@ -329,7 +381,7 @@ export const updatePet = async (req: Request, res: Response) => {
     }
 
     // 查找宠物并验证权限
-    const currentRes = await pool.query(
+    const currentRes = await pool.query<PetNameRow>(
       'SELECT name FROM pets WHERE id = $1 AND owner_id = $2 AND is_active = true',
       [petId, ownerIdForPg]
     );
@@ -368,17 +420,20 @@ export const updatePet = async (req: Request, res: Response) => {
     if ((updateData as any).avatar !== undefined) push('avatar_url', (updateData as any).avatar ?? null);
     if (updateData.description !== undefined) push('description', updateData.description ?? null);
 
-    let row;
+    let row: PetBaseRow | undefined;
     if (sets.length > 0) {
       const sql = `UPDATE pets SET ${sets.join(', ')}, updated_at = now() WHERE id = $1 AND owner_id = $2 RETURNING id, owner_id, name, type, breed, gender, age, weight, avatar_url, description, is_active, created_at, updated_at`;
-      const r = await pool.query(sql, params);
+      const r = await pool.query<PetBaseRow>(sql, params);
       row = r.rows[0];
     } else {
-      const r = await pool.query(
+      const r = await pool.query<PetBaseRow>(
         'SELECT id, owner_id, name, type, breed, gender, age, weight, avatar_url, description, is_active, created_at, updated_at FROM pets WHERE id = $1 AND owner_id = $2',
         [petId, ownerIdForPg]
       );
       row = r.rows[0];
+    }
+    if (!row) {
+      return res.status(404).json({ success: false, message: '宠物不存在或无权限访问' });
     }
 
     const updatedPet = {
@@ -426,7 +481,7 @@ export const deletePet = async (req: Request, res: Response) => {
       console.error('查询用户映射失败:', e);
     }
 
-    const r = await pool.query('UPDATE pets SET is_active = false, updated_at = now() WHERE id = $1 AND owner_id = $2 AND is_active = true RETURNING id', [petId, ownerIdForPg]);
+    const r = await pool.query<IdRow>('UPDATE pets SET is_active = false, updated_at = now() WHERE id = $1 AND owner_id = $2 AND is_active = true RETURNING id', [petId, ownerIdForPg]);
     if (!r.rows[0]) {
       return res.status(404).json({ success: false, message: '宠物不存在或无权限访问' });
     }

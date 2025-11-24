@@ -4,6 +4,7 @@ import { Upload, X, Image, AlertCircle, CheckCircle, Camera } from 'lucide-react
 import { useMobile } from '../hooks/useMobile';
 import MobileCamera from './mobile/MobileCamera';
 import TouchButton from './common/TouchButton';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface FileUploadProps {
   onFileSelect: (files: File[]) => void;
@@ -43,6 +44,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [showCamera, setShowCamera] = useState(false);
   const { isMobile } = useMobile();
+  const { t, language } = useI18n();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     console.log('FileUpload: 文件被选择', acceptedFiles);
@@ -133,18 +135,18 @@ const FileUpload: React.FC<FileUploadProps> = ({
       {/* 移动端相机按钮 */}
       {isMobile && accept['image/*'] && (
         <div className="mb-4">
-          <TouchButton
-            onClick={() => setShowCamera(true)}
-            variant="outline"
-            fullWidth
-            icon={Camera}
-            disabled={disabled}
-            className="border-2 border-dashed border-gray-300 hover:border-orange-400 bg-white"
-          >
-            使用相机拍照
-          </TouchButton>
-        </div>
-      )}
+      <TouchButton
+        onClick={() => setShowCamera(true)}
+        variant="outline"
+        fullWidth
+        icon={Camera}
+        disabled={disabled}
+        className="border-2 border-dashed border-gray-300 hover:border-orange-400 bg-white"
+      >
+        {t('fileUpload.useCameraButton')}
+      </TouchButton>
+    </div>
+  )}
 
       {/* 拖拽上传区域 */}
       <div
@@ -167,7 +169,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
           {uploadProgress !== undefined ? (
             <div className="w-full max-w-xs">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-gray-600">上传中...</span>
+                <span className="text-sm text-gray-600">{t('fileUpload.uploading')}</span>
                 <span className="text-sm text-gray-600">{uploadProgress}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -190,19 +192,19 @@ const FileUpload: React.FC<FileUploadProps> = ({
               <div className="px-2">
                 <p className="text-base sm:text-lg font-medium text-gray-700">
                   {isDragActive 
-                    ? '放开以上传文件' 
+                    ? t('fileUpload.dropHere') 
                     : isMobile 
-                      ? '点击选择文件' 
-                      : '拖拽文件到这里或点击选择'
+                      ? t('fileUpload.clickToSelect') 
+                      : t('fileUpload.dragOrClick')
                   }
                 </p>
                 <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                  支持 JPG、PNG、WebP、GIF 格式，最大 {formatFileSize(maxSize)}
-                  {multiple && ` (最多 ${maxFiles} 个文件)`}
+                  {t('fileUpload.supportedFormatsAndMax', { max: formatFileSize(maxSize) })}
+                  {multiple && ` ${t('fileUpload.maxFiles', { count: maxFiles })}`}
                 </p>
                 {isMobile && accept['image/*'] && (
                   <p className="text-xs text-orange-600 mt-1">
-                    或使用上方相机按钮拍照
+                    {t('fileUpload.useCameraTip')}
                   </p>
                 )}
               </div>
@@ -232,7 +234,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       {/* 文件预览列表 */}
       {selectedFiles.length > 0 && (
         <div className="mt-4 space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">已选择的文件:</h4>
+          <h4 className="text-sm font-medium text-gray-700">{t('fileUpload.selectedFiles')}:</h4>
           <div className="grid grid-cols-1 gap-2">
             {selectedFiles.map((file, index) => (
               <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">

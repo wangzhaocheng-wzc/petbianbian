@@ -1,13 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import mongoose from 'mongoose';
-import PoopRecord from '../models/PoopRecord';
+import { PoopRecord } from '../models/PoopRecord';
 import CommunityPost from '../models/CommunityPost';
 import Pet from '../models/Pet';
 import User from '../models/User';
 import { APP_CONFIG } from '../config/constants';
 import { Logger } from '../utils/logger';
 import { MonitoringService } from './monitoringService';
+import type { AnyBulkWriteOperation } from 'mongodb';
 
 type RewriteReason =
   | 'port_rewrite'
@@ -129,6 +130,22 @@ function ensureReportDir(): string {
 
 export class ImageUrlGovernanceService {
   static async previewAll(limitPerModel: number = 100): Promise<{ jobId: string; result: GovernancePreviewResult }> {
+    // 在 Postgres 模式下跳过 Mongo 依赖的预览逻辑
+    const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+    if (dbPrimary === 'postgres') {
+      const startedAt = Date.now();
+      const finishedAt = startedAt;
+      const result: GovernancePreviewResult = {
+        startedAt,
+        finishedAt,
+        durationMs: 0,
+        summary: { totalCandidates: 0, byModel: {}, byReason: {} },
+        sampleChanges: []
+      };
+      const jobId = `gov_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      previewStore.set(jobId, { createdAt: Date.now(), result });
+      return { jobId, result };
+    }
     const startedAt = Date.now();
     const summaryByModel: Record<string, number> = {};
     const summaryByReason: Record<string, number> = {};
@@ -216,6 +233,24 @@ export class ImageUrlGovernanceService {
   }
 
   static async execute(jobId: string): Promise<GovernanceExecuteResult> {
+    // 在 Postgres 模式下跳过 Mongo 执行逻辑
+    const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+    if (dbPrimary === 'postgres') {
+      const startedAt = Date.now();
+      const finishedAt = startedAt;
+      return {
+        startedAt,
+        finishedAt,
+        durationMs: 0,
+        summary: { totalCandidates: 0, byModel: {}, byReason: {} },
+        sampleChanges: [],
+        updatedCount: 0,
+        failedCount: 0,
+        failures: [],
+        reportFile: undefined,
+        modelDurationsMs: {}
+      };
+    }
     const preview = previewStore.get(jobId)?.result;
     const startedAt = Date.now();
     const byModel = { PoopRecord: 0, CommunityPost: 0, Pet: 0, User: 0 } as Record<string, number>;
@@ -232,7 +267,7 @@ export class ImageUrlGovernanceService {
     }
 
     // 将预览的sample作为修复依据进行更新
-    const bulkOpsByModel: Record<string, mongoose.mongo.BulkWriteOperation<any>[]> = {
+    const bulkOpsByModel: Record<string, AnyBulkWriteOperation<any>[]> = {
       PoopRecord: [],
       CommunityPost: [],
       Pet: [],
@@ -386,6 +421,11 @@ export class ImageUrlGovernanceService {
 
 // 定期报告任务（每日）
 export function startGovernanceReportScheduler() {
+  const dbPrimary = process.env.DB_PRIMARY || 'postgres';
+  if (dbPrimary === 'postgres') {
+    Logger.info('Postgres 模式下不启动图片URL治理的每日预览任务');
+    return;
+  }
   const oneDayMs = 24 * 60 * 60 * 1000;
   setInterval(async () => {
     try {

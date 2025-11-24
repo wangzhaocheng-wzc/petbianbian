@@ -4,6 +4,8 @@ import { Home, Camera, BarChart3, Users, User, Menu, X, Heart, TrendingUp, Shiel
 import { useMobile } from '../hooks/useMobile'
 import { useAuth } from '../hooks/useAuth'
 import MobileNavigation from './mobile/MobileNavigation'
+import { useI18n } from '../i18n/I18nProvider'
+import LanguageSwitcher from './common/LanguageSwitcher'
 
 interface LayoutProps {
   children: ReactNode
@@ -14,17 +16,18 @@ export default function Layout({ children }: LayoutProps) {
   const { isMobile } = useMobile()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
+  const { t } = useI18n()
 
   const navigation = [
-    { name: '首页', href: '/', icon: Home },
-    { name: '便便分析', href: '/analysis', icon: Camera, requireAuth: true },
-    { name: '我的宠物', href: '/pets', icon: Heart, requireAuth: true },
-    { name: '健康记录', href: '/records', icon: BarChart3, requireAuth: true },
-    { name: '数据统计', href: '/statistics', icon: TrendingUp, requireAuth: true },
-    { name: '宠物对比', href: '/comparison', icon: GitCompare, requireAuth: true },
-    { name: '宠物社区', href: '/community', icon: Users, requireAuth: true },
-    { name: '个人中心', href: '/profile', icon: User, requireAuth: true },
-    { name: '管理后台', href: '/admin', icon: Shield, requireAuth: true },
+    { nameKey: 'nav.home', href: '/', icon: Home },
+    { nameKey: 'nav.analysis', href: '/analysis', icon: Camera, requireAuth: true },
+    { nameKey: 'nav.pets', href: '/pets', icon: Heart, requireAuth: true },
+    { nameKey: 'nav.records', href: '/records', icon: BarChart3, requireAuth: true },
+    { nameKey: 'nav.statistics', href: '/statistics', icon: TrendingUp, requireAuth: true },
+    { nameKey: 'nav.comparison', href: '/comparison', icon: GitCompare, requireAuth: true },
+    { nameKey: 'nav.community', href: '/community', icon: Users, requireAuth: true },
+    { nameKey: 'nav.profile', href: '/profile', icon: User, requireAuth: true },
+    { nameKey: 'nav.admin', href: '/admin', icon: Shield, requireAuth: true },
   ]
 
   // 过滤导航项：未认证用户只能看到首页
@@ -57,7 +60,7 @@ export default function Layout({ children }: LayoutProps) {
                 className="text-lg sm:text-xl font-bold text-primary-600 truncate"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                🐾 宠物健康助手
+                🐾 {t('appName')}
               </Link>
             </div>
 
@@ -68,7 +71,7 @@ export default function Layout({ children }: LayoutProps) {
                 const isActive = location.pathname === item.href
                 return (
                   <Link
-                    key={item.name}
+                    key={item.href}
                     to={item.href}
                     className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
                       isActive
@@ -77,10 +80,13 @@ export default function Layout({ children }: LayoutProps) {
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
-                    {item.name}
+                    {t(item.nameKey)}
                   </Link>
                 )
               })}
+
+              {/* 语言切换器 */}
+              <LanguageSwitcher />
               
               {/* 用户菜单 */}
               {isAuthenticated ? (
@@ -91,7 +97,7 @@ export default function Layout({ children }: LayoutProps) {
                     className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 hover:text-red-600"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
-                    退出
+                    {t('logout')}
                   </button>
                 </div>
               ) : (
@@ -100,13 +106,13 @@ export default function Layout({ children }: LayoutProps) {
                     to="/login"
                     className="text-sm font-medium text-gray-500 hover:text-gray-700"
                   >
-                    登录
+                    {t('login')}
                   </Link>
                   <Link
                     to="/register"
                     className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md"
                   >
-                    注册
+                    {t('register')}
                   </Link>
                 </div>
               )}
@@ -117,7 +123,7 @@ export default function Layout({ children }: LayoutProps) {
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 touch:p-3 touch:bg-gray-50"
-                aria-label={isMobileMenuOpen ? '关闭菜单' : '打开菜单'}
+                aria-label={isMobileMenuOpen ? t('closeMenu') : t('openMenu')}
               >
                 {isMobileMenuOpen ? (
                   <X className="block h-6 w-6" />
@@ -142,14 +148,18 @@ export default function Layout({ children }: LayoutProps) {
                 <div className="flex flex-col h-full pt-safe-top">
                   {/* Header */}
                   <div className="flex items-center justify-between p-4 border-b">
-                    <span className="text-lg font-bold text-primary-600">菜单</span>
+                    <span className="text-lg font-bold text-primary-600">{t('menu')}</span>
                     <button
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
-                      aria-label="关闭菜单"
+                      aria-label={t('closeMenu')}
                     >
                       <X className="h-5 w-5" />
                     </button>
+                  </div>
+                  {/* 语言切换器（移动端） */}
+                  <div className="px-4 py-3 border-b">
+                    <LanguageSwitcher />
                   </div>
                   
                   {/* Navigation */}
@@ -160,7 +170,7 @@ export default function Layout({ children }: LayoutProps) {
                         const isActive = location.pathname === item.href
                         return (
                           <Link
-                            key={item.name}
+                            key={item.href}
                             to={item.href}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={`flex items-center px-3 py-3 text-base font-medium rounded-lg transition-colors ${
@@ -170,7 +180,7 @@ export default function Layout({ children }: LayoutProps) {
                             }`}
                           >
                             <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
-                            <span className="truncate">{item.name}</span>
+                            <span className="truncate">{t(item.nameKey)}</span>
                           </Link>
                         )
                       })}
@@ -192,7 +202,7 @@ export default function Layout({ children }: LayoutProps) {
                             className="flex items-center w-full px-3 py-3 text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                           >
                             <LogOut className="w-5 h-5 mr-3 flex-shrink-0" />
-                            <span>退出登录</span>
+                            <span>{t('logout')}</span>
                           </button>
                         </div>
                       ) : (
@@ -203,7 +213,7 @@ export default function Layout({ children }: LayoutProps) {
                             className="flex items-center px-3 py-3 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
                           >
                             <User className="w-5 h-5 mr-3 flex-shrink-0" />
-                            <span>登录</span>
+                            <span>{t('login')}</span>
                           </Link>
                           <Link
                             to="/register"
@@ -211,7 +221,7 @@ export default function Layout({ children }: LayoutProps) {
                             className="flex items-center px-3 py-3 text-base font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
                           >
                             <User className="w-5 h-5 mr-3 flex-shrink-0" />
-                            <span>注册</span>
+                            <span>{t('register')}</span>
                           </Link>
                         </div>
                       )}

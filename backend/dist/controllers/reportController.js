@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateHealthReportPDF = exports.downloadHealthReportPDF = exports.getHealthReportData = void 0;
 const reportService_1 = require("../services/reportService");
+const postgres_1 = require("../config/postgres");
 /**
  * 获取健康报告数据
  */
@@ -81,7 +82,9 @@ const downloadHealthReportPDF = async (req, res) => {
         const pdfBuffer = await reportService_1.ReportService.generateHealthReportPDF(userId, petId, daysNumber);
         // 获取宠物信息用于文件名
         const Pet = require('../models/Pet').default;
-        const pet = await Pet.findById(petId);
+        const pool = await (0, postgres_1.getPostgresPool)();
+        const petRes = await pool.query('SELECT id, name FROM pets WHERE id = $1 LIMIT 1', [petId]);
+        const pet = petRes.rows[0];
         const petName = pet ? pet.name : 'pet';
         const timestamp = new Date().toISOString().split('T')[0];
         const filename = `${petName}-健康报告-${timestamp}.pdf`;

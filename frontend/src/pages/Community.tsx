@@ -7,6 +7,7 @@ import { usePets } from '../hooks/usePets';
 import { useCommunity } from '../hooks/useCommunity';
 import { useAuth } from '../hooks/useAuth';
 import { CommunityPost, CreatePostRequest, UpdatePostRequest } from '../../../shared/types';
+import { useI18n } from '../i18n/I18nProvider';
 
 type ViewMode = 'list' | 'create' | 'edit' | 'detail' | 'preview';
 
@@ -14,6 +15,7 @@ const Community: React.FC = () => {
   const { user } = useAuth();
   const { pets } = usePets();
   const { createPost, updatePost } = useCommunity();
+  const { t } = useI18n();
   
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
@@ -24,7 +26,7 @@ const Community: React.FC = () => {
   // 处理创建帖子
   const handleCreatePost = () => {
     if (!user) {
-      alert('请先登录');
+      alert(t('community.loginRequired'));
       return;
     }
     setSelectedPost(null);
@@ -97,10 +99,10 @@ const Community: React.FC = () => {
         {/* 页面标题 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            宠物社区
+            {t('community.title')}
           </h1>
           <p className="text-gray-600">
-            分享你的养宠经验，与其他宠物主人交流互动
+            {t('community.subtitle')}
           </p>
         </div>
 

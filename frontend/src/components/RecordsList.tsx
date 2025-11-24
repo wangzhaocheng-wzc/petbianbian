@@ -14,6 +14,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { HealthRecord, RecordFilters } from '../services/recordsService';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface RecordsListProps {
   records: HealthRecord[];
@@ -41,6 +42,7 @@ const RecordsList: React.FC<RecordsListProps> = ({
   const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
+  const { t, language } = useI18n();
 
   const handleSelectRecord = (recordId: string) => {
     setSelectedRecords(prev => 
@@ -101,7 +103,8 @@ const RecordsList: React.FC<RecordsListProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('zh-CN', {
+    const locale = language === 'zh' ? t('analysis.dateLocale_zh') : t('analysis.dateLocale_en');
+    return new Date(dateString).toLocaleString(locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -112,16 +115,16 @@ const RecordsList: React.FC<RecordsListProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow">
-      {/* 头部工具栏 */}
+      {/* Header toolbar */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          {/* 搜索框 */}
+          {/* Search box */}
           <form onSubmit={handleSearch} className="flex-1 max-w-md">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="搜索记录..."
+                placeholder={t('recordsList.toolbar.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
@@ -129,14 +132,14 @@ const RecordsList: React.FC<RecordsListProps> = ({
             </div>
           </form>
 
-          {/* 工具按钮 */}
+          {/* Tools */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               <Filter className="w-4 h-4" />
-              筛选
+              {t('recordsList.toolbar.filter')}
             </button>
 
             {selectedRecords.length > 0 && (
@@ -145,37 +148,37 @@ const RecordsList: React.FC<RecordsListProps> = ({
                 className="flex items-center gap-2 px-3 py-2 text-red-600 hover:text-red-800 border border-red-300 rounded-lg hover:bg-red-50"
               >
                 <Trash2 className="w-4 h-4" />
-                删除选中 ({selectedRecords.length})
+                {t('recordsList.toolbar.deleteSelected', { count: selectedRecords.length })}
               </button>
             )}
           </div>
         </div>
 
-        {/* 筛选面板 */}
+        {/* Filter panel */}
         {showFilters && (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* 健康状态筛选 */}
+              {/* Health status filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  健康状态
+                  {t('recordsList.filters.healthStatus')}
                 </label>
                 <select
                   value={filters.healthStatus || ''}
                   onChange={(e) => onFiltersChange({ healthStatus: e.target.value as any, page: 1 })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
-                  <option value="">全部</option>
-                  <option value="healthy">健康</option>
-                  <option value="warning">警告</option>
-                  <option value="concerning">异常</option>
+                  <option value="">{t('recordsList.filters.all')}</option>
+                  <option value="healthy">{t('status.healthy')}</option>
+                  <option value="warning">{t('status.warning')}</option>
+                  <option value="concerning">{t('status.concerning')}</option>
                 </select>
               </div>
 
-              {/* 日期范围 */}
+              {/* Date range */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  开始日期
+                  {t('recordsList.filters.startDate')}
                 </label>
                 <input
                   type="date"
@@ -187,7 +190,7 @@ const RecordsList: React.FC<RecordsListProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  结束日期
+                  {t('recordsList.filters.endDate')}
                 </label>
                 <input
                   type="date"
@@ -212,24 +215,24 @@ const RecordsList: React.FC<RecordsListProps> = ({
                 }}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                清除筛选
+                {t('recordsList.filters.clear')}
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* 记录列表 */}
+      {/* Records table */}
       <div className="overflow-x-auto">
         {loading ? (
           <div className="p-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-            <p className="mt-2 text-gray-600">加载中...</p>
+            <p className="mt-2 text-gray-600">{t('recordsList.loading')}</p>
           </div>
         ) : records.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>暂无记录</p>
+            <p>{t('recordsList.empty')}</p>
           </div>
         ) : (
           <table className="w-full">
@@ -244,22 +247,22 @@ const RecordsList: React.FC<RecordsListProps> = ({
                   />
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  宠物
+                  {t('recordsList.columns.pet')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  健康状态
+                  {t('recordsList.columns.healthStatus')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  置信度
+                  {t('recordsList.columns.confidence')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  时间
+                  {t('recordsList.columns.time')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  备注
+                  {t('recordsList.columns.notes')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
+                  {t('recordsList.columns.actions')}
                 </th>
               </tr>
             </thead>
@@ -303,7 +306,7 @@ const RecordsList: React.FC<RecordsListProps> = ({
                     <div className="flex items-center">
                       {getHealthStatusIcon(record.analysis.healthStatus)}
                       <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${getHealthStatusColor(record.analysis.healthStatus)}`}>
-                        {record.analysis.healthStatusDescription}
+                        {t(`status.${record.analysis.healthStatus}`)}
                       </span>
                     </div>
                   </td>
@@ -321,21 +324,21 @@ const RecordsList: React.FC<RecordsListProps> = ({
                       <button
                         onClick={() => onViewRecord(record)}
                         className="text-blue-600 hover:text-blue-800"
-                        title="查看详情"
+                        title={t('recordsList.actions.view')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => onEditRecord(record)}
                         className="text-green-600 hover:text-green-800"
-                        title="编辑"
+                        title={t('recordsList.actions.edit')}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => onDeleteRecord(record)}
                         className="text-red-600 hover:text-red-800"
-                        title="删除"
+                        title={t('recordsList.actions.delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -351,13 +354,15 @@ const RecordsList: React.FC<RecordsListProps> = ({
         )}
       </div>
 
-      {/* 分页 */}
+      {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
         <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            显示 {((pagination.page - 1) * pagination.limit) + 1} 到{' '}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} 条，
-            共 {pagination.total} 条记录
+            {t('recordsList.pagination.range', {
+              from: ((pagination.page - 1) * pagination.limit) + 1,
+              to: Math.min(pagination.page * pagination.limit, pagination.total),
+              total: pagination.total
+            })}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -366,11 +371,11 @@ const RecordsList: React.FC<RecordsListProps> = ({
               className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
-              上一页
+              {t('recordsList.pagination.prev')}
             </button>
             
             <span className="px-3 py-2 text-sm text-gray-700">
-              第 {pagination.page} 页，共 {pagination.totalPages} 页
+              {t('recordsList.pagination.pageOf', { page: pagination.page, totalPages: pagination.totalPages })}
             </span>
             
             <button
@@ -378,7 +383,7 @@ const RecordsList: React.FC<RecordsListProps> = ({
               disabled={!pagination.hasNext}
               className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              下一页
+              {t('recordsList.pagination.next')}
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

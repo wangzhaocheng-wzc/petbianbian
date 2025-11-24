@@ -15,6 +15,7 @@ export interface ContentAnalysis {
         title?: string;
         tags?: string[];
         images?: string[];
+        pgUserId?: string;
     };
 }
 declare class ModerationService {

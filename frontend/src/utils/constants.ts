@@ -1,5 +1,5 @@
-// API基础URL
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003/api';
+// API基础URL（默认指向后端 5000 端口，与后端默认一致）
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // 路由路径
 export const ROUTES = {

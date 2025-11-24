@@ -240,35 +240,7 @@ export class AnalysisService {
     }
   }
 
-  /**
-   * 导出分析记录
-   */
-  static async exportRecords(
-    petId: string,
-    format: 'csv' | 'pdf' = 'csv',
-    options: {
-      startDate?: string;
-      endDate?: string;
-      healthStatus?: string;
-    } = {}
-  ): Promise<Blob> {
-    try {
-      const params = new URLSearchParams();
-      params.append('format', format);
-      if (options.startDate) params.append('startDate', options.startDate);
-      if (options.endDate) params.append('endDate', options.endDate);
-      if (options.healthStatus) params.append('healthStatus', options.healthStatus);
-
-      const response = await api.get(`/analysis/export/${petId}?${params.toString()}`, {
-        responseType: 'blob'
-      });
-
-      return response.data;
-    } catch (error: any) {
-      console.error('导出记录失败:', error);
-      throw new Error(error.response?.data?.message || '导出记录失败');
-    }
-  }
+  
 
   /**
    * 获取健康建议
