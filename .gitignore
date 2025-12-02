@@ -57,6 +57,7 @@ el-ccache
 /.env.local
 /.env.*.local
 backend/.env.local
+backend/.env
 frontend/.env.local
 !.env.example
 !backend/.env.example
