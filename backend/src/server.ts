@@ -63,6 +63,8 @@ const allowedOrigins = [
   'http://127.0.0.1:4173',
   'http://127.0.0.1:4174',
   'http://localhost:3000',
+  'https://petbianbian.vercel.app',
+  'https://petbianbian-dl9w.vercel.app',
   process.env.FRONTEND_URL || '',
 ].filter(Boolean);
 

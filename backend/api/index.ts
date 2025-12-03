@@ -7,6 +7,9 @@ import { connectRedis } from '../src/config/redis';
 let isConnected = false;
 
 export default async function handler(req: any, res: any) {
+  // Log request details for debugging
+  console.log(`[Vercel] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
+
   // 手动处理 CORS 预检请求 (OPTIONS)
   // 这是解决 Vercel 部署中 CORS 问题的最稳健方法，因为它绕过了 Express 的中间件链
   res.setHeader('Access-Control-Allow-Credentials', 'true');
