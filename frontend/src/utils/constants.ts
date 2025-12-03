@@ -1,5 +1,7 @@
-// API基础URL（默认指向后端 5000 端口，与后端默认一致）
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// API基础URL
+// 在 Vercel 环境下，优先使用 /api 相对路径（通过 vercel.json rewrite 转发到后端）
+// 这样可以避免 CORS 问题，并利用 Vercel 的内部网络优化
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // 路由路径
 export const ROUTES = {
