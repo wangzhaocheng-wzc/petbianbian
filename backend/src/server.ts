@@ -197,6 +197,13 @@ const startServer = async () => {
   }
 };
 
+// 仅在直接运行脚本时启动服务器（避免测试或Vercel部署时自动启动）
+if (require.main === module) {
+  startServer();
+}
+
+export default app;
+
 // 优雅关闭
 process.on('SIGTERM', async () => {
   Logger.info('收到SIGTERM信号，正在关闭服务器...');
